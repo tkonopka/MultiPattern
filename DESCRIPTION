@@ -1,0 +1,22 @@
+Package: MultiPattern
+Title: Multi-pattern discovery in R
+Version: 0.0.1.0
+Authors@R: person("Tomasz", "Konopka", email = "tomasz.konopka@ludwig.ox.ac.uk", role = c("aut", "cre"))
+Author: Tomasz Konopka <tomasz.konopka@ludwig.ox.ac.uk>
+Maintainer: Tomasz Konopka <tomasz.konopka@ludwig.ox.ac.uk>
+Description: Multi-pattern discovery in R. See README for further details.
+Depends:
+    R (>= 3.1.2)
+Imports:
+    cluster,
+    data.table,
+    graphics,
+    Rcssplot,
+    rpca,
+    stats
+License: MIT + file LICENSE
+LazyData: true
+Suggests:
+    knitr
+VignetteBuilder: knitr
+RoxygenNote: 5.0.1
