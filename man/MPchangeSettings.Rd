@@ -12,7 +12,7 @@ MPchangeSettings(MP, settings = list())
 \item{settings}{list with new settings
 
 Accepted settings names are 'num.PCs', 'num.random', 'alpha',
-'rpca.term.delta', 'clust.k'}
+'rpca.term.delta', 'clust.k', 'subspace.num.random', 'subspace.d.random'}
 }
 \description{
 Change settings encoded in a MultiPattern object

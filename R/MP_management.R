@@ -34,7 +34,7 @@ MPnew = function(items, data=NULL) {
         ## number or proportion of features for subspace analysis
         subspace.d.random=0.5,
         ## exponent for similarity transformation
-        alpha=1          
+        alpha=1        
         )
     class(ans) = "MultiPattern"
     
@@ -264,7 +264,7 @@ MPremove = function(MP, data=NULL, config=NULL) {
 ##' @param settings list with new settings
 ##'
 ##' Accepted settings names are 'num.PCs', 'num.random', 'alpha',
-##' 'rpca.term.delta', 'clust.k'
+##' 'rpca.term.delta', 'clust.k', 'subspace.num.random', 'subspace.d.random'
 ##' 
 ##' @export
 MPchangeSettings = function(MP, settings = list()) {
@@ -586,24 +586,23 @@ MPgetDistances = function(MP, verbose=TRUE) {
     if (verbose & object.size(MP)>1e6) {
         cat("This may take a little time. Please wait... ")
     }
-    
-    ## create output object as a list of distance matrices
-    ans = setNames(vector("list", length(MP$configs)), names(MP$configs))
-    class(ans) = "MultiPatternSimilarities"
-    
-    ## loop over configuration in the MP object
-    for (i in seq_along(MP$configs)) {
-        NC = MP$configs[[i]]
 
-        ## fetch the raw data from the MP object, perhaps pre-process it
-        nowdata = MP$data[[NC$data]]        
-        if (!is.null(NC$prep)) {
-            nowdata = NC$prep(nowdata)
-        }
-        
-        ## compute similarities and store in the output object
-        ans[[NC$name]] = NC$dist.fun(nowdata)        
-    }
+    ## helper function that computes one distance object given one configuration
+    adfun = function(NC) {
+         nowdata = MP$data[[NC$data]]
+         if (!is.null(NC$prep)) {
+             nowdata = NC$prep(nowdata)
+         }            
+         ## compute similarities and store in the output object
+         NC$dist.fun(nowdata)  
+     }
+
+    ## main part of the work - compute all distances
+    ans = lapply(MP$configs, adfun)
+     
+    ## housekeeping for the list
+    names(ans) = names(MP$configs)
+    class(ans) = "MultiPatternSimilarities"
     
     if (verbose & object.size(MP)>1e6) {
         cat("done\n")
