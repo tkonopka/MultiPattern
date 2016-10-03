@@ -571,8 +571,6 @@ MPgetNonredundantGenesets = function(sets, target.genes=NULL, target.size=c(2, 2
 
 
 
-
-
 ##' shows the genesets that contain genes
 ##'
 ##' @param sets list of gene sets
@@ -584,6 +582,45 @@ MPingenesets = function(sets, genes) {
 }
 
 
+
+
+##' Creates a set of configurations using prcomp
+##' 
+##' @param MP MultiPattern
+##' @param dd matrix, dataset in MP to process
+##' @param ddname character, name of dataset
+##'
+MPaddPCAset = function(MP, dd, ddname) {
+    
+    datapca = getPCAsubset(dd, subset=PCAexplain)
+
+    if (!is.null(datapca)) {
+        pcaname = paste0(ddname, ".pca")
+        ## add dataset to the MPconfig
+        MPaddData(MP, setNames(list(datapca), pcaname)) 
+        ## create a series of configurations for pca
+        pcasets = list()
+        imax = min(ncol(dd)-1, ncol(datapca))
+        for (i in 1:imax) {
+            if (i==1) {
+                pcasets[[colnames(datapca)[1]]] = colnames(datapca)[1]                        
+            } else if (i>2) {
+                pcasets[[paste(colnames(datapca)[c(1,i)], collapse="..")]] = colnames(datapca)[1:i]
+            }
+        }
+        ## add configuration with increasing PCA details
+        MPaddConfig(MP, paste0(config.prefix, ddname, ":", names(pcasets)),
+                    data.name=pcaname, preprocess=pcasets)
+        ## add configurations with pairwise PCA columns
+        twospaces = MPgetAll2Subspaces(head(colnames(datapca)))
+        if (length(twospaces)>0) {
+            MPaddConfig(MP, paste0(config.prefix, ddname, ":", names(twospaces)),
+                        data.name=pcaname, preprocess=twospaces)
+        }
+    }
+
+    return(MP)
+}
 
 
 

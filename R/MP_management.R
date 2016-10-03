@@ -1,4 +1,4 @@
-## Functions that hold "management" objects for MultiMetrics clustering
+## Functions that hold "management" objects for MultiPattern clustering
 ## (objects that help to keep track of the clustering definitions and distance matrics
 ##
 
@@ -8,7 +8,7 @@
 
 ##' Create a basic MP object
 ##'
-##' @param items character vector, specifies names for observations in the multipatter analysis
+##' @param items character vector, specifies names for observations in the multipattern analysis
 ##' @param data named list with data objects. Specifying this parameter
 ##' is equivalent to calling MPnew() and then adding data manually with MPaddData()
 ##' 
@@ -16,10 +16,7 @@
 MPnew = function(items, data=NULL) {
     
     ## create a blank MultiPattern object
-    ans = list()
-    ans$items = items;
-    ans$data = list()
-    ans$configs = list()
+    ans = list(items=items, data=list(), configs=list())
     ans$settings = list(
         ## number of random configurations to create by default
         num.random=100,
@@ -308,18 +305,6 @@ MPchangeSettings = function(MP, settings = list()) {
 ## ###################################################################################
 
 
-## This block below was part of MPeasyConfig (the settings are now part of the MPchangeSettings)
-##
-## @param Nrandom integer, number of random configurations to add
-## @param PCAexplain numeric, used for pca configurations. When <1, interpreted as the proportion
-## of variance explained by the PCA componets. When >1, interpreted as the number of PCA
-## components to use.
-## @param term.delta numeric, used during rpca decomposition. See package rpca. This is set to a
-## larger number than default in rpca to speed up execution.
-## @param clust.k integer, number of cluster groups to consider with type="clust" and "pam".
-## When set to clust.k=4, configuration will be used with k=2,3,4.
-
-
 ##' Add predefined configuration types to a MultiPattern configuration object
 ##'
 ##' This function modifies the object MP in the first argument. The primary modifications
@@ -332,37 +317,20 @@ MPchangeSettings = function(MP, settings = list()) {
 ##' applies the configurations to all datasets (but see type). If not NULL, function only considers
 ##' the specified data objects.
 ##' @param config.prefix character, prefix used in all configuration names
-##' @param subspace.prefix character, a middle-fix used when naming subspaceR configurations
-##' @param type character or list, codes for what types of configurations to add. The default list
+##' @param preprocess.prefix character, a middle-fix used when naming subspaceR configurations
+##' @param type character or list, codes for what types of configuration plugins to use. To see all
+##' available plugins, use MPlistPlugins(). 
 ##' shows all the supported configuration types. Detailed descriptions will appear elsewhere.
 ##' @param preprocess object specifying preprocessing, e.g. vector of features for subspaces
 ##' 
 ##' @export
-MPeasyConfig = function(MP, data=NULL, config.prefix="", subspace.prefix="", 
-    type=c("pca", "rpca", "euclidean", "spearman", "canberra", "manhattan", "hclust", "pam",
-        "random", "subspace1", "subspace2", "subspaceR"),
+MPeasyConfig = function(MP, data=NULL, config.prefix="", preprocess.prefix="", 
+    type=c("pca", "euclidean", "spearman", "canberra", "manhattan", "hclust", "pam"),
     preprocess=NULL) {
-    
-    ## get values from MP settings
-    Nrandom = MP$settings$num.random
-    PCAexplain = MP$settings$num.PCs
-    term.delta = MP$settings$rpca.term.delta
-    clust.k = MP$settings$clust.k
-
-    ## define types of analysis that are supported by package functions
-    oktypes = c("pca", "rpca", "euclidean", "spearman", "canberra", "manhattan", "hclust", "pam",
-        "random", "subspace1", "subspace2", "subspacer")
     
     ## capture MP expression for assignment at the end
     captureMP = deparse(substitute(MP))
     
-    ## check if all types requested by user are supported 
-    nowtypes = tolower(unlist(type))
-    type.bad = nowtypes[!(nowtypes %in% oktypes)]
-    if (length(type.bad)>0) {
-        stop("Unrecognized configuration types: ", type.bad, "\n")
-    }
-    rm(type.bad)
     if (!is.null(data)) {
         data.missing = data[!(data %in% names(MP$data))]
         if (length(data.missing)) {
@@ -381,14 +349,14 @@ MPeasyConfig = function(MP, data=NULL, config.prefix="", subspace.prefix="",
                 data.type = names(type)
                 data.type = data.type[!(data.type %in% names(MP$data))]
                 if (length(data.type)>0) {
-                    stop("Unrecognized data type: ", data.type, "\n")
+                    stop("Unrecognized dataset: ", data.type, "\n")
                 }
             }
         }
     }
-
-    if (subspace.prefix != "") {
-        subspace.prefix = p0(":", subspace.prefix)
+    
+    if (preprocess.prefix != "") {
+        preprocess.prefix = p0(":", preprocess.prefix)
     }
     
     ## standardize the input - into data=NULL and type=list(data=type)
@@ -404,154 +372,19 @@ MPeasyConfig = function(MP, data=NULL, config.prefix="", subspace.prefix="",
         typelist = setNames(vector("list", length(data)), data)
         typelist = lapply(typelist, function(x) {type})
     }
-    
-    clust.k.range = seq(2, abs(clust.k))
-    clust.k.range = clust.k.range[clust.k.range>1]
-    
+        
+  
     ## ###################################################################################
-    ## helper function adds a PCA dataset and a set of configurations to MP
-    addPCAset = function(dd, ddname) {
-        datapca = getPCAsubset(dd, subset=PCAexplain)
-        if (!is.null(datapca)) {
-            pcaname = paste0(ddname, ".pca")
-            ## add dataset to the MPconfig
-            MPaddData(MP, setNames(list(datapca), pcaname)) 
-            ## create a series of configurations for pca
-            pcasets = list()
-            imax = min(ncol(dd)-1, ncol(datapca))
-            for (i in 1:imax) {
-                if (i==1) {
-                    pcasets[[colnames(datapca)[1]]] = colnames(datapca)[1]                        
-                } else if (i>2) {
-                    pcasets[[paste(colnames(datapca)[c(1,i)], collapse="..")]] = colnames(datapca)[1:i]
-                }
-            }
-            ## add configuration with increasing PCA details
-            MPaddConfig(MP, paste0(config.prefix, ddname, ":", names(pcasets)),
-                        data.name=pcaname, preprocess=pcasets)
-            ## add configurations with pairwise PCA columns
-            twospaces = MPgetAll2Subspaces(head(colnames(datapca)))
-            if (length(twospaces)>0) {
-                MPaddConfig(MP, paste0(config.prefix, ddname, ":", names(twospaces)),
-                            data.name=pcaname, preprocess=twospaces)
-            }
-        }
-        return(MP)
-    }
-
-    ## ###################################################################################
-    ## Here, all relevant info is in a list typelist
+    ## Add configurations by applying plugins
+    
     for (nowd in names(typelist)) {
-        nowtypes = typelist[[nowd]]
-        for (oneliner in c("euclidean", "spearman", "canberra", "manhattan")) {
-            if (oneliner %in% nowtypes) {
-                MPaddConfig(MP, paste0(config.prefix, nowd,":", oneliner), data.name=nowd,
-                            dist.fun=MPdistFactory(method=oneliner))                
-            }
-        }                
-        if ("pca" %in% nowtypes) {
-            MP = addPCAset(MP$data[[nowd]], nowd)
-        }
-        if ("rpca" %in% nowtypes) {
-            ##require("rpca")
-            datarpca = rpca::rpca(MP$data[[nowd]], term.delta=term.delta);
-            rownames(datarpca$L) = rownames(datarpca$S) = rownames(MP$data[[nowd]])
-            colnames(datarpca$L) = colnames(datarpca$S) = colnames(MP$data[[nowd]])            
-            Lname = paste0(nowd, ".rpcaL")
-            Sname = paste0(nowd, ".rpcaS")
-            MPaddData(MP, setNames(list(datarpca$L, datarpca$S), c(Lname, Sname)))           
-            MP = addPCAset(MP$data[[Lname]], Lname)
-            MP = addPCAset(MP$data[[Sname]], Sname)
-        }
-        if ("hclust" %in% nowtypes) {
-            clustconf = paste0(config.prefix, nowd, ":clust.")
-            ## add cluster-based distance for each k
-            for (nowk in clust.k.range) {
-                if (nrow(MP$data[[nowd]])>(2*nowk)+2) {
-                    for (ncm in c("complete", "single", "average")) {
-                        nowdreg = MPdistFactory(method="hclust",
-                            clust.k=nowk, clust.method=ncm, clust.alt=FALSE)
-                        nowdalt = MPdistFactory(method="hclust",
-                            clust.k=nowk, clust.method=ncm, clust.alt=TRUE)
-                        ncm.init = toupper(substring(ncm, 1, 1))                        
-                        MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "reg"),
-                                    data.name=nowd, dist.fun=nowdreg)
-                        MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "alt"),
-                                    data.name=nowd, dist.fun=nowdalt)
-                        rm(nowdreg, nowdalt, ncm.init)
-                    }
-                }
-            }
-            rm(clustconf)
-        }
-        if ("pam" %in% nowtypes) {
-            clustconf = paste0(config.prefix, nowd, ":clust.")
-            ## add cluster-based distance for each k
-            for (nowk in clust.k.range) {
-                if (nrow(MP$data[[nowd]])>(2*nowk)+2) {
-                    ncm.init = "P"                    
-                    nowdreg = MPdistFactory(method="pam",
-                        clust.k=nowk, clust.method="pam", clust.alt=FALSE)
-                    nowdalt = MPdistFactory(method="pam",
-                        clust.k=nowk, clust.method="pam", clust.alt=TRUE)
-                    MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "reg"),
-                                data.name=nowd, dist.fun=nowdreg)
-                    MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "alt"),
-                                data.name=nowd, dist.fun=nowdalt)
-                    rm(nowdreg, nowdalt)                    
-                }
-            }
-            rm(clustconf)            
-        }
-        if ("subspace1" %in% nowtypes) {
-            if (is.null(preprocess)) {
-                temp = as.list(colnames(MP$data[[nowd]]))
-                names(temp) = colnames(MP$data[[nowd]])
-            } else {
-                temp = as.list(preprocess)
-                names(temp) = preprocess
-            }
-            MPaddConfig(MP, paste0(config.prefix, nowd, subspace.prefix, ":subspace1"), data.name=nowd,
-                        preprocess=temp)
-            rm(temp)
-        }
-        if ("subspace2" %in% nowtypes) {
-            if (is.null(preprocess)) {
-                temp = MPgetAll2Subspaces(colnames(MP$data[[nowd]]))
-            } else {
-                temp = MPgetAll2Subspaces(preprocess)
-            }
-            MPaddConfig(MP, paste0(config.prefix, nowd, subspace.prefix, ":subspace2"), data.name=nowd,
-                        preprocess=temp)
-            rm(temp)
-        }
-        if ("subspaceR" %in% nowtypes) {
-            Nsub = ceiling(MP$settings$subspace.num.random)
-            Dsub = MP$settings$subspace.d.random
-            if (is.null(preprocess)) {
-                temp = colnames(MP$data[[nowd]])
-            } else {
-                temp = preprocess
-            }
-            if (Dsub<1) {
-                Dsub = abs(Dsub*length(temp))
-            }            
-            Dsub = min(length(temp), ceiling(Dsub))
-            temp.subspaces = MPgetRandomSubspaces(temp, Nsub, Dsub)
-            MPaddConfig(MP, paste0(config.prefix, nowd, subspace.prefix, ":subspaceR"), data.name=nowd,
-                        preprocess=temp.subspaces, dist.fun=dist.euclidean)
-            rm(temp.subspaces, Nsub, Dsub)
-        }
+        nowtypes = tolower(typelist[[nowd]])        
+        for (nowtype in nowtypes) {
+            plugin.fun = match.fun(paste0(nowtype, ".MultiPatternPlugin"))
+            MP = plugin.fun(MP, nowd, config.prefix, preprocess.prefix, preprocess)
+        }             
     }
-    
-    ## add random configurations if needed
-    if (class(type)!="list" & length(type)==1) {
-        if (type=="random" & Nrandom>0) {
-            MPaddConfig(MP, paste0(config.prefix, "rnorm.", 1:Nrandom), names(MP$data)[1], 
-                        preprocess=vector("list", Nrandom), dist.fun=dist.rnorm)
-        }
-    }
-    
+      
     
     ## ###################################################################################
     ## assign and return an updated MP obejct
@@ -661,10 +494,9 @@ MPgetMetaDistance = function(MPS, standardize=MPrankNeighbors, alpha=1, beta=2, 
         sum(temp)^(1/beta)
     }
     simpledist = function(a, b) {
-        temp = a-b
-        sqrt(sum(temp*temp))
+        sqrt(sum((a-b)*(a-b)))
     }
-
+    
     if (beta==2) {
         for (i in seq_len(nowsize)) {
             for (j in seq_len(nowsize)) {

@@ -171,8 +171,8 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
                 }                                
             }                                
         }
-
-        MPeasyConfig(MP, config.prefix=config.prefix, subspace.prefix=nowf,
+        
+        MPeasyConfig(MP, config.prefix=config.prefix, preprocess.prefix=nowf,
                      type="subspaceR", data=data, preprocess=colnames(nowdd))
         rm(nowfeatures, clustconf)
     }

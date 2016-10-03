@@ -4,10 +4,9 @@
 \alias{MPeasyConfig}
 \title{Add predefined configuration types to a MultiPattern configuration object}
 \usage{
-MPeasyConfig(MP, data = NULL, config.prefix = "", subspace.prefix = "",
-  type = c("pca", "rpca", "euclidean", "spearman", "canberra", "manhattan",
-  "hclust", "pam", "random", "subspace1", "subspace2", "subspaceR"),
-  preprocess = NULL)
+MPeasyConfig(MP, data = NULL, config.prefix = "", preprocess.prefix = "",
+  type = c("pca", "euclidean", "spearman", "canberra", "manhattan", "hclust",
+  "pam"), preprocess = NULL)
 }
 \arguments{
 \item{MP}{MultiPattern configuration object}
@@ -18,9 +17,10 @@ the specified data objects.}
 
 \item{config.prefix}{character, prefix used in all configuration names}
 
-\item{subspace.prefix}{character, a middle-fix used when naming subspaceR configurations}
+\item{preprocess.prefix}{character, a middle-fix used when naming subspaceR configurations}
 
-\item{type}{character or list, codes for what types of configurations to add. The default list
+\item{type}{character or list, codes for what types of configuration plugins to use. To see all
+available plugins, use MPlistPlugins(). 
 shows all the supported configuration types. Detailed descriptions will appear elsewhere.}
 
 \item{preprocess}{object specifying preprocessing, e.g. vector of features for subspaces}
