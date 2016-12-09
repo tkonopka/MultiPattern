@@ -19,6 +19,8 @@ pca.MultiPatternPlugin(MP, data.name, config.prefix, preprocess.prefix = "",
 \item{preprocess}{character}
 }
 \description{
-Add a set of configurations to an MultiPattern object
+This plugin transforms an input dataset using PCA, then adds configurations
+that use the transformed data. Settings for this plugin are extracted from
+MP$settings.
 }
 

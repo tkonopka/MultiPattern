@@ -19,6 +19,9 @@ hclust.MultiPatternPlugin(MP, data.name, config.prefix,
 \item{preprocess}{character}
 }
 \description{
-Add a set of configurations to an MultiPattern object
+This plugin adds several configurations that use clustering-driven dissimilarities
+(using hclust). Some configurations (marked reg) create dissimilarities that reinforce
+traditional clustering. Other configurations (marked alt) use an alternative clustering
+distance. Settings for this plugin are extracted from MP$settings.
 }
 

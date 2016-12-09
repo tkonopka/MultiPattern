@@ -19,6 +19,6 @@ spearman.MultiPatternPlugin(MP, data.name, config.prefix,
 \item{preprocess}{character}
 }
 \description{
-Add a set of configurations to an MultiPattern object
+This plugin adds one configuration that uses a spearman-correlation dissimilarity
 }
 

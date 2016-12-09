@@ -4,19 +4,16 @@
 \alias{MPplotScatterWithK}
 \title{plot a 2D scatter diagram with clusters in various style}
 \usage{
-MPplotScatterWithK(coords, xyd, clust.method = "single", clust.k = 2,
-  main = "", RC = "default", RCC = c())
+MPplotScatterWithK(coords, clust, Gnames = TRUE, main = "",
+  RC = "default", RCC = c())
 }
 \arguments{
 \item{coords}{matrix, first two columns will be interpreted as xy coordinates}
 
-\item{xyd}{distance object or matrix}
+\item{clust}{character, mapping between items and cluster numbers}
 
-\item{clust.method}{character, set as either method for hclust, or "pam", or "none". When "none",
-the xyd object is interpreted as a list with items}
-
-\item{clust.k}{integer, number of clusters to color. Clusters will be called G1, G2, G3, etc.
-Use these codes to tune appearance of these classes in the Rcss.}
+\item{Gnames}{logical, set TRUE to force cluster group names into G1, G2, etc.
+set FALSE to use the existing group names in clust}
 
 \item{main}{character, displayed as plot title}
 

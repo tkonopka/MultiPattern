@@ -11,6 +11,7 @@ Imports:
     cluster,
     data.table,
     graphics,
+    NMF,
     Rcssplot,
     rpca,
     stats

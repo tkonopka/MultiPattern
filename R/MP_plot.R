@@ -296,6 +296,7 @@ MPplotNeighbors = function(MPnei, samplenames, seedsample, consensus=TRUE,
 ##' @param seedsample one or more sample name (produces one plot for each seed)
 ##' @param neighborhood integer. Size of neighborhood around seed sample
 ##' @param ds.names vector with labels to replace ds original names
+##' @param bg vector with labels from ds.names that are treated as class 'bg'
 ##' @param plot logical. Set TRUE to get figures. Set FALSE to get comparison data frame.
 ##' @param order logical. Set TRUE to arrange multiple seedsample by sum JI
 ##' @param density.n integer. Passed on to density to compute smoothing fo JI when seedsample=NA
@@ -305,7 +306,7 @@ MPplotNeighbors = function(MPnei, samplenames, seedsample, consensus=TRUE,
 ##'
 ##' @export
 MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
-    ds.names=NULL, 
+    ds.names=NULL, bg=NULL,
     plot=TRUE, order=TRUE, density.n=128, density.adjust=2, 
     Rcss="default", Rcssclass=c()) {
     
@@ -316,7 +317,8 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
             seedmetric = list()
             for (nowseed in seedsample) {
                 seedmetric[[nowseed]] = MPplotPairwiseSets(ds, samplenames, nowseed,
-                              neighborhood=neighborhood, ds.names=ds.names, plot=FALSE, order=FALSE)
+                              neighborhood=neighborhood, ds.names=ds.names, bg=bg,
+                              plot=FALSE, order=FALSE)
             }
             seedmetric = sapply(seedmetric, function(x) {sum(x[,"JI"])})
             seedsample = seedsample[order(seedmetric)]
@@ -326,7 +328,7 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
         ## to display extreme sumJI values on either end
         for (nowseed in seedsample) {
             MPplotPairwiseSets(ds, samplenames, nowseed, neighborhood=neighborhood,
-                               ds.names=ds.names, 
+                               ds.names=ds.names, bg=bg,
                                plot=plot, order=FALSE, 
                                Rcss=Rcss, Rcssclass=Rcssclass)
         }
@@ -414,7 +416,11 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
     ## compute the effective margin
     effmai = nowmai
     effmai[1] = nowmai[1]+(nowcellsize[2]*nrow(MPnei))
+    ## compute the effective class
+    neiclass = rep("good", nrow(neicompare))
+    neiclass[neicompare[, "Set1"] %in% bg | neicompare[, "Set2"] %in% bg] = "bg"
 
+    
     ## draw the bar chart with Jaccard Index
     xlim = c(-0.5+barwidth2, nrow(neicompare))
     ylim = c(0, 1)
@@ -431,7 +437,7 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
     if (ncol(neicompare)==3) {
         for (i in 1:nrow(neicompare)) {
             Rcssrect(i-0.5-barwidth2, 0, i-0.5+barwidth2, neicompare[i, paste0("JI.", seedsample)],
-                     Rcss=RC, Rcssclass=c(RCC, "barplot"))
+                     Rcss=RC, Rcssclass=c(RCC, "barplot", neiclass[i]))
         }
     } else {
         for (i in 1:nrow(neicompare)) {
@@ -442,7 +448,7 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
             tempx[tempx<0]=0
             tempx[tempx>1]=1
             tempy = c(tempdensity$y/tempmax, -rev(tempdensity$y/tempmax))
-            Rcsspolygon(i-0.5+(tempy*barwidth2), tempx, Rcss=RC, Rcssclass=c(RCC, "barplot"))
+            Rcsspolygon(i-0.5+(tempy*barwidth2), tempx, Rcss=RC, Rcssclass=c(RCC, neiclass[i]))
             rm(tempx, tempy, tempmax, temp, tempdensity)
         }
     }
@@ -468,8 +474,8 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
         nsets = as.character(neicompare[i, c("Set1", "Set2")])
         nbg = allsets[!(allsets %in% nsets)]
         Rcsspoints(rep(i-0.5, length(nbg)), setv[nbg], Rcss=RC, Rcssclass=c(RCC, "bg"))
-        Rcsslines(rep(i-0.5, 2), setv[nsets], Rcss=RC, Rcssclass=c(RCC, "highlight"))
-        Rcsspoints(rep(i-0.5, 2), setv[nsets], Rcss=RC, Rcssclass=c(RCC, "highlight"))
+        Rcsslines(rep(i-0.5, 2), setv[nsets], Rcss=RC, Rcssclass=c(RCC, "highlight", neiclass[i]))
+        Rcsspoints(rep(i-0.5, 2), setv[nsets], Rcss=RC, Rcssclass=c(RCC, "highlight", neiclass[i]))
     }
     
     ## add title to the heatmap
@@ -496,8 +502,8 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
 ##' @param RC Rcss object
 ##' @param RCC Rcss class
 ##' 
-##' @export
-MPplotScatterWithK = function(coords, xyd, clust.method="single", clust.k=2, 
+##' 
+MPplotScatterWithK.old = function(coords, xyd, clust.method="single", clust.k=2, 
     main="", 
     RC="default", RCC=c()) {
     
@@ -515,6 +521,59 @@ MPplotScatterWithK = function(coords, xyd, clust.method="single", clust.k=2,
         }
         xycut = split(names(xycut), xycut)        
         names(xycut) = paste0("G", as.character(names(xycut)))
+    }
+    
+    ## split up the 2D layout into groups
+    xy.coords = list()
+    for (i in names(xycut)) {
+        xy.coords[[i]] = coords[xycut[[i]],, drop=FALSE]
+    }
+    
+    xylim = MPsquarelim(coords[,1], coords[,2])
+    xlim = xylim$xlim
+    ylim = xylim$ylim
+    
+    p.padding = RcssGetPropertyValueOrDefault(RC, "ScatterWithK", "padding",
+        default=0.02, Rcssclass=RCC)
+    xlim = xlim + ((xlim[2]-xlim[1])*p.padding*c(-1,1))
+    ylim = ylim + ((ylim[2]-ylim[1])*p.padding*c(-1,1))
+    
+    ## create a plot area
+    Rcssplot(xlim, ylim, xaxs="i", yaxs="i", type="n", Rcss=RC, Rcssclass=RCC, axes=F, frame=F)
+    ## create boxes for main plot and the projections
+    Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcss=RC, Rcssclass=c(RCC, "main"))
+    
+    ## add points to the main plot area and the projections
+    for (i in names(xy.coords)) {
+        nowxy = xy.coords[[i]]
+        Rcsspoints(nowxy[,1], nowxy[,2], Rcss=RC, Rcssclass=c(RCC, i))
+    }
+    
+    Rcssmtext(main, side=3, Rcss=RC, Rcssclass=RCC)
+    invisible(xycut)
+}
+
+
+
+##' plot a 2D scatter diagram with clusters in various style
+##'
+##' @param coords matrix, first two columns will be interpreted as xy coordinates
+##' @param clust character, mapping between items and cluster numbers
+##' @param Gnames logical, set TRUE to force cluster group names into G1, G2, etc.
+##' set FALSE to use the existing group names in clust
+##' @param main character, displayed as plot title
+##' @param RC Rcss object
+##' @param RCC Rcss class
+##' 
+##' @export
+MPplotScatterWithK = function(coords, clust, Gnames=TRUE, main="", RC="default", RCC=c()) {
+    
+    ## use the defined cluster codes to split the points by cluster
+    if (Gnames) {
+        xycut = split(names(clust), as.integer(as.factor(clust)))
+        names(xycut) = paste0("G", as.character(names(xycut)))
+    } else {
+        xycut = split(names(clust), clust)
     }
     
     ## split up the 2D layout into groups

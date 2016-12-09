@@ -69,29 +69,33 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
         rm(nowdata, nowu, nowstats)
     }
     
-    skewth = min(1, log2(ncol(dd))/(2*sqrt(nrow(dd))))
+    skewth = max(1, 0.5*log2(ncol(dd)))
     feature.class = rep("real", nrow(feature.types))
     names(feature.class) = rownames(feature.types)
     feature.class[feature.types[, "n.unique"]==1] = "single"
     feature.class[feature.types[, "n.unique"]==2] = "bin"
     feature.class[abs(feature.types[, "skew"])>skewth &
-                  feature.types[, "n.unique"]==2] = "bin.skew"
+                  feature.types[, "n.unique"]==2] = "binskew"
     feature.class[feature.types[, "n.unique"]<nrow(dd)/2 &
                   feature.types[, "n.unique"]>2] = "multi"
     feature.class[feature.types[, "n.unique"]<nrow(dd)/2 &
                   feature.types[, "n.unique"]>2 &
-                  abs(feature.types[, "skew"])>skewth] = "multi.skew"
+                  abs(feature.types[, "skew"])>skewth] = "multiskew"
     feature.class[feature.types[, "n.unique"]>nrow(dd)/2 &
-                  abs(feature.types[, "skew"])>skewth] = "real.skew"     
+                  abs(feature.types[, "skew"])>skewth] = "realskew"     
     
-    ## avoid splits of features with just one feature
+    ## avoid splits of features with just a few features
     feature.table = table(feature.class)
     for (ii in c("bin", "multi", "real")) {
-        iiskew = paste0(ii, ".skew")
+        iiskew = paste0(ii, "skew")
         if (ii %in% names(feature.table) & iiskew %in% names(feature.table)) {
-            if (feature.table[ii]==1 | feature.table[iiskew]==1) {
+            iifrac = feature.table[ii]/(feature.table[ii]+feature.table[iiskew])
+            if (iifrac<0.01 | feature.table[ii]<3) {
                 feature.class[feature.class %in% c(ii, iiskew)] = ii
+            } else if (iifrac>0.99 | feature.table[iiskew]<3) {
+                feature.class[feature.class %in% c(ii, iiskew)] = iiskew
             }
+            rm(iifrac)
         }
     }    
 
@@ -104,7 +108,7 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
     }
     MP$auto = feature.class
     
-    config.prefix = "[auto]:"
+    config.prefix = "AUTO:"
     
     
     ## ###############################################################################
@@ -139,7 +143,7 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
     
     
     ## for all the feature types, add clust-based distances
-    okf = c("bin", "bin.skew", "multi", "multi.skew", "real", "real.skew")
+    okf = c("bin", "binskew", "multi", "multiskew", "real", "realskew")
     okf = okf[okf%in% names(feature.class)]
     for (nowf in okf) {
         nowfeatures = feature.class[[nowf]]

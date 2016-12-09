@@ -19,6 +19,10 @@ pam.MultiPatternPlugin(MP, data.name, config.prefix, preprocess.prefix = "",
 \item{preprocess}{character}
 }
 \description{
-Add a set of configurations to an MultiPattern object
+This plugin adds several configurations that use clustering-driven dissimilarities
+(using pam clustering). Some configurations (marked reg) create dissimilarities
+that reinforce traditional clustering. Other configuration (marked alt) create
+dissimilarities that promote alternative clustering. Settings for this plugin
+are extracted from MP$settings.
 }
 

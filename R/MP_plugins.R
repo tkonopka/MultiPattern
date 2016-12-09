@@ -7,6 +7,12 @@
 
 ##' Add a set of configurations to an MultiPattern object
 ##'
+##' This plugin adds several configurations that use clustering-driven dissimilarities
+##' (using pam clustering). Some configurations (marked reg) create dissimilarities
+##' that reinforce traditional clustering. Other configuration (marked alt) create
+##' dissimilarities that promote alternative clustering. Settings for this plugin
+##' are extracted from MP$settings. 
+##' 
 ##' @param MP MultiPattern
 ##' @param data.name character
 ##' @param config.prefix character
@@ -47,6 +53,11 @@ pam.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess.prefi
 
 ##' Add a set of configurations to an MultiPattern object
 ##'
+##' This plugin adds several configurations that use clustering-driven dissimilarities
+##' (using hclust). Some configurations (marked reg) create dissimilarities that reinforce
+##' traditional clustering. Other configurations (marked alt) use an alternative clustering
+##' distance. Settings for this plugin are extracted from MP$settings.
+##' 
 ##' @param MP MultiPattern
 ##' @param data.name character
 ##' @param config.prefix character
@@ -175,6 +186,8 @@ subspacer.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess
 
 ##' Add a set of configurations to an MultiPattern object
 ##'
+##' This plugin adds one configuration that uses a traditional euclidean distance.
+##' 
 ##' @param MP MultiPattern
 ##' @param data.name character
 ##' @param config.prefix character
@@ -195,6 +208,8 @@ euclidean.MultiPatternPlugin = function(MP, data.name, config.prefix,
 
 ##' Add a set of configurations to an MultiPattern object
 ##'
+##' This plugin adds one configuration that uses a spearman-correlation dissimilarity
+##' 
 ##' @param MP MultiPattern
 ##' @param data.name character
 ##' @param config.prefix character
@@ -215,6 +230,8 @@ spearman.MultiPatternPlugin = function(MP, data.name, config.prefix,
 
 ##' Add a set of configurations to an MultiPattern object
 ##'
+##' This plugin adds one configuration that uses a traditional canberra distance.
+##' 
 ##' @param MP MultiPattern
 ##' @param data.name character
 ##' @param config.prefix character
@@ -235,6 +252,8 @@ canberra.MultiPatternPlugin = function(MP, data.name, config.prefix,
 
 ##' Add a set of configurations to an MultiPattern object
 ##'
+##' This plugin adds one configuration that uses a traditional manhattan distance.
+##' 
 ##' @param MP MultiPattern
 ##' @param data.name character
 ##' @param config.prefix character
@@ -255,6 +274,10 @@ manhattan.MultiPatternPlugin = function(MP, data.name, config.prefix,
 
 ##' Add a set of configurations to an MultiPattern object
 ##'
+##' This plugin transforms an input dataset using PCA, then adds configurations
+##' that use the transformed data. Settings for this plugin are extracted from
+##' MP$settings.
+##' 
 ##' @param MP MultiPattern
 ##' @param data.name character
 ##' @param config.prefix character
@@ -304,6 +327,8 @@ pca.MultiPatternPlugin = function(MP, data.name, config.prefix,
 
 ##' Add a set of configurations to an MultiPattern object
 ##'
+##' This plugin defined random dissimilarity matrices.
+##'
 ##' @param MP MultiPattern
 ##' @param data.name character
 ##' @param config.prefix character
@@ -334,6 +359,10 @@ random.MultiPatternPlugin = function(MP, data.name=NULL, config.prefix="",
 
 ##' Add a set of configurations to an MultiPattern object
 ##'
+##' This plugin transforms an input dataset using rpca, then defines configurations
+##' on the transformed data. The plugin does not do anything if the input data
+##' contains non-finite elements. Settings for the plugin are extracted from MP$settings.
+##'
 ##' @param MP MultiPattern
 ##' @param data.name character
 ##' @param config.prefix character
@@ -343,14 +372,20 @@ random.MultiPatternPlugin = function(MP, data.name=NULL, config.prefix="",
 ##' @export
 rpca.MultiPatternPlugin = function(MP, data.name, config.prefix,
     preprocess.prefix="", preprocess=NULL) {
-
+    
+    ## make sure the input data is all finite
+    nowdata = as.matrix(MP$data[[data.name]])
+    if (sum(!is.finite(nowdata))>0) {
+        return (MP)
+    }
+    
     term.delta = MP$settings$rpca.term.delta
     
-    datarpca = rpca::rpca(MP$data[[data.name]], term.delta=term.delta);
+    datarpca = rpca::rpca(nowdata, term.delta=term.delta);
     rownames(datarpca$L) = rownames(datarpca$S) = rownames(MP$data[[data.name]])
     colnames(datarpca$L) = colnames(datarpca$S) = colnames(MP$data[[data.name]])            
-    Lname = paste0(nowd, ".rpcaL")
-    Sname = paste0(nowd, ".rpcaS")
+    Lname = paste0(data.name, ".rpcaL")
+    Sname = paste0(data.name, ".rpcaS")
     MPaddData(MP, setNames(list(datarpca$L, datarpca$S), c(Lname, Sname)))           
     MP = pca.MultiPatternPlugin(MP, Lname, config.prefix, preprocess.prefix, preprocess)
     MP = pca.MultiPatternPlugin(MP, Sname, config.prefix, preprocess.prefix, preprocess)
@@ -358,6 +393,64 @@ rpca.MultiPatternPlugin = function(MP, data.name, config.prefix,
     MP
 }
 
+
+
+
+##' Add a set of configurations to an MultiPattern object
+##'
+##' This plugin transforms an input dataset using rpca, then defines configurations
+##' on the transformed data. The plugin does not do anything if the input data
+##' contains non-finite elements. Settings for the plugin are extracted from MP$settings.
+##'
+##' @param MP MultiPattern
+##' @param data.name character
+##' @param config.prefix character
+##' @param preprocess.prefix character
+##' @param preprocess character
+##'
+##' @export
+nmf.MultiPatternPlugin = function(MP, data.name, config.prefix,
+    preprocess.prefix="", preprocess=NULL) {
+
+    ## fetch the data and make sure it is positive
+    nowdata = as.matrix(MP$data[[data.name]])
+    
+    ## avoid work if the input data contains non-finite elements
+    if (sum(!is.finite(nowdata))>0) {
+        return (MP)
+    }
+    ## shift the data so that it is all > 0
+    if (min(nowdata)<=0) {
+        nowdata = nowdata + abs(min(nowdata)) + MP$settings$nmf.bg
+    }
+    
+    ## determine a maximal rank for the nmf (from settings or from data)
+    maxr = min(MP$settings$nmf.rank, ncol(nowdata)-1)
+    if (maxr==0) {        
+        maxr = floor(2*log2(ncol(nowdata)))
+        maxr = min(maxr, ncol(nowdata)-1)
+        if (maxr<2) {
+            return (MP)
+        }
+    } 
+    
+    ## create nmf representations of the data
+    datanmf = list()    
+    for (nowr in seq(2, maxr, by=2)) {
+        nownmf = NMF::nmf(nowdata, nowr)
+        datanmf[[paste0(data.name, ".nmf", nowr)]] = basis(nownmf)
+    }
+    ## add datasets into MP
+    MPaddData(MP, datanmf)
+    ## add euclidean distance configurations for each dataset
+    for (nowr in seq(2, maxr, by=2)) {
+        MPaddConfig(MP, paste0(config.prefix, data.name,":nmf", nowr),
+                    data.name=paste0(data.name, ".nmf", nowr),
+                    dist.fun=dist.euclidean)            
+    }
+    
+    MP
+}
 
 
 

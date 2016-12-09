@@ -5,8 +5,9 @@
 \title{plot pairwise overlaps summaries}
 \usage{
 MPplotPairwiseSets(ds, samplenames, seedsample, neighborhood = 10,
-  ds.names = NULL, plot = TRUE, order = TRUE, density.n = 128,
-  density.adjust = 2, Rcss = "default", Rcssclass = c())
+  ds.names = NULL, bg = NULL, plot = TRUE, order = TRUE,
+  density.n = 128, density.adjust = 2, Rcss = "default",
+  Rcssclass = c())
 }
 \arguments{
 \item{ds}{list of distance matrices}
@@ -18,6 +19,8 @@ MPplotPairwiseSets(ds, samplenames, seedsample, neighborhood = 10,
 \item{neighborhood}{integer. Size of neighborhood around seed sample}
 
 \item{ds.names}{vector with labels to replace ds original names}
+
+\item{bg}{vector with labels from ds.names that are treated as class 'bg'}
 
 \item{plot}{logical. Set TRUE to get figures. Set FALSE to get comparison data frame.}
 

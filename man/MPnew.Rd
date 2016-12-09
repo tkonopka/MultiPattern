@@ -7,7 +7,7 @@
 MPnew(items, data = NULL)
 }
 \arguments{
-\item{items}{character vector, specifies names for observations in the multipatter analysis}
+\item{items}{character vector, specifies names for observations in the multipattern analysis}
 
 \item{data}{named list with data objects. Specifying this parameter
 is equivalent to calling MPnew() and then adding data manually with MPaddData()}

@@ -26,12 +26,16 @@ MPnew = function(items, data=NULL) {
         rpca.term.delta=1e-3, 
         ## max number of clusters to use in easyConfig reg and alt configurations
         clust.k=3,
+        ##  used in nmf analysis (background level to avoid all-0 rows)
+        nmf.bg = 1e-5,
+        ## used in nmf analysis (maximal rank of nmf decomposition, zero is auto)
+        nmf.rank = 0,
         ## number of random subspaces
         subspace.num.random=100,
         ## number or proportion of features for subspace analysis
         subspace.d.random=0.5,
         ## exponent for similarity transformation
-        alpha=1        
+        alpha=1
         )
     class(ans) = "MultiPattern"
     
@@ -349,7 +353,7 @@ MPeasyConfig = function(MP, data=NULL, config.prefix="", preprocess.prefix="",
                 data.type = names(type)
                 data.type = data.type[!(data.type %in% names(MP$data))]
                 if (length(data.type)>0) {
-                    stop("Unrecognized dataset: ", data.type, "\n")
+                    stop("Unrecognized datasets: ", paste(data.type, collapse=", "), "\n")
                 }
             }
         }

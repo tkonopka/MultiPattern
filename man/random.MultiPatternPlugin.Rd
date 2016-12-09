@@ -19,6 +19,6 @@ random.MultiPatternPlugin(MP, data.name = NULL, config.prefix = "",
 \item{preprocess}{character}
 }
 \description{
-Add a set of configurations to an MultiPattern object
+This plugin defined random dissimilarity matrices.
 }
 
