@@ -275,8 +275,12 @@ manhattan.MultiPatternPlugin = function(MP, data.name, config.prefix,
 ##' Add a set of configurations to an MultiPattern object
 ##'
 ##' This plugin transforms an input dataset using PCA, then adds configurations
-##' that use the transformed data. Settings for this plugin are extracted from
-##' MP$settings.
+##' that use the transformed data. The configurations will of three types:
+##' (i) individual PC components, e.g. only PC1 or only PC2;
+##' (ii) series of PC components, e.g. PC1 to PC2 (PC1..PC2) or PC1 to PC3 (PC1..PC3);
+##' (iii) pairs of PC components, e.g. PC1, PC2 (PC1.PC2) or PC2, PC4 (PC2.PC4)
+##'
+##' The maximal PC component for the configurations is determined from MP$settings.
 ##' 
 ##' @param MP MultiPattern
 ##' @param data.name character
@@ -288,10 +292,11 @@ manhattan.MultiPatternPlugin = function(MP, data.name, config.prefix,
 pca.MultiPatternPlugin = function(MP, data.name, config.prefix,
     preprocess.prefix="", preprocess=NULL) {
 
-    PCAexplain = MP$settings$num.PCs
+    ## fetch number of PCs the user wants to consider
+    numPCs = MP$settings$num.PCs
 
     ## get matrices with the all the raw data and with PCA transformed data
-    datapca = getPCAsubset(MP$data[[data.name]], subset=PCAexplain)
+    datapca = getPCAsubset(MP$data[[data.name]], subset=numPCs)
     
     if (!is.null(datapca)) {
         pcaname = paste0(data.name, ".pca")
@@ -308,6 +313,7 @@ pca.MultiPatternPlugin = function(MP, data.name, config.prefix,
             }
         }
         ## add configuration with increasing PCA details
+        ## (these are all euclidean-distance configs based on PCA-trasnsformed data)
         MPaddConfig(MP, paste0(config.prefix, data.name, ":", names(pcasets)),
                     data.name=pcaname, preprocess=pcasets)
         ## add configurations with pairwise PCA columns
