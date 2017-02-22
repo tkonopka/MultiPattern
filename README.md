@@ -9,18 +9,18 @@ Unsupervised exploration of data is, in general, an open-ended task. Take cluste
 
 The **MultiPattern** package provides a framework to perform such exploration in a systematic manner. As an example, consider two toy datasets with points arranged in two dimensions. 
 
-<img src="" alt="two toy datasets in two dimensions" width="210px"></img>
+<img src="https://github.com/tkonopka/MultiPattern/blob/master/figures/readme_raw-1.png?raw=true" alt="two toy datasets in two dimensions" width="210px"></img>
 
 The points in the left and right panels are arranged in four and six groups, respectively. But let's suppose that we need to group them in a smaller number of categories. Intuitively, there is not a unique or best way to perform this partitioning. 
 
 A multi-pattern analysis yields a set of alternative, distinct, candidate clusterings. For the first dataset, suggested candidate groupings may be as follows (arranged into two colors). 
 
-<img src="" alt="multiple patterns in a four-group dataset" width="315px">
+<img src="https://github.com/tkonopka/MultiPattern/blob/master/figures/readme_k4-1.png?raw=true" alt="multiple patterns in a four-group dataset" width="315px">
 </img>
 
 For the second dataset, candidates may be as follows (arranged into three colors).
 
-<img src="" alt="multiple patterns in a six-group dataset" width="525px">
+<img src="https://github.com/tkonopka/MultiPattern/blob/master/figures/readme_k6-1.png?raw=true" alt="multiple patterns in a six-group dataset" width="525px">
 </img>
 
 Each of these suggestions reveals a reasonable pattern. Follow-up analyses can then either exploit one of these patterns, or combine information from many of them at once. 
