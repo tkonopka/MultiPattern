@@ -82,9 +82,8 @@ MPgetRandomSubspaces = function(f, n, d=4, oversample=4) {
     
     ## turn the matrix into a list object with arbitrary names for the features
     ans2 = split(ans, 1:nrow(ans))
-    ##names(ans2) = apply(ans, 1, paste, collapse=".")
     
-    return(ans2)    
+    ans2
 }
 
 
@@ -401,11 +400,6 @@ MPmatrixColNorm = function(x) {
 ##' @export
 MPcutree = function(tree, k=2, minsize=1/(10*k)) {
     
-    ## if distance matrix is not specified, abort
-    ##if (is.null(dist)) {
-    ##    return(cutree(tree, k=k))
-    ##}
-    
     ## size of the tree
     tree.n = length(tree$order)
     ## required cluster size
@@ -440,137 +434,6 @@ MPcutree = function(tree, k=2, minsize=1/(10*k)) {
 
 
 
-
-
-##' Get information about top features contributing to PC components 
-##'
-##' @param x prcomp object
-##' @param pc integer, the principal component to "explain", can be a vector of integers
-##' @param n integer, number of features to output
-##' @param plot logical, when true it automatically plots the data
-##' @param mar margin values
-##' 
-##' @export
-MPgetTopPC = function(x, pc=1, n=NULL, plot=FALSE, mar=c(4, 24, 4, 4)) {
-    if (class(x)!="prcomp") {
-        stop("x must be of class prcomp")
-    }
-    
-    if (is.null(n)) {
-        n = nrow(x$rotation)
-    }
-    
-    ans = list()
-    for (nowpc in pc) {
-        temp = x$rotation[, nowpc]
-        temp.abs = abs(temp)
-        temp = temp[order(temp.abs, decreasing=T)][1:n]
-        ans[[p0("PC", nowpc)]] = temp
-    }
-    
-    if (plot) {
-        Rcssplot::Rcsspar(mfrow=c(1, length(pc)), mar=mar)
-        for (nowpc in pc) {
-            Rcssplot::Rcssbarplot(ans[[p0("PC", nowpc)]])
-        }
-        Rcssplot::Rcsspar(mfrow=c(1,1))
-    }
-    
-    invisible(ans)
-}
-
-
-
-
-
-##' get a subset of genesets that are small size and non-redundant
-##'
-##' This is an inelegant implementation, maybe fix and simplify later.
-##' 
-##' @param sets list with gene sets
-##' @param target.genes character vector, names of ok gene names
-##' @param target.size integer vector of length 2, indicate minimum and maximum size of geneset
-##' @param target.JI numeric, maximum Jaccard overlap between the new genesets
-##' 
-##' @export
-MPgetNonredundantGenesets = function(sets, target.genes=NULL, target.size=c(2, 20), target.JI=0.2) {
-    
-    ## get sets that overla with target gene set
-    ## collect information on how large the sets are
-    smallsetinfo = matrix(0, ncol=2, nrow=length(sets))
-    rownames(smallsetinfo) = names(sets)
-    colnames(smallsetinfo) = c("original", "ontarget")
-    smallsets = list()
-    for (nowsetname in names(sets)) {
-        ## get overlap of this set with annotations
-        nowset = sets[[nowsetname]]
-        nowset2 = sort(nowset[nowset %in% target.genes])
-        nowlen = length(nowset2)
-        if (nowlen>=target.size[1] & nowlen<=target.size[2]) {
-            smallsets[[nowsetname]] = nowset2          
-            smallsetinfo[nowsetname, ] = c(length(nowset), length(nowset2))
-        }
-    }
-    smallsetinfo = smallsetinfo[names(smallsets),]
-    
-    ## helper function for Jaccard index
-    JI = function(x, y) {
-        t1 = sum(x %in% y)
-        t2 = length(unique(c(x, y)))
-        return(t1/t2)
-    }
-
-    ## order smallsets from small to large
-    smallsets = smallsets[order(sapply(smallsets, length), decreasing=T)]
-
-    setsim = mtrx(0, col.names=names(smallsets), row.names=names(smallsets))
-    oksets = rep(TRUE, length(smallsets))
-    names(oksets) = names(smallsets)
-    for (i in 1:length(smallsets)) {
-        cat(".")
-        if (i%%50==0) {
-            cat(" ", i, "/", length(smallsets), "\n")
-        }
-        nowset1 = smallsets[[i]]
-        nowsetname1 = names(smallsets)[i]
-        for (j in 1:length(smallsets)) {
-            nowsetname2 = names(smallsets)[j]
-            if (j>i & oksets[nowsetname1] & oksets[nowsetname2]) {
-                nowset2 = smallsets[[j]]
-                nowJI = JI(nowset1, nowset2)                              
-                if (nowJI>target.JI) {
-                    nowval1 = smallsetinfo[nowsetname1, 1:2]
-                    nowval2 = smallsetinfo[nowsetname2, 1:2]                    
-                    ## select the bigger set
-                    if (nowval1[2] > nowval2[2]) {                           
-                        oksets[nowsetname2] = FALSE
-                    } else if (nowval2[2] > nowval1[2]) {
-                        oksets[nowsetname1] = FALSE
-                    } else {
-                        ## the sets are of equal size, then select on the original set
-                        if (nowval1[1]>nowval2[1]) {
-                            oksets[nowsetname2] = FALSE
-                        } else {
-                            oksets[nowsetname1] = FALSE
-                        }
-                    }                    
-                }
-            }            
-        }
-    }    
-    smallsets = smallsets[oksets]
-    cat("\n")
-    
-    ## if there are target genes that are leftover, they are put into separate genesets
-    missing.genes = target.genes[!target.genes %in% unlist(smallsets)]
-    smallsets[["Other"]] = missing.genes
-    
-    return(smallsets)
-}
-
-
-
-
 ##' shows the genesets that contain genes
 ##'
 ##' @param sets list of gene sets
@@ -578,49 +441,10 @@ MPgetNonredundantGenesets = function(sets, target.genes=NULL, target.size=c(2, 2
 ##'
 ##' @export
 MPingenesets = function(sets, genes) {
-    sets[sapply(sets, function(x) { sum(genes %in% x)==length(genes)})]         
+    sets[sapply(sets, function(x) { sum(genes %in% x)==length(genes)})]
 }
 
 
-
-
-##' Creates a set of configurations using prcomp
-##' 
-##' @param MP MultiPattern
-##' @param dd matrix, dataset in MP to process
-##' @param ddname character, name of dataset
-##'
-MPaddPCAset = function(MP, dd, ddname) {
-    
-    datapca = getPCAsubset(dd, subset=PCAexplain)
-
-    if (!is.null(datapca)) {
-        pcaname = paste0(ddname, ".pca")
-        ## add dataset to the MPconfig
-        MPaddData(MP, setNames(list(datapca), pcaname)) 
-        ## create a series of configurations for pca
-        pcasets = list()
-        imax = min(ncol(dd)-1, ncol(datapca))
-        for (i in 1:imax) {
-            if (i==1) {
-                pcasets[[colnames(datapca)[1]]] = colnames(datapca)[1]                        
-            } else if (i>2) {
-                pcasets[[paste(colnames(datapca)[c(1,i)], collapse="..")]] = colnames(datapca)[1:i]
-            }
-        }
-        ## add configuration with increasing PCA details
-        MPaddConfig(MP, paste0(config.prefix, ddname, ":", names(pcasets)),
-                    data.name=pcaname, preprocess=pcasets)
-        ## add configurations with pairwise PCA columns
-        twospaces = MPgetAll2Subspaces(head(colnames(datapca)))
-        if (length(twospaces)>0) {
-            MPaddConfig(MP, paste0(config.prefix, ddname, ":", names(twospaces)),
-                        data.name=pcaname, preprocess=twospaces)
-        }
-    }
-
-    return(MP)
-}
 
 
 

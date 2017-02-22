@@ -3,6 +3,13 @@
 ##
 
 
+## General package maintenance - import functions from packages
+#' @import stats
+#' @import utils
+#' @import cluster
+#' @import graphics
+#' @import Rcssplot
+NULL
 
 
 
@@ -34,8 +41,12 @@ MPnew = function(items, data=NULL) {
         subspace.num.random=100,
         ## number or proportion of features for subspace analysis
         subspace.d.random=0.5,
-        ## exponent for similarity transformation
-        alpha=1
+        ## exponent for similarity transformation and meta-similarity Lbeta distance
+        alpha=1,
+        beta=2,
+        ## subsampling for meta-distance calculation, number of samples and repetitions
+        subsample.N=150,
+        subsample.R=30
         )
     class(ans) = "MultiPattern"
     
@@ -284,7 +295,7 @@ MPchangeSettings = function(MP, settings = list()) {
     ## check that components in settings are allowed
     sn = names(settings)
     goodsettings = c("num.PCs", "num.random", "alpha", "rpca.term.delta", "clust.k",
-        "subspace.num.random", "subspace.d.random")
+        "subspace.num.random", "subspace.d.random", "subsample.N", "subsample.R")
     badsettings = sn[!sn %in% goodsettings]
     if (length(badsettings)>0) {
         warning("MPchangeSettings: Unrecognized items -", paste(badsettings, collapse=", "), "- will be skipped\n")
@@ -325,16 +336,20 @@ MPchangeSettings = function(MP, settings = list()) {
 ##' @param type character or list, codes for what types of configuration plugins to use. To see all
 ##' available plugins, use MPlistPlugins(). 
 ##' shows all the supported configuration types. Detailed descriptions will appear elsewhere.
+##' @param random logical, set TRUE to include random configurations. 
 ##' @param preprocess object specifying preprocessing, e.g. vector of features for subspaces
 ##' 
 ##' @export
-MPeasyConfig = function(MP, data=NULL, config.prefix="", preprocess.prefix="", 
-    type=c("pca", "euclidean", "spearman", "canberra", "manhattan", "hclust", "pam"),
+MPeasyConfig = function(MP, data=NULL, config.prefix="",
+    preprocess.prefix="", 
+    type=c("pca", "euclidean", "spearman", "canberra",
+        "manhattan", "hclust", "pam"),
+    random=TRUE,
     preprocess=NULL) {
     
     ## capture MP expression for assignment at the end
     captureMP = deparse(substitute(MP))
-    
+   
     if (!is.null(data)) {
         data.missing = data[!(data %in% names(MP$data))]
         if (length(data.missing)) {
@@ -360,7 +375,7 @@ MPeasyConfig = function(MP, data=NULL, config.prefix="", preprocess.prefix="",
     }
     
     if (preprocess.prefix != "") {
-        preprocess.prefix = p0(":", preprocess.prefix)
+        preprocess.prefix = paste0(":", preprocess.prefix)
     }
     
     ## standardize the input - into data=NULL and type=list(data=type)
@@ -376,21 +391,23 @@ MPeasyConfig = function(MP, data=NULL, config.prefix="", preprocess.prefix="",
         typelist = setNames(vector("list", length(data)), data)
         typelist = lapply(typelist, function(x) {type})
     }
-        
-  
-    ## ###################################################################################
-    ## Add configurations by applying plugins
     
+    ## Add configurations by applying plugins    
     for (nowd in names(typelist)) {
         nowtypes = tolower(typelist[[nowd]])        
         for (nowtype in nowtypes) {
             plugin.fun = match.fun(paste0(nowtype, ".MultiPatternPlugin"))
-            MP = plugin.fun(MP, nowd, config.prefix, preprocess.prefix, preprocess)
+            MP = plugin.fun(MP, nowd, config.prefix,
+                preprocess.prefix, preprocess)
         }             
+    }    
+    ## perhaps add a set of random configurations    
+    if (random) {
+        plugin.fun = match.fun("random.MultiPatternPlugin")
+        MP = plugin.fun(MP, NULL, config.prefix,
+            preprocess.prefix, preprocess) 
     }
-      
-    
-    ## ###################################################################################
+        
     ## assign and return an updated MP obejct
     assign(captureMP, MP, parent.frame())
     invisible(MP)                
@@ -411,19 +428,31 @@ MPeasyConfig = function(MP, data=NULL, config.prefix="", preprocess.prefix="",
 ##' It returns an object holding similarity matrices for each of the MultiPattern analyses. 
 ##'
 ##' @param MP MultiPattern configuration object
+##' @param configs string, vector of configuration names to evaluate;
+##' leave NULL to evaluate all configurations
 ##' @param verbose logical, when TRUE function prints a warning message when the input is large
 ##'
 ##' @export
-MPgetDistances = function(MP, verbose=TRUE) {
+MPgetDistances = function(MP, configs=NULL, verbose=TRUE) {
     
     if (class(MP) != "MultiPattern") {
         stop("object not of class MultiPattern\n")
     }
 
     if (verbose & object.size(MP)>1e6) {
-        cat("This may take a little time. Please wait... ")
+        cat("This may take some time. Please wait... ")
     }
 
+    ## check that specified configs are defined
+    if (is.null(configs)) {
+        configs = names(MP$configs)
+    }
+    badconfigs = configs[!configs %in% names(MP$configs)]
+    if (length(badconfigs)) {
+        stop("specified configs are not in MP: ",
+             paste(badconfigs, collapse=", "))
+    }
+    
     ## helper function that computes one distance object given one configuration
     adfun = function(NC) {
          nowdata = MP$data[[NC$data]]
@@ -435,10 +464,10 @@ MPgetDistances = function(MP, verbose=TRUE) {
      }
 
     ## main part of the work - compute all distances
-    ans = lapply(MP$configs, adfun)
-     
+    ans = lapply(MP$configs[configs], adfun)
+    
     ## housekeeping for the list
-    names(ans) = names(MP$configs)
+    names(ans) = configs
     class(ans) = "MultiPatternSimilarities"
     
     if (verbose & object.size(MP)>1e6) {
@@ -449,6 +478,94 @@ MPgetDistances = function(MP, verbose=TRUE) {
 }
 
 
+
+##' Compute a meta distance object from an MP object. Uses subsampling and averaging,
+##' which provides a cross-validation of sorts and reduces computation load for large
+##' datasets.
+##'
+##' Settings for subsampling and averaging are determined by
+##' MP$settings$subsample.N and MP$settings$subsample.R
+##' 
+##' @param MP MultiPattern configuration object
+##' @param standardize function used to transform similarity matrices
+##' @param subsample.N integer, number of samples in each subsampling; when NULL,
+##' value is extracted from MP$settings
+##' @param subsample.R integer, number of repetitions; when NULL, value
+##' is extracted from MP$settings
+##' @param alpha numeric, used as an alternative way to transform similarity matrices,
+##' applied after transform.fun; when null, value is extracted from MP$settings
+##' @param beta numeric, sets the Lbeta norm; when NULL, value is extracted from
+##' MP$settings
+##' @param verbose logical, set TRUE to print progress messages
+##' @param ... additional arguments, used when applying standardize function to the MPS
+##' 
+##' @export
+MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
+    subsample.N=NULL, subsample.R=NULL,
+    alpha=NULL, beta=NULL, verbose=TRUE, ...) {
+    
+    if (class(MP) != "MultiPattern") {
+        stop("object not of class MultiPattern\n")
+    }
+    
+    ## determine properties of sub-sampling and meta-distance scaling
+    if (is.null(subsample.N)) {
+        subsample.N = MP$settings$subsample.N
+    }
+    if (is.null(subsample.R)) {
+        subsample.R = MP$settings$subsample.R
+    }
+    if (is.null(alpha)) {
+        alpha = MP$settings$alpha
+    }
+    if (is.null(beta)) {        
+        beta = MP$settings$beta
+    }
+    
+    ## check that the sub sampling is compatible with MP, number of iterations is >= 1
+    subsample.N = min(length(MP$items)-1, ceiling(subsample.N))
+    subsample.R = max(1, ceiling(subsample.R))
+
+    if (subsample.N<2) {
+        stop("Subsampling gives too-small a dataset");
+    }
+
+    if (verbose) {
+        cat("This may take some time. Please wait... ")
+    }
+    
+    ## define a result object
+    result = NULL;
+    
+    ## compute meta-distances in a loop
+    for (i in 1:subsample.R) {
+        ## get a subset of the items and create a new MP object
+        tempMP = MP
+        tempMP$items = sample(MP$items, subsample.N, replace=F)
+        ## get smaller versions of the data matrices
+        for (nowdata in names(MP$data)) {
+            tempMP$data[[nowdata]] = MP$data[[nowdata]][tempMP$items,]
+        }
+        ## compute similarities and meta-similarities for the tempMP
+        tempMPS = MPgetDistances(tempMP, verbose=FALSE);
+        tempmeta = MPgetMetaDistance(tempMPS, standardize=standardize,
+            alpha=alpha, beta=beta, ...)
+        tempmeta = tempmeta/subsample.R
+        
+        ## update the average meta-distance result
+        if (i==1) {
+            result = tempmeta
+        } else {
+            result = result + tempmeta
+        }        
+    }
+
+    if (verbose) {
+        cat("done\n")
+    }
+    
+    result    
+}
 
 
 
@@ -494,7 +611,7 @@ MPgetMetaDistance = function(MPS, standardize=MPrankNeighbors, alpha=1, beta=2, 
     
     ## helper function with L-alpha norm
     Ldist = function(a, b, beta) {
-        temp = (a-b)^beta        
+        temp = (abs(a-b))^beta        
         sum(temp)^(1/beta)
     }
     simpledist = function(a, b) {
@@ -527,7 +644,7 @@ MPgetMetaDistance = function(MPS, standardize=MPrankNeighbors, alpha=1, beta=2, 
 
 ##' Identify representative points from a distance object
 ##'
-##' @param d dist object 
+##' @param d dist object or dist-like matrix
 ##' @param subsets if NULL, function considers all rows
 ##'     if vector of characters, interpreted as regex for subsetting rows
 ##' @param method character, determines what clustering approach
@@ -545,8 +662,8 @@ MPgetRepresentatives = function(d, subsets=NULL,
         return(MPgetRepresentatives(d, subsets=".", k=k, method=method)[[1]])
     }
     
-    if (class(d)!="dist") {
-        stop("input must be a distance obejct")
+    if (class(d)!="dist" && class(d) !="matrix") {
+        stop("input must be a dist or matrix")
     }
     dmat = as.matrix(d)    
     if (is.null(rownames(dmat))) {

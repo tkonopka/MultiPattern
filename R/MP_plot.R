@@ -1,5 +1,3 @@
-## for plotting, need functions from package Rcssplot
-requireNamespace("Rcssplot")
 
 
 
@@ -23,12 +21,13 @@ requireNamespace("Rcssplot")
 ##' @param label logical, TRUE to print names of points
 ##' @param RC Rcss object
 ##' @param RCC Rcss class vector
+##' @param ... arguments passed on to plot (e.g. xlab, ylab)
 ##' 
 ##' @export
 MPplotmap = function(xylayout, color=c(),
     highlight.points=c(), highlight.links=list(),
     xypadding=0.05, main="", legend.separate=FALSE,
-    squarexy=TRUE, label=FALSE, RC="default", RCC=c()) {
+    squarexy=TRUE, label=FALSE, RC="default", RCC=c(), ...) {
     
     if (!class(xylayout) %in% c("matrix", "data.frame", "list")) {
         stop("xylayout must be a matrix, data.frame, or list\n")
@@ -75,7 +74,7 @@ MPplotmap = function(xylayout, color=c(),
     }
     
     ## add elements to the first plot
-    Rcssplot(xlim, ylim, type="n", xlim=xlim, ylim=ylim, xaxs="i", yaxs="i", Rcss=RC, Rcssclass=RCC)
+    Rcssplot(xlim, ylim, type="n", xlim=xlim, ylim=ylim, xaxs="i", yaxs="i", Rcss=RC, Rcssclass=RCC, ...)
     Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcss=RC, Rcssclass=c(RCC, "box"))    
     if (label) {        
         if (length(normal.rows)>0) {

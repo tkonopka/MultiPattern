@@ -16,6 +16,9 @@ interested only in items with rank <=N}
 
 \item{...}{- passed on to rank()}
 }
+\value{
+vector with names, values are ranks, names correspond to elements in dd
+}
 \description{
 This function scores graph similarity using rank neighborhoods
 }

@@ -46,7 +46,7 @@ MPrankNeighbors = function(dd, ties="min", ...) {
     ## make diagonal entries always zero
     diag(ans) = 0
     
-    return(ans)
+    ans
 }
 
 
@@ -91,7 +91,7 @@ MPrankWhole = function(dd, ties.method="min", ...) {
     colnames(ans) = colnames(dd)        
     diag(ans) = 0
     
-    return(ans)
+    ans
 }
 
 
@@ -108,6 +108,8 @@ MPrankWhole = function(dd, ties.method="min", ...) {
 ##' interested only in items with rank <=N
 ##' @param ... - passed on to rank()
 ##'
+##' @return vector with names, values are ranks, names correspond to elements in dd
+##' 
 ##' @export 
 MPgetNeighborSet = function(dd, seedsample, maxrank=0, ...) {
 
@@ -121,8 +123,7 @@ MPgetNeighborSet = function(dd, seedsample, maxrank=0, ...) {
         distto = distto[distto<= maxrank]
     }
     
-    return(distto)
-    
+    return(distto)    
 }
 
 

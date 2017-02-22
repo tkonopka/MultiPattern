@@ -1,0 +1,152 @@
+---
+title: "MultiPattern - figures for README"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{MultiPattern - figures for README}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+This workbook generates figures shown on the github landing page (README.md)
+
+To create the figures execute `library("rmarkdown")`, then `render("90.readme.Rmd")`.
+
+
+```{r, knitr, echo=FALSE}
+## Some settings for the vignette
+library("knitr")
+knitr::opts_chunk$set(cache.path='cache/readme_')
+knitr::opts_chunk$set(fig.path='figures/readme_')
+knitr::opts_chunk$set(fig.align='center') 
+
+## load packages
+library("cluster")
+library("MultiPattern")
+
+## Prep for plotting
+library("Rcssplot")
+MPcss = Rcss("../vignettes/MPvignette.Rcss")
+RcssDefaultStyle <- MPcss
+RcssOverload()
+Rcsspar()
+set.seed(12345)
+```
+
+
+```{r, mpreadme, echo=FALSE}
+## This block has handy
+
+## split points into cluster usings pam
+pamclusters = function(dd, prefix="A",  kmax=3) {
+  dpam = pam(dd, k=kmax)
+  setNames(paste0(prefix, dpam$clustering), names(dpam$clustering))
+}
+
+## perform a customized MultiPattern workflow
+mpreadme = function(dd, pamk=2, repr=5) {
+  mp = MPnew(rownames(dd), data=list("dd"=dd[,1:2]))
+  ## speed up calculation with fewer random configs
+  MPchangeSettings(mp, list(num.random=10))
+  MPeasyConfig(mp, type=c("pca", "euclidean", "hclust", "pam"))
+  metasims = MPgetAverageMetaDistance(mp, verbose=FALSE)
+  metamap = MPgetMap(metasims)
+  ## get representatives
+  if (class(repr)=="integer" | class(repr)=="numeric") {
+    repr=round(repr)
+    mpreps = MPgetRepresentatives(dist(metamap), method="extreme", k=repr)
+    mpreps = grep("rnorm", mpreps, inv=T, val=T)
+    mpreps = setNames(mpreps, LETTERS[1:length(mpreps)])
+  } else {
+    mpreps = setNames(repr, LETTERS[1:length(repr)])
+  }
+  mpsims = MPgetDistances(mp, configs=mpreps)
+  ## get labels
+  mpclust = matrix(NA, ncol=length(mpreps), nrow=nrow(dd))
+  rownames(mpclust) = rownames(dd)
+  colnames(mpclust) = names(mpreps)
+  for (i in names(mpreps)) {
+    temp = pamclusters(mpsims[[mpreps[i]]], prefix=i, kmax=pamk)
+    mpclust[names(temp), i] = temp	
+    rm(temp, i)
+  }
+  ## output all the data
+  list(data=dd, mp=mp, metasims=metasims, metamap=metamap, 
+       mpreps=mpreps, sims=mpsims,  mpclust=mpclust)  
+}
+
+
+## plot split of a dataset into clusters
+## expects xx as a list as output by mpreadme above
+plotAC = function(xx, ww=3) {
+  par(mfrow=c(1,ww))
+  for (i in 1:ww) {
+    MPplotScatterWithK(xx$data[,1:2], xx$mpclust[,i], main="", RCC="scatter")
+  }
+}
+
+```
+
+## Toy datasets
+
+
+```{r, raw, fig.width=2.8, fig.height=1.4, dpi=150}
+par(mfrow=c(1,2))
+MPplotmap(MPdata4S[,c("D1", "D2")], xypadding=0.13)
+MPplotmap(MPdata6S[,c("D1", "D2")], xypadding=0.13)
+```
+
+
+## Multi-pattern workflows for toy datasets
+
+(This workflow uses some custom functions defined in this workbook with `echo=FALSE`)
+
+A dataset with four groups:
+
+```{r, mp4S, cache=TRUE}
+repr4 = c("dd:clust.A2reg", "dd:clust.A2alt", "dd:clust.P2alt")
+mp4S = mpreadme(MPdata4S, repr=repr4)
+```
+
+A dataset with six groups:
+
+```{r, mp6S, cache=TRUE}
+repr6 = c("dd:clust.P3reg", "dd:clust.A3alt", "dd:clust.A2reg", 
+      "dd:clust.P3alt","dd:clust.A2alt")
+mp6S = mpreadme(MPdata6S, pamk=3, repr=repr6)
+```
+
+Show metamaps
+
+```{r, metamaps, fig.width=8, fig.height=4}
+par(mfrow=c(1,2))
+MPplotmap(mp4S$metamap, label=T, main="mp4S")
+MPplotmap(mp6S$metamap, label=T, main="mp6S")
+```
+
+
+## Visualization
+
+Alternate clusterings for dataset MPdata4S
+
+```{r}
+repr4
+```
+
+```{r, k4, fig.width=4.2, fig.height=1.4, dpi=150}
+plotAC(mp4S, 3) 
+```
+
+Alternate clusterings for dataset MPdata6S
+
+```{r}
+repr6
+```
+
+```{r, k6, fig.width=7, fig.height=1.4, dpi=150}
+plotAC(mp6S, 5)
+```
+
+
+
+

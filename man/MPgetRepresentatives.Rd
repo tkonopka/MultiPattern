@@ -8,7 +8,7 @@ MPgetRepresentatives(d, subsets = NULL, method = c("complete", "single",
   "average", "pam", "extreme"), k = 0.05)
 }
 \arguments{
-\item{d}{dist object}
+\item{d}{dist object or dist-like matrix}
 
 \item{subsets}{if NULL, function considers all rows
 if vector of characters, interpreted as regex for subsetting rows}

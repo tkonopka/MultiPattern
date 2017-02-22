@@ -408,6 +408,10 @@ rpca.MultiPatternPlugin = function(MP, data.name, config.prefix,
 ##' on the transformed data. The plugin does not do anything if the input data
 ##' contains non-finite elements. Settings for the plugin are extracted from MP$settings.
 ##'
+##' Note: this function will not change MP if the dataset is not suitable
+##' for NMF. This includes situations when the dataset contains missing values
+##' or contains too-few columns.
+##'
 ##' @param MP MultiPattern
 ##' @param data.name character
 ##' @param config.prefix character
@@ -444,7 +448,7 @@ nmf.MultiPatternPlugin = function(MP, data.name, config.prefix,
     datanmf = list()    
     for (nowr in seq(2, maxr, by=2)) {
         nownmf = NMF::nmf(nowdata, nowr)
-        datanmf[[paste0(data.name, ".nmf", nowr)]] = basis(nownmf)
+        datanmf[[paste0(data.name, ".nmf", nowr)]] = NMF::basis(nownmf)
     }
     ## add datasets into MP
     MPaddData(MP, datanmf)

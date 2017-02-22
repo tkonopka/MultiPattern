@@ -4,10 +4,13 @@
 \alias{MPgetDistances}
 \title{Run MultiPattern analysis.}
 \usage{
-MPgetDistances(MP, verbose = TRUE)
+MPgetDistances(MP, configs = NULL, verbose = TRUE)
 }
 \arguments{
 \item{MP}{MultiPattern configuration object}
+
+\item{configs}{string, vector of configuration names to evaluate;
+leave NULL to evaluate all configurations}
 
 \item{verbose}{logical, when TRUE function prints a warning message when the input is large}
 }

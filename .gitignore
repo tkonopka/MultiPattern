@@ -1,5 +1,26 @@
-## ignoring temporary files
+## ignoring temporary files and files from knitr
+
 
 */*.*~
 */*/*.*~
+
+inst/doc
+
+## ignoring vignette temporary output
+vignettes/*aux
+vignettes/*bbl
+vignettes/*blg
+vignettes/*pdf
+vignettes/*log
+vignettes/*out
+vignettes/*tex
+vignettes/*toc
+vignettes/cache*
+vignettes/figures*
+
+## ignoring test and output
+tests/cache*
+tests/figures*
+tests/*html
+
 

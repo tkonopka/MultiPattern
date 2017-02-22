@@ -6,7 +6,7 @@
 \usage{
 MPeasyConfig(MP, data = NULL, config.prefix = "", preprocess.prefix = "",
   type = c("pca", "euclidean", "spearman", "canberra", "manhattan", "hclust",
-  "pam"), preprocess = NULL)
+  "pam"), random = TRUE, preprocess = NULL)
 }
 \arguments{
 \item{MP}{MultiPattern configuration object}
@@ -22,6 +22,8 @@ the specified data objects.}
 \item{type}{character or list, codes for what types of configuration plugins to use. To see all
 available plugins, use MPlistPlugins(). 
 shows all the supported configuration types. Detailed descriptions will appear elsewhere.}
+
+\item{random}{logical, set TRUE to include random configurations.}
 
 \item{preprocess}{object specifying preprocessing, e.g. vector of features for subspaces}
 }

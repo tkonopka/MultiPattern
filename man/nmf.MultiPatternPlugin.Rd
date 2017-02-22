@@ -23,4 +23,9 @@ This plugin transforms an input dataset using rpca, then defines configurations
 on the transformed data. The plugin does not do anything if the input data
 contains non-finite elements. Settings for the plugin are extracted from MP$settings.
 }
+\details{
+Note: this function will not change MP if the dataset is not suitable
+for NMF. This includes situations when the dataset contains missing values
+or contains too-few columns.
+}
 

@@ -1,0 +1,97 @@
+/**
+ * Plot styles for MultiPattern vignette
+ *
+ **/
+
+
+/** Styles for generic plots **/
+plot {
+  axes: FALSE;
+  xlab: NA;
+  ylab: NA;
+  frame: FALSE;
+}
+
+par {
+  mar: 0.32 0.62 0.92 0.62;
+}
+
+points {
+  pch: 1;
+  cex: 1.1;
+  lwd: 1.8;
+  col: #333333;
+}
+text, mtext {
+  cex: 0.6;
+}
+
+
+rect.meta {
+  border: #111111;  
+  lwd: 0.5;
+  col: #f6f8fb;
+}
+points.meta, points.traditional {
+  cex: 1.5;
+  col: #db4333;
+  lwd: 2;
+  xpd: 1;
+}
+points.meta.rnorm {
+  cex: 2;
+  col: #666666;
+  lwd: 1;
+}
+
+/** Highlighted points in MDS **/
+text.meta.highlight {
+  pos: 4;
+  offset: 0.25;
+}
+points.meta.highlight {
+  pch: 21;
+  cex: 2.2;
+  lwd: 3;
+  bg: #ffffff;
+  col: #a63626; 
+}
+
+ScatterWithK {
+  padding: 0.13;
+}
+
+rect.scatter {
+  col: #fbf8f6;
+}
+points.scatter.G0 {
+  pch: 1;
+  col: #888888;
+}
+points.scatter.G1 {
+  pch: 1;
+  col: #db4333;
+}
+points.scatter.G2 {
+  pch: 4;
+  col: #333333;
+}
+points.scatter.G3 {
+  pch: 2;
+  col: #28618d;
+}
+
+mtext.scatter {
+  adj: 0.05;
+  line: -1.25;
+  font: 2;
+  cex: 0.8;
+}
+mtext.scatter.mu {
+  col: #db4333;
+}
+
+/** End of Rcss definitions **/
+
+
+

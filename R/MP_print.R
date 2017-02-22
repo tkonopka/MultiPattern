@@ -13,7 +13,7 @@ print.MultiPattern = function(x, ...) {
         stop("object not of class MultiPattern\n")
     }
     capturex = as.character(deparse(substitute(x)))
-    cat("\nMultiPattern configuration object\n\n")
+    cat("MultiPattern configuration object\n\n")
     cat(sprintf("%-5s", length(x$items)), "observations\n")
     cat(sprintf("%-5s", length(x$data)), "data objects\n")
     for (i in seq_along(x$data)) {
@@ -22,7 +22,7 @@ print.MultiPattern = function(x, ...) {
                    " - ", sprintf("%6d", ncol(xd)), " features\n"))   
     }
     cat(sprintf("%-5s", length(x$configs)), "analyses configurations\n")
-    cat("\n")
+    ##cat("\n")
 }
 
 

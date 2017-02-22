@@ -7,7 +7,7 @@
 MPplotmap(xylayout, color = c(), highlight.points = c(),
   highlight.links = list(), xypadding = 0.05, main = "",
   legend.separate = FALSE, squarexy = TRUE, label = FALSE,
-  RC = "default", RCC = c())
+  RC = "default", RCC = c(), ...)
 }
 \arguments{
 \item{xylayout}{matrix or list. When matrix, should contain two columns x/y for positions of
@@ -38,6 +38,8 @@ layout algos)}
 \item{RC}{Rcss object}
 
 \item{RCC}{Rcss class vector}
+
+\item{...}{arguments passed on to plot (e.g. xlab, ylab)}
 }
 \description{
 Custom function to draw TSNE/mds maps. Uses Rcssplot and some hard settings
