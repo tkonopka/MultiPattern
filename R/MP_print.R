@@ -22,7 +22,6 @@ print.MultiPattern = function(x, ...) {
                    " - ", sprintf("%6d", ncol(xd)), " features\n"))   
     }
     cat(sprintf("%-5s", length(x$configs)), "analyses configurations\n")
-    ##cat("\n")
 }
 
 
@@ -38,9 +37,29 @@ print.MultiPatternSimilarities = function(x, ...) {
     if (class(x) != "MultiPatternSimilarities") {
         stop("object not of class MultiPatternSimilarities\n")
     }    
-    cat("\nMP similarities\n\n")
+    cat("MultiPattern similarities\n\n")
     cat("Similarities:\t\t", length(x), "\n")
-    cat("\n")
+}
+
+
+
+
+##' Print a summary of a MP distances objects
+##'
+##' @param x a MultiPatternSettings object (list)
+##' @param ... additional arguments, not used
+##' 
+##' @export
+print.MultiPatternSettings = function(x, ...) {
+    if (class(x) != "MultiPatternSettings") {
+        stop("object not of class MultiPatternSettings\n")
+    }    
+    cat("MultiPattern analysis settings\n\n")
+    ## find length of names(x)
+    xmax = max(nchar(names(x)))
+    for (s in names(x)) {
+        cat(sprintf(paste0("%", xmax, "s"),s), ":\t", x[[s]], "\n")
+    }
 }
 
 

@@ -4,15 +4,17 @@
 \alias{MPchangeSettings}
 \title{Change settings encoded in a MultiPattern object}
 \usage{
-MPchangeSettings(MP, settings = list())
+MPchangeSettings(MP, settings = list(), warn = TRUE)
 }
 \arguments{
 \item{MP}{a MultiPattern configuration object}
 
-\item{settings}{list with new settings
+\item{settings}{list with new settings}
 
-Accepted settings names are 'num.PCs', 'num.random', 'alpha',
-'rpca.term.delta', 'clust.k', 'subspace.num.random', 'subspace.d.random'}
+\item{warn}{logical, set TRUE to get warnings if a setting value
+is not part of the core MultiPattern set (MPdefaultSettings)
+
+Accepted settings names are those defined in MPdefaultSettings.}
 }
 \description{
 Change settings encoded in a MultiPattern object

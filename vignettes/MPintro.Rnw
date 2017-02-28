@@ -36,15 +36,15 @@ knitr::opts_chunk$set(fig.path='figures/intro_')
 knitr::opts_chunk$set(fig.align='center') 
 @
 
+<<rng, echo=FALSE>>=
+set.seed(366701)
+@ 
 
-<<echo=FALSE>>=
-## Prep for plotting
+<<rcssplot, echo=FALSE>>=
 library("Rcssplot")
 MPcss = Rcss("MPvignette.Rcss")
-RcssDefaultStyle <- MPcss
+RcssSetDefaultStyle(MPcss)
 RcssOverload()
-Rcsspar()
-set.seed(366701)
 @
 
 
@@ -61,42 +61,47 @@ In this vignette, we will look at the package structure and apply the package to
 
 \section{A sample multi-pattern analysis of a toy dataset}
 
-Let's apply the framework to analyze a toy dataset. In this section, we will load a dataset, define a multi-pattern analysis, perform the calculations, and interpret the results.
+Let's apply the framework to analyze a toy dataset. In this section, we will load the dataset, run a multi-pattern analysis, and interpret the results.
 
 
 
 
 \subsection{Data preparation}
 
-Let's being by loading the package and fetching one of its datasets. For simplicity, we use a small one called {\tt MPdata6S} and rename it {\tt D6}.
+Let's begin by loading the package and fetching one of its datasets. For simplicity, let's use a small dataset called {\tt MPdata6S} and rename it {\tt D6}.
 
 <<>>=
 library("MultiPattern")
 D6 = MPdata6S
-head(D6, 3)
+head(MPdata6S, 3)
 @
 
-The first two columns contain coordinates (Figure \ref{fig:fig_D6}). The third column contains expected class labels. 
+\noindent The first two columns contain coordinates. The third column contains expected class labels. The data can thus be visualized\footnotemark in its entirety (Figure \ref{fig:fig_D6}).
 
 <<D6map, eval=FALSE>>=
 MPplotmap(D6[,c("D1", "D2")])
+MPplotmap(D6[,c("D1", "D2")], split(rownames(D6), D6[, "class"]))
 @
 
-<<fig_D6, echo=FALSE, out.width="0.2\\textwidth", out.height="0.2\\textwidth", fig.width=1.5, fig.height=1.5, fig.cap="Raw data in dataset M6.">>=
-Rcsspar()
+<<fig_D6, echo=FALSE, out.width="0.4\\textwidth", out.height="0.2\\textwidth", fig.width=3, fig.height=1.5, fig.cap="Dataset {\\tt MPdata6S}: (left) raw data points arranged in two dimensions; (right) similar to previous panel, but with markers distinguishing the points' expected class.">>=
+Rcsspar(mfrow=c(1,2))
 <<D6map>>
 @ 
 
+\footnotetext{Here and in other cases that follow, visualizations are produced using customized functions defined within with the package using {\tt Rcssplot}. Note, however, that the visualizations can also be performed using other approaches, in this case using a simple scatter plot.}
+
+
+
+
 \subsection{Analysis setup}
 
-To set up a multi-pattern analysis, we create an object of class {\tt MultiPattern} using the command {\tt MPnew()}. This requires the names/identifiers for our observations as well as a list of datasets. 
+To set up a multi-pattern analysis, we create an object of class {\tt MultiPattern} using the command {\tt MPnew()}. This requires the names/identifiers for our observations and a list of datasets. 
 
 <<>>=
 MP6 = MPnew(rownames(D6), data=list("D6"=D6[,1:2]))
-MPchangeSettings(MP6, list(num.random=40))
 @
 
-In this case, the list of datasets consists of only one data frame. Note that we input only the coordinate columns, omitting the expected class labels. 
+\noindent In this case, the list of datasets consists of only one data frame. Note that the command inputs only the numeric columns and omits the expected class labels.
 
 We can check the initialization worked by printing a summary of the new object.
 
@@ -104,27 +109,29 @@ We can check the initialization worked by printing a summary of the new object.
 MP6
 @
 
-The last line of the output shows that we did not specify any clustering configurations for this multi-pattern analyses. In this section, let's create some configurations automatically using {\tt MPsuggestConfig()}. This requires access to the configuration object, here {\tt MP6}. It also requires the name of the target dataset; we only have one, so it is the string ``D6''.
+\noindent The last line of the output shows that we did not specify any clustering configurations for this multi-pattern analysis. 
+
+Let's now update the {\tt MP6} object to reflect the type of analysis that we wish to perform. We can add analysis configurations using function {\tt MPsuggestConfig}. This requires access to the configuration object and the name of the target dataset.
 
 <<>>=
 MPsuggestConfig(MP6, "D6")
 @ 
 
-This first command does not return a value in a visible manner, but it modifies the state of its first argument, i.e. {\tt MP6}. It also displays a short summary message, but printing the object again reveals more details. 
+\noindent This command displays a short summary message, but its main effects is to change the contents of the {\tt MP6} object. We can see those changes by printing the object again.
 
 <<>>=
 MP6
 @
 
-There are two important changes. First, we now have two datasets associated with the analysis. The new dataset is called ``D6.pca'' and, as the name suggests, contains a principal-component decomposition of the original data. Second, we now have 122 analysis configurations. We can get a glimpse at them with the following command,
+\noindent There are two important changes. First, we now have two datasets associated with the analysis. The new dataset is called ``D6.pca''. As the name suggests, it contains a principal-component decomposition of the original data. Second, we now have 122 analysis configurations. We can get a glimpse at them with the following command.
 
 <<>>=
-names(MP6$configs)[c(1:6,23:26)]
+names(MP6$configs)[c(1:6,23:26)]  ## a selection of the configuration names
 @
 
-These names alone are not complete descriptions of the underlyign analyses. However, they are nonetheless informative. For example, we can infer that the first configuration performs an analysis based on euclidean distance between observations. The third analysis considers only the first principal component. Other configurations apply strategies based on a 'clustering' approach. Yet others marked 'random' act as negative controls.
+\noindent These names are not complete descriptions of the underlying analyses. However, they are nonetheless informative. For example, the name of the first configuration suggests it performs an analysis based on euclidean distance. The third analysis considers only the first principal component. Other configurations apply strategies based on a clustering approach. (More details of these analyses are outlined below in section \ref{sec:sec_details}.)
 
-It will be handy to split the names of the configurations into two groups: the random ones and non-random ones.
+Some configurations are marked 'random'. These actually disregard the numeric data and use random numbers instead. They act as negative controls. It will be handy to be able to distinguish these configurations from the others. We can achieve this by defining the following list. 
 
 <<>>=
 config.names = names(MP6$configs)
@@ -137,16 +144,16 @@ config.groups = list("rnorm" = grep("rnorm", config.names, val=T),
 
 \subsection{Calculation}
 
-Next, we run the multi-pattern analysis calculation. This entails computing a `meta-dissimilarity` object. 
+Having configured our multi-pattern analysis, we can now run the actual calculation. This entails computing a meta-dissimilarity object. 
 
 <<MP6metasims, cache=TRUE>>=
 MP6metasims = MPgetAverageMetaDistance(MP6)
 @
 
-The calculation uses a form of bootstrap averaging over several repetitions. Hence the warning about the waiting time. After the calculation completes, we can peak at the result, which is a dissimilarity matrix.
+\noindent The calculation uses a form of bootstrap averaging over several repetitions. Hence the warning about the waiting time. After the calculation completes, its result is a dissimilarity matrix.
 
 <<>>=
-MP6metasims[1:4,1:2]
+MP6metasims[1:4,1:2]  ## top-left corner of a larger matrix
 @
 
 The rows and columns are labeled by the configurations that we defined previously. Let's look at a few of the entries.
@@ -154,9 +161,9 @@ The rows and columns are labeled by the configurations that we defined previousl
 \begin{itemize}
 \item The diagonal is zero by definition.
   
-\item The entries at position $[2,1]$ and $[3,1]$ are non-zero, as is typical for most of the matrix. Their absolute values are uninformative, but their relative size is of interest. This suggests that analyses based on euclidean and canberra distances are more similar than an analysis based on euclidean distance and an analysis that uses the first PC.
+\item The entries at position $[2,1]$ and $[3,1]$ are non-zero (as are most other entries in the matrix). Their absolute values are uninformative, but their relative sizes are. The magnitudes suggest that (for this dataset) analyses based on euclidean and canberra distances are more similar than an analysis based on euclidean distance and an analysis that uses the first PC.
   
-\item The entry at position $[4,1]$ is zero. This compares an analysis performed on the full dataset to another analysis based on a PCA-transformed dataset. Both datasets are two-dimensional and euclidean distances between all points in these representations are equivalent. Hence there is no difference between these analyses in this case. 
+\item The entry at position $[4,1]$ is zero. This compares an analysis performed on the full dataset to another analysis based on the first two principal components of the dataset. In this example, the second dataset is a lossless rotation of the first. All euclidean distances in these two datasets are equivalent. Hence there is no difference between these analyses in this case. 
 \end{itemize}
 
 
@@ -164,60 +171,57 @@ The rows and columns are labeled by the configurations that we defined previousl
 
 \subsection{Visualization}
 
-As `MP6metasims` is a dissimilarity matrix, we can visualize it using multi-dimensional scaling (MDS). The package provides some wrapper functions to achieve this, and we can apply styling to distinguish the various configuration types. (Figure \ref{fig:fig_metamap})
+As {\tt MP6metasims} is a dissimilarity matrix, we can use it to compute a MDS map.
 
-<<MP6metamap, eval=FALSE>>=
+<<MP6metamap, eval=TRUE>>=
 MP6metamap = MPgetMap(MP6metasims)
+@ 
+
+\noindent We can then visualize the map as follows.
+
+<<MP6plotmetamap1, eval=FALSE>>=
 MPplotmap(MP6metamap, col=config.groups, RCC="meta")
 MPplotmap(MP6metamap, col=config.groups, RCC="meta", label=TRUE)
 @
 
-<<fig_metamap, echo=FALSE, out.width="0.7\\textwidth", out.height="0.35\\textwidth", fig.width=4, fig.height=2, fig.cap="Hello">>=
-Rcsspar(mfrow=c(1,2))
-<<MP6metamap>>
-@ 
+\noindent The first command computes a multi-dimensional scaling map, adding some white noise to separate nearby points. The subsequent commands produce two graphical representations, adding styling to distinguish the random and the non-random configurations (Figure \ref{fig:fig_metamap}).
 
-The two panels are equivalent: the first panel displays only dots and is useful as a publication figure; the second panel identifies the names of the dots.
 
-An important distinction between this diagram and common uses of MDS is that dots do not correspond to the elements in the original dataset. Rather, the dots are analyses based on that dataset. They represent viewpoints that we can take while studying the data. 
-
-We make the following observations:
+An important distinction between this visualization and common uses of MDS is that the dots in the visualization do not correspond to the elements in the original dataset. Rather, the dots represent complete analyses based on the dataset. The distinction can perhaps become more clear by studying specific features of the visualization:
 
 \begin{itemize}
-\item The configurations marked as random (gray) are set close to each other and separate from the non-random ones (red). This means that relationships between data points captured by the non-random configurations are different from random.
-
+\item The configurations marked as random (gray) are set close to each other and appear separate from the non-random ones (red). This means that relationships between data points captured by the non-random configurations are different from random.
 \item The non-random configurations are scattered around the plot. This indicates that the individual analyses bring out distinct pattern from each other. 
-  
-\item As in all MDS diagrams, it is not possible to judge the absolute scale of similarities and differences. Moreover, the dissimilarity scores computed in `MP6metasims` are heuristics. Thus, the diagram is informative but not definitive. 
 \end{itemize}
-  
-In summary, the meta-dissimilarity visualization captures a summary of various unsupervised analyses performed on a dataset.
+
+The meta-dissimilarity visualization thus captures relations between various independent unsupervised analyses performed on the dataset. But in order to link this new information to the original data, we need to delve a little deeper.
 
 
 
 
 \subsection{Representative clustering methods}
 
-To dig deeper into the patterns in the dataset, we can select a small number of representative analysis configurations. We can do this based on their positions in the MDS diagram. 
+Based on the computed meta-dissimilarities between dozens of analyses, we can select a smaller number of representative configurations. We can do this based on their positions in the MDS diagram. 
 
 <<MP6reps>>=
-MP6reps = MPgetRepresentatives(dist(MP6metamap), method="extreme", k=5)
+MP6reps = MPgetRepresentatives(dist(MP6metamap), method="extreme", k=6)
 MP6reps
 @
 
-Here, we asked for five configurations that appear separated in the MDS diagram. We can now identify them in the MDS diagram (Figure \ref{fig:fig_metamap2}).
+The first command here requests {\tt k=6} representative configurations that appear well-separated in the MDS map. We can identify them in the MDS diagram (Figure \ref{fig:fig_metamap}).
 
-<<MP6metamap2, eval=FALSE>>=
+<<MP6plotmetamap2, eval=FALSE>>=
 MPplotmap(MP6metamap, col=config.groups, highlight.points=sort(MP6reps), 
-          legend=TRUE, RCC="meta")
+          legend=FALSE, RCC="meta")
 @
 
-<<fig_metamap2, echo=FALSE, out.width="0.7\\textwidth", out.height="0.35\\textwidth", fig.width=4, fig.height=2, fig.cap="Yoyo">>=
-Rcsspar()
-<<MP6metamap2>>
+<<fig_metamap, echo=FALSE, out.width="0.99\\textwidth", out.height="0.33\\textwidth", fig.width=5.4, fig.height=1.8, fig.cap="Multi-pattern map for the {\\tt MPdata6S} dataset: (left) an MDS representation of relationships between clustering analyses; (center) similar to previous panel, but with dots replaced by text labels; (right) similar to first panel, but with five representative configurations highlighted by darker and larger markers.">>=
+Rcsspar(mfrow=c(1,3))
+<<MP6plotmetamap1>>
+<<MP6plotmetamap2>>   
 @ 
 
-Two of the representatives are part of the 'random' set, so they are not informative. We thus continue with the remaining four. 
+\noindent One of the representatives is part of the 'random' set, so it is not informative about the dataset. We thus continue with the remaining four. 
 
 <<>>=
 MP6reps = grep("rnorm", MP6reps, inv=T, val=T)
@@ -225,12 +229,14 @@ MP6reps = setNames(MP6reps, LETTERS[1:length(MP6reps)])
 MP6reps
 @
 
-To summarize the progress so far: we started with a raw dataset. We then used an automated approach to define 22 reasonable configurations for unsupervised analyses on the data along with 100 control configurations. We then simplified our view to the four representatives above. 
+\noindent From our initial set of 122 analysis configurations, we now have four approaches that might be interesting for follow-up. 
+
+
 
 
 \subsection{Follow-up with traditional clustering}
 
-We can now perform traditional unsupervised analyses using the four highlighted approaches. We start by computing distances/dissimilarities for the representative analyses. 
+Each of the four highlighted approaches is a stand-alone method for unsupervised analysis. We can therefore use these approaches to compute distances between the data points. 
 
 <<MP6sims, cache=TRUE>>=
 MP6sims = MPgetDistances(MP6, configs=MP6reps)
@@ -242,16 +248,16 @@ This step can also take a while to finish. The result is a list of {\tt dist} ob
 as.matrix(MP6sims[[1]])[1:4,1:4]
 @
 
-Thus, we have similarities between the original observations in dataset `D6`. This is a familiar setting and we can apply traditional clustering. 
+The distances are now between the original observations in dataset {\tt D6}. This is a familiar setting and we can apply traditional clustering. 
 
-Although there are approaches to identify an optimal number of clusters, $k$, (e.g. using silhouette widths), let's pretend that we are constrained to use $k=3$. We can now use the four similarity matrices to find four different partitions of the original data.
+Although there are approaches to identify an optimal number of clusters, $k$, (e.g. using silhouette widths), let's pretend that we are constrained to use $k=3$. We can now use each of the four similarity matrices to find partitions of the original data.
 
 <<>>=
 ## helper function uses pam clustering to assign labels to each point
 ## each label is [prefix+integer]
 library("cluster")
-pamclusters = function(dd, prefix="A",  kmax=3) {
-  dpam = pam(dd, k=kmax)
+pamclusters = function(dd, prefix="A",  k=3) {
+  dpam = pam(dd, k=k)
   setNames(paste0(prefix, dpam$clustering), names(dpam$clustering))
 }
 ## create a matrix of labels associating each point to one label 
@@ -264,12 +270,16 @@ for (i in names(MP6reps)) {
   MP6clust[names(temp), i] = temp	
   rm(temp, i)
 }
-MP6clust[c(1,2,13,25,37),]
+
 @
 
-This code block first defines a helper function that assigns a label to each data point. It computes a `pam` clustering and splits it into $k=3$ groups. These partitions for the four approaches encoded in {\tt MP6sims} are then collected into a matrix {\tt MP6clust}. 
+The above code block first defines a helper function that computes a {\tt pam} clustering and splits observations into $k=3$ groups. The remainder of the block creates a matrix {\tt MP6clust} and collects the cluster partitions for each of the similarity matrices in {\tt MP6reps}. A few rows of the result are as follows.
 
-We can visualize the clustering results for each of the approaches.
+<<>>=
+MP6clust[c(1,2,13,25,37),]   ## a few of the rows in a larger matrix
+@ 
+
+\noindent Thus, each observation in the original dataset is now associated with a label by each of the configurations. These labels can also be displayed visually (Figure \ref{fig:fig_scatterK}).
 
 <<D6K, eval=FALSE>>=
 par(mfrow=c(1,4))
@@ -278,14 +288,13 @@ for (i in colnames(MP6clust)) {
 }
 @
 
-<<scatterK, echo=FALSE, out.width="0.7\\textwidth", out.height="0.175\\textwidth", fig.width=6, fig.height=1.5, fig.cap="Yoyo">>=
+<<fig_scatterK, echo=FALSE, out.width="0.7\\textwidth", out.height="0.175\\textwidth", fig.width=6, fig.height=1.5, fig.cap="Three-color clusterings of dataset {\\tt MPdata6S}. Each panel shows the entire dataset with colors determined by {\\tt pam} clustering to distance matrices output by the representative approaches from the multi-pattern map (labeled A-D).">>=
 <<D6K>>
 @ 
 
-Each diagram shows the same dataset partitioned into black, red, and blue points according to different clustering analyses. Because we selected these analyses from distinct areas in the MDS diagram, the partitions are different. Yes, each one has its own logic and is in fact reasonable. 
+\noindent Each diagram shows the dataset partitioned into black, red, and blue points according to different clustering analyses. The partitions are different, but we can see that each one has its own logic.
 
-(Some of the suggested partitions may seem imperfect, i.e. they may place some points in strange groups. All clustering algorithms display such properties under special circumstance. The point here is not to critique such properties of individual algorithms. Rather, the aim is to acknowledge that several algorithms are informative in different ways.)
-
+At this stage, the suggested partitions may seem imperfect, i.e. they may place some points in strange groups. The point here is not to critique such properties of individual algorithms. Rather, it is to acknowledge that the algorithms are informative in different ways.
 
 
 
@@ -295,44 +304,48 @@ Now that we have multiple labels for each data point, we can investigate combina
 
 <<MPmultilabels>>=
 MPmultilabels = apply(MP6clust, 1, paste, collapse=".")
-multiu = sort(table(MPmultilabels), decreasing=T)
-multiu
+multilabs = sort(table(MPmultilabels), decreasing=T)
+multilabs
 @
 
-We see there are several distinct multi-labels. Thus, we have a far finer stratification of the data than from any given approach. At the same time, we note that the distinct multi-labels do not cover the space of all possible multi-labels. This indicates that although the clustering methods are distinct, they also display some degree of consensus among them. 
-
-We can now visualize groups defined by these multi-labels.
+\noindent We see that the data points fall into many categories defined through the multi-label groups. Thus, we have a finer stratification of the data than from any single method. We can now visualize groups this stratification (Figure \ref{fig:fig_MLs}). 
 
 <<plotMU, eval=FALSE>>=
 par(mfrow=c(2,4))
-for (uu in names(multiu)[1:min(8, length(multiu))]) {
+for (uu in names(multilabs)[1:min(8, length(multilabs))]) {
   temp = MPmultilabels
   temp[temp!=uu] = "other"
   MPplotScatterWithK(D6[,1:2], temp, main=uu, RCC=c("scatter", "mu"))
 }
 @
 
-<<figMU, echo=FALSE, out.width="0.7\\textwidth", out.height="0.35\\textwidth", fig.width=6, fig.height=3, fig.cap="Yoyo">>=
+<<fig_MLs, echo=FALSE, out.width="0.7\\textwidth", out.height="0.35\\textwidth", fig.width=6, fig.height=3, fig.cap="Multi-label groups for dataset {\\tt MPdata6S}. Each panel shows the entire dataset with a small number of points highlighted in red. Panels are identified by the name of the multi-label group and sorted in order of group size. ">>=
 <<plotMU>>
 @ 
 
-We can now draw several observations from these results
+\noindent We can draw several observations from these results.
 
 \begin{itemize}
-\item The most populous groups are those that correspond to the expected six groups. Thus, this approach achieves clustering into multiple reasonable bins/groups/clusters even though we constrained the individual methods to work with $k=3$.
+\item The most populous groups correspond to the expected six groups (c.f. Figure \ref{fig:fig_D6}). Thus, the multi-label approach achieves clustering into a reasonable number of bins even though we constrained the individual methods to $k=3$.
   
-\item The multi-labels identify a few outlying samples that form groups on their own or with a small number of others. These are hard-to-cluster points that we might want to remove or analyze separately if necessary.
+\item The multi-labels identify a few points that form groups on their own or with a small number of others. These are hard-to-cluster outliers that we might want to remove or analyze separately if necessary. The multi-label strategy thus provides more information than a traditional clustering output.
 
-\item The multi-labels specify similarity relations between the groups. The group with an isolated point {\tt A1.B1.C3.D2} has three labels in common with the large group {\tt A1.B1.C2.D2}. Indeed, that isolated point is in fact meant to belong to the larger group. With the multi-label information, we can now either perform such pruning/merging, or perhaps use this similarity in another way in downstream calculations.
+\item The multi-labels specify similarity relations between the groups, which can be informative in downstream analyses. For example, the isolated point in group {\tt A1.B1.C3.D2} has three labels in common with the large group {\tt A1.B1.C2.D2}. The multi-label information might in this case provide an incentive to merge the two groups.
 \end{itemize}
+
+This completes our first-pass multi-pattern analysis of the toy dataset. In summary, we started with a raw dataset, defined a multi-pattern analysis, ran many types of unsupervised analyses on the data, selected a small number of these analyses for follow-up, and used these representatives to assigned multi-labels to each observation in the original dataset. We saw that the resultant labels are informative and interpretable, both alone and in combination with other labels. Thus, the multi-pattern analysis leaves a solid foundation for futher downstream processing. 
+
+Before turning to fine-tuning the multi-pattern analysis workflow, the next section shows results on other datasets.
 
 
 
 
 \subsection{Other datasets}
 
+In addition to {\tt MPdata6S}, the package also includes several other test datasets. The same procedure described in this can be applied to each of them. Let's have a quick look at the multi-label groups produced in some of these. 
+
 << echo=FALSE>>=
-mpintro = function(dd, k=5) {
+mpintro = function(dd, k=6) {
   mp = MPnew(rownames(dd), data=list("dd"=dd[,1:2]))
   ## speed up calculation with fewer random configs
   MPchangeSettings(mp, list(num.random=15))
@@ -349,7 +362,7 @@ mpintro = function(dd, k=5) {
   rownames(mpclust) = rownames(dd)
   colnames(mpclust) = names(mpreps)
   for (i in names(mpreps)) {
-    temp = pamclusters(mpsims[[mpreps[i]]], prefix=i, kmax=3)
+    temp = pamclusters(mpsims[[mpreps[i]]], prefix=i, k=3)
     mpclust[names(temp), i] = temp	
     rm(temp, i)
   }
@@ -379,26 +392,24 @@ plotMLG = function(xx, k=8) {
 
 <<intros, echo=FALSE, cache=TRUE>>=
 ## perform whole MP analysis for several datasets
-mp3S = mpintro(MPdata3S)
-mp4S = mpintro(MPdata4S)
+mp3S = mpintro(MPdata3S);
 mp9S = mpintro(MPdata9S)
 @
 
-We can visualize similar multi-pattern patterns identified in other datasets.
+Figure \ref{fig:fig_9S} shows results for a nine-group dataset. This is a rather simple dataset where the groups are well-separated. The multi-label groups thus result in near-perfect identification of the groups.
 
-<<fig_3S, echo=FALSE, out.width="0.7\\textwidth", out.height="0.35\\textwidth", fig.width=6, fig.height=3, fig.cap="fig 3S">>=
-Rcsspar(mfrow=c(2,4))
-plotMLG(mp3S)
-@
-
-<<fig_4S, echo=FALSE, out.width="0.7\\textwidth", out.height="0.35\\textwidth", fig.width=6, fig.height=3, fig.cap="fig 4S">>=
-Rcsspar(mfrow=c(2,4))
-plotMLG(mp4S)
-@
-
-<<fig_9S, echo=FALSE, out.width="0.7\\textwidth", out.height="0.35\\textwidth", fig.width=6, fig.height=3, fig.cap="fig 9S">>=
+<<fig_9S, echo=FALSE, out.width="0.7\\textwidth", out.height="0.35\\textwidth", fig.width=6, fig.height=3, fig.cap="Multi-label groups obtained for dataset {\\tt MPdata9S}. Panels are ordered by group size.">>=
 Rcsspar(mfrow=c(2,4))
 plotMLG(mp9S)
+@
+
+Figure \ref{fig:fig_3S} shows results for a three-group dataset with more complex features. Two of the groups have non-convex shapes and are much larger than the third. This type of arrangement is known to cause trouble for many methods based on euclidean distance. While the multi-pattern workflow can be tuned to include approaches that are suitable for this type of data (see following section), the objective of the workflow is actually to identify several viewpoints. Thus, the workflow is bound to identify configurations that split the outer groups into parts. The end result is that the multi-label stage groups are much smaller and more numerous than the true groups. From a naive standpoint, therefore, the multi-pattern analysis `fails' to reveal the true structure.
+
+However, the multi-pattern result is informative because it reveals relations between those group. For example, considering the three largest groups, we notice that {\tt A1.B2.C1.D1} is only two labels away from {\tt A2.B2.C1.D2} (which in the ideal case should be part of the same cluster) and four labels away from {\tt A3.B3.C2.D3} (which should be part of a different cluster). 
+
+<<fig_3S, echo=FALSE, out.width="0.7\\textwidth", out.height="0.35\\textwidth", fig.width=6, fig.height=3, fig.cap="Multi-label groups obtained for dataset {\\tt MPdata3S}. Panels are ordered by group size.">>=
+Rcsspar(mfrow=c(2,4))
+plotMLG(mp3S)
 @
 
 
@@ -406,23 +417,270 @@ plotMLG(mp9S)
 
 \section{Customizing a multi-pattern analysis}
 
-\subsection{Adding individual configurations}
+In the previous section, we carried out a `default' analysis of a toy dataset. But there are several ways of customizing the multi-pattern workflow. This section outlines how to adjust analysis settings, how to add or create configurations to the multi-pattern analysis, and how to tune the multi-pattern map. 
 
-<<hello, eval=FALSE>>=
-MPaddConfig(MP6, ...)
+
+
+
+\subsection{Updating analysis settings}
+
+An object of class {\tt MultiPattern} like {\tt MP6} is a list of multiple object types. Its {\tt settings} components contains various parameters and values that tune an analysis. Their values can be viewed as follows.
+
+<<update1>>=
+MP6$settings
 @ 
 
+\noindent The meanings of individual parameters are explained in the documentation.
+
+<<update2, eval=FALSE>>=
+help(MPdefaultSettings)
+@ 
+
+\noindent For example, {\tt num.random} determines the number of random (control) configurations created by function {\tt MPsuggest}. As another example, {\tt subsample.R} determines the number of bootstrap repetitions performed by function {\tt MPgetAverageMetaDistance}. 
+
+Values for analysis settings can be changed either using function {\tt MPchangeSettings} or via direct manipulation.
+
+<<update3>>=
+MPtemp = MP6
+MPtemp$settings$subsample.R
+MPchangeSettings(MPtemp, list(subsample.R=100))
+MPtemp$settings$subsample.R
+MPtemp$settings$subsample.R = 150
+MPtemp$settings$subsample.R
+@ 
+
+\noindent The object {\tt MPtemp} is a scratch object. The rest of the block demonstrates two ways to change a setting value. The former has the advantage of providing a warning while attempting to modify a non-core settings.
+
+<<update4>>=
+MPtemp$settings$subsample.R
+MPchangeSettings(MPtemp, list(sbsmpl.R=75))
+MPtemp$settings[c("subsample.R", "sbsmpl.R")]
+@ 
+
+\noindent The warning on the second line appears by design. Note, however, that the parameter {\tt sbsmpl.R} is actually included into the settings despite the warning.
+
+
+
+
+\subsection{Creating analysis configurations}
+
+A core step of a multi-pattern analysis is defining a collection of configurations. In essense, each configuration is a traditional approach to pattern analysis based on a distance or dissimilarity function. The package provides a factory function {\tt MPdistFactory} that creates appropriate distance functions. This factory can produce some straight-forward as well as some non-traditional functions. 
+
+Let's see how to produce a configuration using the factory method. We can start by making a distance function based on euclidean distance.
+
+<<addconf1>>=
+dist.def = dist
+dist.fac = MPdistFactory(method="euclidean")
+## helper function - test that two functions produce same distances
+identical.dist = function(f1, f2, data) {
+    identical(as.numeric(f1(data)), as.numeric(f2(data)))
+}
+identical.dist(dist.def, dist.fac, D6[,1:2])
+@ 
+
+\noindent The first two lines create two distance functions, one using the default {\tt dist} and one using the factory. The helper function that follows tests whether the output of two functions are numerically equivalent on a dataset. The last line shows that the two distance functions produce equivalent results on {\tt D6}. We thus have {\tt dist.fac} produced by the factory that reproduces the behavior of {\tt dist}.
+
+The function {\tt dist.fac} produced by the factory is relevant because it behaves differently with missing values.
+
+<<addconf2>>=
+D6na = D6[,1:2]
+D6na[1,2] = D6na[3,1] = NA
+head(D6na,4)
+head(dist.def(D6na))
+head(dist.fac(D6na))
+@ 
+
+\noindent The new dataset {\tt D6na} contains two {\tt NA}s. The default euclidean distance function carries these {\tt NA}s forward. The factory-produced method does not. Rather, it uses naive mean-based imputation to replace the missing values with averages from the dataset, and then computes the euclidean distances based on those imputed values. This behavior guarantees that the output is always {\tt NA}-free. 
+
+Beside producing imputing distance functions, the factory can also produce other nonconventional distance functions. The documentation describes the complete set. One interesting feature is a distance function inspired by 'alternative clustering'.
+
+<<addconf3>>=
+dist.pam2alt = MPdistFactory(method="pam", clust.k=2, clust.alt=TRUE)
+@ 
+
+\noindent This distance function is inspired by the Coala algorithm \cite{bae2006coala}. It first clusters the dataset using {\tt pam} into 2 and 4 clusters, and determines how the four clusters are joined to make two. It then adjusts the data to induce an alternative merging. It returns a distance object that emphasize the alternative merging. To see this in action, we can perform a two-color clustering based on euclidean distance and on this `pam-alternative' distance (Figure \ref{fig:fig_regalt}).
+
+<<addconf4, eval=FALSE>>=
+D6.reglabs = pamclusters(dist.fac(D6[,1:2]), k=2)
+D6.altlabs = pamclusters(dist.pam2alt(D6[,1:2]), k=2)
+MPplotmap(D6[,1:2], split(names(D6.reglabs), D6.reglabs), RCC="scatter")
+MPplotmap(D6[,1:2], split(names(D6.altlabs), D6.altlabs), RCC="scatter")
+@
+
+<<fig_regalt, echo=FALSE, out.width="0.4\\textwidth", out.height="0.2\\textwidth", fig.width=3, fig.height=1.5, fig.cap="Clustering of dataset {\\tt MPdata6S}: (left) pam-clustering into two groups based on euclidean distance; (right) pam-clustering into two groups based on an alternative distance.">>=
+Rcsspar(mfrow=c(1,2))
+<<addconf4>>
+@ 
+
+\noindent The first panel shows a partition into two groups which is deterministic, but arbitrary. The second panel shows an alternative partition, capturing the essence of multi-pattern discovery.
+
+
+
+
+\subsection{Adding custom configurations}
+
+To define a custom configuration, we therefore need to define a distance function. 
+
+As an example, let's work with the {\tt D6} dataset and suppose we are interested in a euclidean-like distance function that does not allow distance to be too-small. We first implement such a custom function.
+
+<<newconf1>>=
+## function for a "regularized" euclidean distance
+## x - input matrix
+## p - regularization quantile (smaller distances will be regularized)
+dist.regularized = function(x, p=0.1) {
+    ## get traditional euclidean distance
+    xd = dist(x)    
+    ## find regularization level and adjust xd
+    xdreg = as.numeric(quantile(xd, p=p))
+    xd[xd<xdreg] = xdreg
+    ## output adjusted distance
+    xd
+}
+class(dist.regularized(D6[,1:2]))
+@ 
+
+\noindent The custom function takes a matrix as input and returns an object of class {\tt dist} as output. (The last command is a quick test that the function works, but you can test it more thoroughly with some examples; compare the output with a traditional call to {\tt dist}).
+
+We can now use this function within a multi-pattern workflow. Let's begin from scratch with a new {\tt MultiPattern} object. 
+
+<<newconf2, eval=TRUE>>=
+MPcustom = MPnew(rownames(D6), list("D6" = D6[,1:2]))
+MPcustom
+@ 
+
+\noindent Let's add some configurations to this object, one by one, using function {\tt MPaddConfig}. 
+
+<<newconf3>>=
+MPaddConfig(MPcustom, "euclidean", data="D6", dist.fun=dist.euclidean)
+MPaddConfig(MPcustom, "canberra",  data="D6", dist.fun=dist.canberra)
+MPaddConfig(MPcustom, "reg",       data="D6", dist.fun=dist.regularized)
+MPcustom
+@ 
+
+\noindent Each of the {\tt MPaddConfig} lines lines adds one configuration to our analysis object. The second argument sets a name for the analysis; the third argument determines the target dataset, and the fourth determines the distance function. We can check the names of these configurations in the {\tt configs} component. 
+
+<<newconf4>>=
+names(MPcustom$configs)
+@ 
+
+\noindent These are equivalent to the strings passed to {\tt MPaddConfig} above. Thus we now have a small but workable definition of a three-pattern analysis. So we can compute a meta-dissimilarity matrix. 
+
+<<newconf5>>=
+MPcustommeta = MPgetAverageMetaDistance(MPcustom, verbose=FALSE)
+MPcustommeta
+@ 
+
+\noindent The relative sizes of the dissimilarities indicate that the regularized version of euclidean distance is more similar to the euclidean distance than to the canberra distance. In principle, we could now visualize this relationship on a three-pattern map, and follow the other multi-pattern workflow. 
+
+
+
+
 \subsection{Adding configuration families}
+
+Adding one configuration at a time as in the previous section is useful, but there are situations when we might want to explore several related functions. To explore this, let's start again from scratch, this time using a dataset with additional columns.
+
+<<family1>>=
+D6b = data.frame(D6[,1:2], 
+    D3=(D6[,1]/10)+(D6[,2]/8), 
+    D4=(D6[,1]/6)-(D6[,2]/9))
+MPfam = MPnew(rownames(D6), list("D6b"=D6b))
+MPfam
+@ 
+
+\noindent The third and fourth columns are here a linear combination of the other two. The details are not important; the point is just that we now have more than two features. 
+
+We can add a family of configurations using function {\tt MPeasyConfig}. This requires a specification of a family type. As an example, let's use the {\tt pca} family.
+
+<<family2>>=
+MPeasyConfig(MPfam, data="D6b", type="pca", random=FALSE)
+MPfam
+names(MPfam$configs)
+@ 
+
+\noindent This added one dataset and eight new configurations. These configurations use all use euclidean distances on subspaces of PCA-transformed data. Configurations ending with {\tt PCx} use just the $x^{th}$ component; {\tt PCy.PCz} use the subspace spanned by the $x^{th}$ and $y^{th}$ components; and {\tt D6b:PCv..PCw} use all the components between $v$ and $w$. The maximal PC component in this family is limited by a setting {\tt num.PCs}, so the family is always finite even when the dataset is of very high dimension. 
+
+At this stage, we can now create a family of configurations using {\tt MPeasyConfig}. Let's now see how to define such a family of configurations. This is achieved by writing a new function with a specific call pattern. An example based on our regularized euclidean distance is as follows.
+
+<<family3>>=
+## a plugin function for use with MPeasyConfig
+reg.MultiPatternPlugin = function(MP, data.name, config.prefix, 
+    preprocess.prefix = "", preprocess = NULL) {
+    ## closure construction to create dist.regularized with various cutoffs
+    makeRegDist = function(q) {
+        force(q)
+        function(x) {
+            dist.regularized(x, q)
+        }
+    }    
+    ## add a series of configuration, using one MPaddConfig at-a-time
+    for (qq in seq(5, 25, by=5)) {
+        MPaddConfig(MP, 
+                    paste0(config.prefix, data.name, ":reg", 
+                           sprintf("%02d", qq)),
+                    data.name=data.name, dist.fun=makeRegDist(qq/100))
+    }        
+    ## return the modified MP object
+    MP
+}
+@ 
+
+\noindent The arguments of the function must be as shown. The contents of the function is free, but the output must be a {\tt MultiPattern} object. In this function here, the first block is a factory function that creates custom distance functions with different regulation thresholds. The second block is a loop that performs five {\tt MPaddConfig} operations at thresholds from $0.05$ to $0.25$.
+
+Given the {\tt MultiPatternPlugin} function, we can again use {\tt MPeasyConfig} to add a family of configurations based on regularized euclidean distance with various cutoffs. 
+
+<<family4>>=
+MPeasyConfig(MPfam, data="D6b", type="reg", random=FALSE)
+MPfam
+names(MPfam$configs)
+@ 
+
+\noindent This verifies that the first command adds five new configurations to our previous set. Their names all contain the string {\tt reg} and a number that suggests the regularization quantile. 
+
+
+
+
 
 
 \subsection{Tuning the multi-pattern meta-map}
 
+Just like dissimilarities between observations within a dataset can be calculated in many different ways, so can the meta-dissimilarities between configurations. The function {\tt MPgetAverageMetaDistance} uses provides a two-parameter parametrization via {\tt alpha} and {\tt beta}. 
+
+Tuning these parameters can alter the numeric of the meta-dissimilarity matrices, and thereby affect the multi-pattern map and all downstream calculations. To explore the effects of such adjustments, we can repeat the meta-dissimilarity calculation for the toy example using {\tt MP6}.
+
+<<alphas0, echo=FALSE>>=
+MP6$settings$subsample.R = 15
+@ 
+
+<<alphas, cache=TRUE>>=
+MP6.0 = MPgetAverageMetaDistance(MP6, verbose=FALSE, alpha=1, beta=2)
+MP6.a = MPgetAverageMetaDistance(MP6, verbose=FALSE, alpha=0.25, beta=2)
+MP6.b = MPgetAverageMetaDistance(MP6, verbose=FALSE, alpha=1, beta=1)
+@ 
+
+\noindent The meta-dissimilarity matrices computed in these ways can then be visualized in multi-pattern maps (Figure \ref{fig:fig_alphas}).
+
+<<fig_alphas, echo=FALSE, out.width="0.99\\textwidth", out.height="0.33\\textwidth", fig.width=5.4, fig.height=1.8, fig.cap="Multi-patterns for dataset {\\tt MPdata6S}: (left, center, right) maps produced with different combinations of paramters {\\tt alpha} and {\\tt beta}.">>=
+Rcsspar(mfrow=c(1,3))
+temp.0 = MPgetMap(MP6.0)
+temp.a = MPgetMap(MP6.a)
+temp.b = MPgetMap(MP6.b)
+MPplotmap(temp.0, col=config.groups, 
+          main="MP6, alpha=1, beta=2", RCC="meta")
+MPplotmap(temp.a, col=config.groups, 
+          main="MP6, alpha=0.25, beta=2", RCC="meta")
+MPplotmap(temp.b, col=config.groups, 
+          main="MP6, alpha=1, beta=1", RCC="meta")
+@ 
+
+In these examples, all the multi-pattern maps separate the random configurations from the others. However, they differ in the amount of scatter and variation that is visible on the map. Such difference may prompt different choices of representative configurations, so they may be important for downstream analysis. Unfortunately, the choice of visualization seems to be a subjective step; there is not a clear means to argue a-priori whether one is more informative than any other. This subject thus remains open for further thought.
 
 
 \section{Summary}
 
 Summary of \textbf{MultiPattern} package.
 
+
+This example thus illustrates that a multi-pattern analysis should be seen as a useful step in a thoughtful larger analysis protocol rather than a stand-alone 
 packages \cite{cluster, NMF}
 clustering \cite{wiwie2015comparing}
 alternate \cite{bae2006coala, cui2007non, jain2008simultaneous, qi2009principled, bailey2013alternative, muller2015multiclust, dang2015framework,kontonasios2015subjectively, zimek2015blind}
@@ -447,6 +705,10 @@ alternate \cite{bae2006coala, cui2007non, jain2008simultaneous, qi2009principled
 \subsection{Installation}
 
 \subsection{Session Info}
+
+<<echo=TRUE, eval=FALSE>>=
+<<rcssplot>>
+@ 
 
 <<>>=
 sessionInfo()

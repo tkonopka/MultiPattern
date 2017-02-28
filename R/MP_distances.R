@@ -434,8 +434,9 @@ MPdistFactory = function(
     ## that require a bit of extra code    
     if (method=="hclust" | method=="pam") {
         if (method=="pam") {
-            clust.method="pam"
-        }
+            clust.method = "pam"
+        } 
+        clust.method = clust.method[1]
         force(clust.weight)
         force(clust.k)
         force(clust.dist)

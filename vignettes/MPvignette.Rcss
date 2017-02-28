@@ -20,11 +20,38 @@ points {
   pch: 1;
   cex: 1.1;
   lwd: 1.8;
-  col: #333333;
+  col: #3b3b3b;
 }
 text, mtext {
   cex: 0.6;
 }
+
+/** for ploting raw dataset **/
+points.A {
+  cex: 1;
+  pch: 1;
+}
+points.B {
+  cex: 1;
+  pch: 2;
+}
+points.C {
+  cex: 1;
+  pch: 3;
+}
+points.D {
+  cex: 1;
+  pch: 4;
+}
+points.E {
+  cex: 1;
+  pch: 5;
+}
+points.F {
+  cex: 1;
+  pch: 6;
+}
+
 
 
 rect.meta {
@@ -68,11 +95,11 @@ points.scatter.G0 {
   pch: 1;
   col: #888888;
 }
-points.scatter.G1 {
+points.scatter.G1, points.scatter.A1 {
   pch: 1;
   col: #db4333;
 }
-points.scatter.G2 {
+points.scatter.G2, points.scatter.A2 {
   pch: 4;
   col: #333333;
 }

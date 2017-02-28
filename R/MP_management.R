@@ -13,6 +13,54 @@ NULL
 
 
 
+
+##' Summary of default settings for new MultiPattern objects
+##'
+##' num.random - number of random configurations
+##' 
+##' num.PCs - number of PCA components
+##' 
+##' rpca.term.delta - used in rpca analysis (smaller than default for speed)
+##'
+##' clust.k - max number of clusters to use in easyConfig reg and alt
+##' configurations
+##'
+##' nmf.bg - background level in nmf analysis (avoids all-zero rows)
+##'
+##' nmf.rank - maximal rank of NMF analysis (zero triggers an
+##' automatic decision)
+##'
+##' subspace.num.random - number of random subspaces
+##'
+##' subspace.d.random - number/proportion of features for subspace analysis
+##' 
+##' alpha - exponent for similarity transformation for meta-similarities
+##'
+##' beta - determines Lbeta distance for meta-similarities
+##'
+##' subsample.N - number of observations to use in subsample/bootstrap
+##'
+##' subsample.R - number of subsampling/bootstrap repetitions
+##' 
+##' @export
+MPdefaultSettings = list(
+    num.random=100,
+    num.PCs=4,
+    rpca.term.delta=1e-3, 
+    clust.k=3,
+    nmf.bg = 1e-5,
+    nmf.rank = 0,
+    subspace.num.random=100,
+    subspace.d.random=0.5,
+    alpha=1,
+    beta=2,
+    subsample.N=150,
+    subsample.R=20    
+    )
+
+
+
+
 ##' Create a basic MP object
 ##'
 ##' @param items character vector, specifies names for observations in the multipattern analysis
@@ -24,31 +72,9 @@ MPnew = function(items, data=NULL) {
     
     ## create a blank MultiPattern object
     ans = list(items=items, data=list(), configs=list())
-    ans$settings = list(
-        ## number of random configurations to create by default
-        num.random=100,
-        ## number of PCA components to keep for automated PCA
-        num.PCs=4,
-        ## used in rpca analysis (smaller than default for faster exec)
-        rpca.term.delta=1e-3, 
-        ## max number of clusters to use in easyConfig reg and alt configurations
-        clust.k=3,
-        ##  used in nmf analysis (background level to avoid all-0 rows)
-        nmf.bg = 1e-5,
-        ## used in nmf analysis (maximal rank of nmf decomposition, zero is auto)
-        nmf.rank = 0,
-        ## number of random subspaces
-        subspace.num.random=100,
-        ## number or proportion of features for subspace analysis
-        subspace.d.random=0.5,
-        ## exponent for similarity transformation and meta-similarity Lbeta distance
-        alpha=1,
-        beta=2,
-        ## subsampling for meta-distance calculation, number of samples and repetitions
-        subsample.N=150,
-        subsample.R=30
-        )
+    ans$settings = MPdefaultSettings
     class(ans) = "MultiPattern"
+    class(ans$settings) = "MultiPatternSettings"
     
     ## perhaps add datasets into this object
     if (!is.null(data)) {
@@ -274,12 +300,13 @@ MPremove = function(MP, data=NULL, config=NULL) {
 ##' 
 ##' @param MP a MultiPattern configuration object
 ##' @param settings list with new settings
-##'
-##' Accepted settings names are 'num.PCs', 'num.random', 'alpha',
-##' 'rpca.term.delta', 'clust.k', 'subspace.num.random', 'subspace.d.random'
+##' @param warn logical, set TRUE to get warnings if a setting value
+##' is not part of the core MultiPattern set (MPdefaultSettings)
+##' 
+##' Accepted settings names are those defined in MPdefaultSettings.
 ##' 
 ##' @export
-MPchangeSettings = function(MP, settings = list()) {
+MPchangeSettings = function(MP, settings = list(), warn=TRUE) {
     
     ## Hard checks for object class
     if (class(MP) != "MultiPattern") {
@@ -294,16 +321,12 @@ MPchangeSettings = function(MP, settings = list()) {
     
     ## check that components in settings are allowed
     sn = names(settings)
-    goodsettings = c("num.PCs", "num.random", "alpha", "rpca.term.delta", "clust.k",
-        "subspace.num.random", "subspace.d.random", "subsample.N", "subsample.R")
-    badsettings = sn[!sn %in% goodsettings]
-    if (length(badsettings)>0) {
-        warning("MPchangeSettings: Unrecognized items -", paste(badsettings, collapse=", "), "- will be skipped\n")
+    noncore = sn[!sn %in% names(MPdefaultSettings)]
+    if (length(noncore)>0 & warn) {
+        warning("MPchangeSettings: non-core settings: ", paste(noncore, collapse=", "), "\n")
     }
-    for (nows in goodsettings) {
-        if (nows %in% names(settings)) {
-            MP$settings[[nows]] = settings[[nows]]
-        }
+    for (nows in names(settings)) {
+        MP$settings[[nows]] = settings[[nows]]
     }
     
     ## assign and return an updated MP obejct
@@ -523,9 +546,12 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
     }
     
     ## check that the sub sampling is compatible with MP, number of iterations is >= 1
-    subsample.N = min(length(MP$items)-1, ceiling(subsample.N))
+    if (subsample.N<1) {
+        subsample.N = length(MP$items)*subsample.N
+    }
+    subsample.N = min(length(MP$items), ceiling(subsample.N))
     subsample.R = max(1, ceiling(subsample.R))
-
+    
     if (subsample.N<2) {
         stop("Subsampling gives too-small a dataset");
     }
@@ -541,10 +567,12 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
     for (i in 1:subsample.R) {
         ## get a subset of the items and create a new MP object
         tempMP = MP
-        tempMP$items = sample(MP$items, subsample.N, replace=F)
+        tempMP$items = sample(MP$items, subsample.N, replace=T)
         ## get smaller versions of the data matrices
+        ## (rename rows to avoid duplicate rownames due to bootstrap)
         for (nowdata in names(MP$data)) {
             tempMP$data[[nowdata]] = MP$data[[nowdata]][tempMP$items,]
+            rownames(tempMP$data[[nowdata]]) = paste0("B", 1:subsample.N)
         }
         ## compute similarities and meta-similarities for the tempMP
         tempMPS = MPgetDistances(tempMP, verbose=FALSE);
