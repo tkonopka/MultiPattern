@@ -1,5 +1,9 @@
-## Print functions for summarizing information in objects from the MultiMetric package
+## Package: MultiPattern
 ##
+## Print functions for summarizing information in package objects 
+##
+
+
 
 
 ##' Print a summary of a MP configuration object
@@ -61,6 +65,4 @@ print.MultiPatternSettings = function(x, ...) {
         cat(sprintf(paste0("%", xmax, "s"),s), ":\t", x[[s]], "\n")
     }
 }
-
-
 

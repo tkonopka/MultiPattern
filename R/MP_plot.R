@@ -1,7 +1,12 @@
+## Package: MultiPattern
+##
+## Functions for making custom plots 
+##
 
 
 
-##' Custom function to draw TSNE/mds maps. Uses Rcssplot and some hard settings
+
+##' Custom function to draw mds maps. Uses Rcssplot and some hard settings
 ##'
 ##' @param xylayout matrix or list. When matrix, should contain two columns x/y for positions of
 ##' points on 2d map. When list, should contain several matrices as just described.
@@ -19,19 +24,22 @@
 ##' (recommended so that euclidean distances on plot correspond to euclidean distances in
 ##' layout algos)
 ##' @param label logical, TRUE to print names of points
-##' @param RC Rcss object
-##' @param RCC Rcss class vector
+##' @param Rcss Rcss object
+##' @param Rcssclass Rcss class vector
 ##' @param ... arguments passed on to plot (e.g. xlab, ylab)
 ##' 
 ##' @export
 MPplotmap = function(xylayout, color=c(),
     highlight.points=c(), highlight.links=list(),
     xypadding=0.05, main="", legend.separate=FALSE,
-    squarexy=TRUE, label=FALSE, RC="default", RCC=c(), ...) {
+    squarexy=TRUE, label=FALSE, Rcss="default", Rcssclass=c(), ...) {
     
     if (!class(xylayout) %in% c("matrix", "data.frame", "list")) {
         stop("xylayout must be a matrix, data.frame, or list\n")
     }
+    
+    RcssDefaultStyle = RcssGetDefaultStyle(Rcss)
+    RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
     
     ## for ease-of-use, allow input to be a list of layouts
     if (class(xylayout)=="list") {
@@ -40,17 +48,16 @@ MPplotmap = function(xylayout, color=c(),
                       main=paste0(main, " - ", names(xylayout)[i]),
                       squarexy=squarexy, label=label,
                       highlight.points=highlight.points,
-                      highlight.links=highlight.links,
-                      RC=RC, RCC=RCC)          
+                      highlight.links=highlight.links)                      
         }
         return();       
     }
-    
+
     ## --- Determine which rows are plain, color, and highlighted   
     if (is.null(rownames(xylayout))) {
         rownames(xylayout) = paste0("row:", seq(1, nrow(xylayout)))
     }    
-    highlight.rows = c(c(highlight.points, unlist(highlight.links)))
+    highlight.rows = c(highlight.points, unlist(highlight.links))
     
     normal.rows = rownames(xylayout)
     normal.rows = normal.rows[!(normal.rows %in% c(unlist(color), highlight.rows))]
@@ -70,37 +77,38 @@ MPplotmap = function(xylayout, color=c(),
 
     ## create a two sided layout for the chart
     if (legend.separate) {
-        Rcsspar(mfrow=c(1,2), Rcss=RC, Rcssclass=RCC)
+        Rcsspar(mfrow=c(1,2))
     }
     
     ## add elements to the first plot
-    Rcssplot(xlim, ylim, type="n", xlim=xlim, ylim=ylim, xaxs="i", yaxs="i", Rcss=RC, Rcssclass=RCC, ...)
-    Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcss=RC, Rcssclass=c(RCC, "box"))    
+    Rcssplot(xlim, ylim, type="n", xlim=xlim, ylim=ylim,
+             xaxs="i", yaxs="i", ...)  
+    Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="box")    
     if (label) {        
         if (length(normal.rows)>0) {
-            Rcsstext(xylayout[normal.rows,1], xylayout[normal.rows,2], normal.rows,
-                     Rcss=RC, Rcssclass=c(RCC))
+            Rcsstext(xylayout[normal.rows,1], xylayout[normal.rows,2],
+                     normal.rows)
         }
         for (nowg in names(color)) {
             color.rows = color[[nowg]]
             if (length(color.rows)>0) {
-                Rcsstext(xylayout[color.rows,1], xylayout[color.rows,2], color.rows,
-                         Rcss=RC, Rcssclass=c(RCC, nowg))
+                Rcsstext(xylayout[color.rows,1], xylayout[color.rows,2],
+                         color.rows, Rcssclass=nowg)
             }
         }        
         if (length(highlight.rows)>0) {
-            Rcsstext(xylayout[highlight.rows,1], xylayout[highlight.rows,2], highlight.rows,
-                     Rcss=RC, Rcssclass=c(RCC, "highlight"))
+            Rcsstext(xylayout[highlight.rows,1], xylayout[highlight.rows,2],
+                     highlight.rows, Rcssclass="highlight")
         }            
     } else {
         if (length(normal.rows)>0) {
-            Rcsspoints(xylayout[normal.rows,1], xylayout[normal.rows,2], Rcss=RC, Rcssclass=c(RCC))
+            Rcsspoints(xylayout[normal.rows,1], xylayout[normal.rows,2])
         }
         for (nowg in names(color)) {
             color.rows = color[[nowg]]
             if (length(color.rows)>0) {
                 Rcsspoints(xylayout[color.rows,1], xylayout[color.rows,2],
-                           Rcss=RC, Rcssclass=c(RCC, nowg))
+                           Rcssclass=nowg)
             }
         }
         ## draw the highlight links
@@ -108,48 +116,53 @@ MPplotmap = function(xylayout, color=c(),
             for (i in 1:length(highlight.links)) {
                 nowpair = highlight.links[[i]][1:2]
                 Rcsslines(xylayout[nowpair, 1], xylayout[nowpair, 2],
-                          Rcss=RC, Rcssclass=c(RCC, "highlight"))
+                          Rcssclass="highlight")
                 nowname = names(highlight.links)[i]
                 if (!is.null(nowname)) {
-                    Rcsstext(mean(xylayout[nowpair, 1]), mean(xylayout[nowpair, 2]), nowname,
-                             Rcss=RC, Rcssclass=c(RCC, "highlight"))
+                    Rcsstext(mean(xylayout[nowpair, 1]),
+                             mean(xylayout[nowpair, 2]), nowname,
+                             Rcssclass="highlight")
                 }
             }
         }
         ## draw the highlight dots
         if (length(highlight.rows)>0) {
-            Rcsspoints(xylayout[highlight.rows, 1], xylayout[highlight.rows, 2],
-                       Rcss=RC, Rcssclass=c(RCC, "highlight"))
+            Rcsspoints(xylayout[highlight.rows, 1],
+                       xylayout[highlight.rows, 2],
+                       Rcssclass="highlight")
             if (length(highlight.points)>0) {
                 nowtext = highlight.points
                 if (legend.separate) {
                     nowtext = names(highlight.points);                    
                 }
-                Rcsstext(xylayout[highlight.points, 1], xylayout[highlight.points, 2],
-                         names(highlight.points), Rcss=RC, Rcssclass=c(RCC, "highlight"))
+                Rcsstext(xylayout[highlight.points, 1],
+                         xylayout[highlight.points, 2],
+                         names(highlight.points),
+                         Rcssclass="highlight")
             }
         }
     }
-    Rcssmtext(main, side=3, Rcss=RC, Rcssclass=c(RCC, "main"))
+    Rcssmtext(main, side=3, Rcssclass="main")
     
     ## add elements to a second plot
     if (legend.separate) {
-        Rcssplot(xlim, ylim, xlim=xlim, ylim=ylim, xaxs="i", yaxs="i", type="n",
-                 frame=FALSE, Rcss=RC, Rcssclass=RCC)
+        Rcssplot(xlim, ylim, xlim=xlim, ylim=ylim,
+                 xaxs="i", yaxs="i", type="n", frame=FALSE)
         if (length(highlight.points)>0) {
             nnp = length(highlight.points)
             tempy = seq(ylim[2], ylim[1], length=nnp+2)[2:(nnp+1)] 
-            Rcsspoints(rep(xlim[1], nnp), tempy,  Rcss=RC, Rcssclass=c(RCC, "highlight"))           
-            Rcsstext(rep(xlim[1], nnp), tempy, paste0(nowtext, " - ", highlight.points), pos=4,
-                     Rcss=RC, Rcssclass=c(RCC, "highlight"))            
+            Rcsspoints(rep(xlim[1], nnp), tempy,  Rcssclass="highlight") 
+            Rcsstext(rep(xlim[1], nnp), tempy,
+                     paste0(nowtext, " - ", highlight.points), pos=4,
+                     Rcssclass="highlight")            
         }
         if (length(color)>0) {
             nnp = length(color)
             tempy = seq(ylim[2], ylim[1], length=nnp+2)[2:(nnp+1)]
             for (i in seq_len(length(color))) {
                 nowg = names(color)[i]
-                Rcsspoints(mean(xlim), tempy[i],  Rcss=RC, Rcssclass=c(RCC, nowg))           
-                Rcsstext(mean(xlim), tempy[i], nowg, pos=4, Rcss=RC, Rcssclass=c(RCC, nowg)) 
+                Rcsspoints(mean(xlim), tempy[i], Rcssclass=nowg)           
+                Rcsstext(mean(xlim), tempy[i], nowg, pos=4, Rcssclass=nowg) 
             }
         }
     }
@@ -159,13 +172,12 @@ MPplotmap = function(xylayout, color=c(),
 
 
 
-
 ## get a matrix indicating the ranks of samples relative to a given seed sample
 ##
-## MPds - list of dissimilarity objects
-## samplenames - names of columns/rows in dissimilarity objects
-## seedsample - name of sample to consider
-## returns a matrix showing how far away all the samples are from the seed
+## @param MPds list of dissimilarity objects
+## @param samplenames names of columns/rows in dissimilarity objects
+## @param seedsample name of sample to consider
+## @return a matrix showing how far away all the samples are from the seed
 MPgetDistanceFromSeed = function(MPds, samplenames, seedsample) {
     
     ## create a summary object holding distances from the input objects
@@ -195,16 +207,17 @@ MPgetDistanceFromSeed = function(MPds, samplenames, seedsample) {
 
 
 
-
 ## plot a heatmap of nearest neighbors
 MPplotNeighbors = function(MPnei, samplenames, seedsample, consensus=TRUE, 
     Rcss="default", Rcssclass=c()) {
-    
+
+    RcssDefaultStyle = RcssGetDefaultStyle(Rcss)
+    RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
+
     ## vectorize the function on seedsample
     if (length(seedsample)>1) {
         for (nowseed in seedsample) {
-            MPplotNeighbors(MPnei, samplenames, nowseed, consensus=consensus,
-                            Rcss=Rcss, Rcssclass=Rcssclass)
+            MPplotNeighbors(MPnei, samplenames, nowseed, consensus=consensus)
         }
         return()
     }
@@ -215,20 +228,17 @@ MPplotNeighbors = function(MPnei, samplenames, seedsample, consensus=TRUE,
         MPnei = MPgetDistanceFromSeed(MPnei, samplenames, seedsample)
     }
 
-    RC = Rcss
-    RCC = Rcssclass
-
     val2hex = function(x) {
         format(as.hexmode(round(x*255)), width=2)
     }
     
     ## get some plot info from the Rcss
-    nowmai = RcssGetPropertyValueOrDefault(Rcss, "par", "mai", default=c(1,1,1,1),
-        Rcssclass=Rcssclass)
-    nowcol = RcssGetPropertyValueOrDefault(Rcss, "MPneighbors", "col", default="#ff0000",
-        Rcssclass=Rcssclass)
-    nowlabspace = RcssGetPropertyValueOrDefault(Rcss, "MPneighbors", "labspace", default=1,
-        Rcssclass=Rcssclass)
+    nowmai = RcssGetPropertyValueOrDefault(Rcss, "par", "mai",
+        default=c(1,1,1,1))
+    nowcol = RcssGetPropertyValueOrDefault(Rcss, "MPneighbors", "col",
+        default="#ff0000")        
+    nowlabspace = RcssGetPropertyValueOrDefault(Rcss, "MPneighbors",
+        "labspace", default=1)
     
     ## create a table of colors
     MPneicol = matrix("", ncol=ncol(MPnei), nrow=nrow(MPnei))
@@ -240,28 +250,28 @@ MPplotNeighbors = function(MPnei, samplenames, seedsample, consensus=TRUE,
     xlim = c(0, ncol(MPnei))
     ylim = c(0, nrow(MPnei))
     
-    Rcsspar(mai=nowmai, Rcss=RC, Rcssclass=RCC)
+    Rcsspar(mai=nowmai)
     plot(xlim, ylim, xlim=xlim, ylim=ylim, xaxs="i", yaxs="i", type="n",
          frame=FALSE, axes=FALSE, ylab="", xlab="")
         
     ## write out the labels on the heatmap
-    Rcsstext(rep(-nowlabspace, nrow(MPnei)), seq(ylim[1]+0.5, ylim[2]), rev(rownames(MPnei)),
-             Rcss=RC, Rcssclass=c(RCC, "ylab"))
+    Rcsstext(rep(-nowlabspace, nrow(MPnei)), seq(ylim[1]+0.5, ylim[2]),
+             rev(rownames(MPnei)), Rcssclass="ylab")
     othersamples = samplenames; ##[!samplenames %in% seedsample]
-    Rcsstext(seq(0.5, xlim[2]), rep(ylim[2]+nowlabspace, length(othersamples)), othersamples,
-             Rcss=RC, Rcssclass=c(RCC, "xlab"))
+    Rcsstext(seq(0.5, xlim[2]), rep(ylim[2]+nowlabspace, length(othersamples)),
+             othersamples, Rcssclass="xlab")
     
     ## add color rectangles to the heatmap
     for (i in 1:length(othersamples)) {
         is = othersamples[i]
-        Rcssrect(i-1, seq(0, ylim[2]-1), i, seq(1, ylim[2]), col=rev(MPneicol[,is]),
-                 Rcss=Rcss, Rcssclass=RCC)
+        Rcssrect(i-1, seq(0, ylim[2]-1), i, seq(1, ylim[2]),
+                 col=rev(MPneicol[,is]))
     }
     ## add rectangle around whole thing
-    Rcssrect(0, 0, xlim[2], ylim[2], Rcss=RC, Rcssclass=c(RCC, "box"))
+    Rcssrect(0, 0, xlim[2], ylim[2], Rcssclass="box")
 
     ## add title to the heatmap
-    Rcssmtext(seedsample, side=3, Rcss=RC, Rcssclass=c(RCC, "main"))
+    Rcssmtext(seedsample, side=3, Rcssclass="main")
     
     ## create a summary/consensus rank rank
     if (consensus) {
@@ -269,19 +279,18 @@ MPplotNeighbors = function(MPnei, samplenames, seedsample, consensus=TRUE,
         consensus.col = paste0(nowcol, val2hex(1-(consensus/ncol(MPnei))))
         names(consensus.col) = colnames(MPnei)
         
-        Rcsstext(-nowlabspace, -1.5, "Consensus", Rcss=RC, Rcssclass=c(RCC, "ylab"))
+        Rcsstext(-nowlabspace, -1.5, "Consensus", Rcssclass="ylab")
         for (i in 1:length(othersamples)) {
             is = othersamples[i]
-            Rcssrect(i-1, -2, i, -1, col=consensus.col[is], Rcss=RC, Rcssclass=RCC)
+            Rcssrect(i-1, -2, i, -1, col=consensus.col[is])
         }
-        Rcssrect(0, -2, xlim[2], -1, Rcss=RC, Rcssclass=c(RCC, "box"))
+        Rcssrect(0, -2, xlim[2], -1, Rcssclass="box")
     }
 
     ## compute a consensus rank for each of the neighbors
     consensus = median(apply(MPnei, 2, median))    
     return(consensus)
 }
-
 
 
 
@@ -308,16 +317,21 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
     ds.names=NULL, bg=NULL,
     plot=TRUE, order=TRUE, density.n=128, density.adjust=2, 
     Rcss="default", Rcssclass=c()) {
-    
+
+    RcssDefaultStyle = RcssGetDefaultStyle(Rcss)
+    RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
+       
     ## vectorize the function on seedsample
     if (length(seedsample)>1) {
         ## perhaps obtain an ordering of the seed samples
         if (order) {
             seedmetric = list()
             for (nowseed in seedsample) {
-                seedmetric[[nowseed]] = MPplotPairwiseSets(ds, samplenames, nowseed,
-                              neighborhood=neighborhood, ds.names=ds.names, bg=bg,
-                              plot=FALSE, order=FALSE)
+                seedmetric[[nowseed]] =
+                    MPplotPairwiseSets(ds, samplenames, nowseed,
+                                       neighborhood=neighborhood,
+                                       ds.names=ds.names, bg=bg,
+                                       plot=FALSE, order=FALSE)
             }
             seedmetric = sapply(seedmetric, function(x) {sum(x[,"JI"])})
             seedsample = seedsample[order(seedmetric)]
@@ -326,10 +340,10 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
         ## here, seedsample is either the original seedsample or reordered
         ## to display extreme sumJI values on either end
         for (nowseed in seedsample) {
-            MPplotPairwiseSets(ds, samplenames, nowseed, neighborhood=neighborhood,
+            MPplotPairwiseSets(ds, samplenames, nowseed,
+                               neighborhood=neighborhood,
                                ds.names=ds.names, bg=bg,
-                               plot=plot, order=FALSE, 
-                               Rcss=Rcss, Rcssclass=Rcssclass)
+                               plot=plot, order=FALSE)
         }
         return()
     }
@@ -359,12 +373,14 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
         ## get distances from seedsample to all other samples
         MPnei = MPgetDistanceFromSeed(ds, samplenames, nowseed)
         
-        ## now MPnei has a matrix indicating the samples nearest to the seed sample
+        ## now MPnei has a matrix indicating samples nearest to seed sample
         ## compute sets of sample neighborhoods
         neisets = list()
         MPneicols = samplenames
         for (nowrow in rownames(MPnei)) {
-            neisets[[nowrow]] = MPneicols[rank(MPnei[nowrow, ], ties.method="min")<=neighborhood]
+            nowrank = rank(MPnei[nowrow, ], ties.method="min")
+            neisets[[nowrow]] = MPneicols[nowrank<=neighborhood]
+            rm(nowrank)
         }
         neisets = lapply(neisets, function(x) {x[x!=nowseed]})
 
@@ -372,11 +388,11 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
         for (i in 1:(length(neisets)-1)) {
             for (j in (i+1):length(neisets)) {
                 neicompare[cc, c("Set1", "Set2")] = names(neisets)[c(i,j)]
-                neicompare[cc, paste0("JI.", nowseed)] = JI(neisets[[i]], neisets[[j]])
+                neicompare[cc, paste0("JI.", nowseed)] =
+                    JI(neisets[[i]], neisets[[j]])
                 cc=cc+1;
             }
-        }
-        
+        }        
     }
 
     ## remove any non-finite values, set to zero
@@ -397,20 +413,18 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
     ## ---------------- PLOT ---------------
     
     ## get some inputs from the Rcss
-    RC = Rcss
-    RCC = Rcssclass
-    nowmai = RcssGetPropertyValueOrDefault(RC, "par", "mai", default=c(1,1,1,1),
-        Rcssclass=RCC)
-    nowcol = RcssGetPropertyValueOrDefault(RC, "MPneighbors", "col", default="#ff0000",
-        Rcssclass=RCC)
-    nowlabspace = RcssGetPropertyValueOrDefault(RC, "MPneighbors", "labspace", default=1,
-        Rcssclass=RCC)
-    nowcellsize = RcssGetPropertyValueOrDefault(RC, "MPneighbors", "cellsize", default=c(0.05,0.05),
-        Rcssclass=RCC)    
-    barlength = RcssGetPropertyValueOrDefault(RC, "MPneighbors", "barlength", default=6, 
-        Rcssclass=RCC)
-    barwidth = RcssGetPropertyValueOrDefault(RC, "MPneighbors", "barwidth", default=0.8, 
-        Rcssclass=RCC)
+    nowmai = RcssGetPropertyValueOrDefault(Rcss, "par", "mai",
+        default=c(1,1,1,1))   
+    nowcol = RcssGetPropertyValueOrDefault(Rcss, "MPneighbors", "col",
+        default="#ff0000")
+    nowlabspace = RcssGetPropertyValueOrDefault(Rcss, "MPneighbors",
+        "labspace", default=1)
+    nowcellsize = RcssGetPropertyValueOrDefault(Rcss, "MPneighbors",
+        "cellsize", default=c(0.05,0.05))
+    barlength = RcssGetPropertyValueOrDefault(Rcss, "MPneighbors",
+        "barlength", default=6)
+    barwidth = RcssGetPropertyValueOrDefault(Rcss, "MPneighbors",
+        "barwidth", default=0.8)
     barwidth2 = barwidth/2
     ## compute the effective margin
     effmai = nowmai
@@ -418,7 +432,6 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
     ## compute the effective class
     neiclass = rep("good", nrow(neicompare))
     neiclass[neicompare[, "Set1"] %in% bg | neicompare[, "Set2"] %in% bg] = "bg"
-
     
     ## draw the bar chart with Jaccard Index
     xlim = c(-0.5+barwidth2, nrow(neicompare))
@@ -426,7 +439,7 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
     allsets = rownames(MPnei)
     vscale = (ylim[2]-ylim[1])/barlength;
     
-    Rcsspar(mai=effmai, Rcss=RC, Rcssclass=RCC)
+    Rcsspar(mai=effmai)
     plot(xlim, ylim, xlim=xlim, ylim=ylim, xaxs="i", yaxs="i", type="n",
          frame=FALSE, axes=FALSE, ylab="", xlab="")
     
@@ -435,8 +448,9 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
     ## plot the individual bars
     if (ncol(neicompare)==3) {
         for (i in 1:nrow(neicompare)) {
-            Rcssrect(i-0.5-barwidth2, 0, i-0.5+barwidth2, neicompare[i, paste0("JI.", seedsample)],
-                     Rcss=RC, Rcssclass=c(RCC, "barplot", neiclass[i]))
+            Rcssrect(i-0.5-barwidth2, 0,
+                     i-0.5+barwidth2, neicompare[i, paste0("JI.", seedsample)],
+                     Rcssclass=c("barplot", neiclass[i]))
         }
     } else {
         for (i in 1:nrow(neicompare)) {
@@ -447,14 +461,14 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
             tempx[tempx<0]=0
             tempx[tempx>1]=1
             tempy = c(tempdensity$y/tempmax, -rev(tempdensity$y/tempmax))
-            Rcsspolygon(i-0.5+(tempy*barwidth2), tempx, Rcss=RC, Rcssclass=c(RCC, neiclass[i]))
+            Rcsspolygon(i-0.5+(tempy*barwidth2), tempx, Rcssclass=neiclass[i])
             rm(tempx, tempy, tempmax, temp, tempdensity)
         }
     }
     ## plot the axis for the bar chart
-    Rcssaxis(side=2, labels=NA, Rcss=RC, Rcssclass=RCC)
-    Rcssaxis(side=2, lwd=0, Rcss=RC, Rcssclass=c(RCC, "ylab"))
-    Rcssaxis(side=1, at=xlim, labels=NA, tck=0, Rcss=RC, Rcssclass=RCC)
+    Rcssaxis(side=2, labels=NA)
+    Rcssaxis(side=2, lwd=0, Rcssclass="ylab")
+    Rcssaxis(side=1, at=xlim, labels=NA, tck=0)
     
     ## ---------------------------------------    
     ## write out the labels on the setmap
@@ -466,91 +480,26 @@ MPplotPairwiseSets = function(ds, samplenames, seedsample, neighborhood=10,
         rownames(MPnei) = ds.names
     }
     Rcsstext(rep(-nowlabspace, nrow(MPnei)), setv, rownames(MPnei),
-             Rcss=RC, Rcssclass=c(RCC, "ylab"))
+              Rcssclass="ylab")
     
     ## add connectors on the setmap
     for (i in 1:nrow(neicompare)) {
         nsets = as.character(neicompare[i, c("Set1", "Set2")])
         nbg = allsets[!(allsets %in% nsets)]
-        Rcsspoints(rep(i-0.5, length(nbg)), setv[nbg], Rcss=RC, Rcssclass=c(RCC, "bg"))
-        Rcsslines(rep(i-0.5, 2), setv[nsets], Rcss=RC, Rcssclass=c(RCC, "highlight", neiclass[i]))
-        Rcsspoints(rep(i-0.5, 2), setv[nsets], Rcss=RC, Rcssclass=c(RCC, "highlight", neiclass[i]))
+        Rcsspoints(rep(i-0.5, length(nbg)), setv[nbg], Rcssclass="bg")
+        Rcsslines(rep(i-0.5, 2), setv[nsets],
+                  Rcssclass=c("highlight", neiclass[i]))
+        Rcsspoints(rep(i-0.5, 2), setv[nsets],
+                   Rcssclass=c("highlight", neiclass[i]))
     }
     
     ## add title to the heatmap
     Rcssmtext(paste0(seedsamplemain, " - ", neighborhood , " neighbors"),
-              side=3, Rcss=RC, Rcssclass=c(RCC, "main"))
-    Rcssmtext("Jaccard Index", side=2, Rcss=RC, Rcssclass=c(RCC, "ylab"))
+              side=3, Rcssclass="main")
+    Rcssmtext("Jaccard Index", side=2, Rcssclass="ylab")
     
 }
 
-
-
-
-
-
-##' plot a 2D scatter diagram with clusters in various style
-##'
-##' @param coords matrix, first two columns will be interpreted as xy coordinates
-##' @param xyd distance object or matrix
-##' @param clust.method character, set as either method for hclust, or "pam", or "none". When "none",
-##' the xyd object is interpreted as a list with items
-##' @param clust.k integer, number of clusters to color. Clusters will be called G1, G2, G3, etc.
-##' Use these codes to tune appearance of these classes in the Rcss. 
-##' @param main character, displayed as plot title
-##' @param RC Rcss object
-##' @param RCC Rcss class
-##' 
-##' 
-MPplotScatterWithK.old = function(coords, xyd, clust.method="single", clust.k=2, 
-    main="", 
-    RC="default", RCC=c()) {
-    
-    ## cluster and classify objects
-    if (class(xyd)=="matrix") {
-        xyd = as.dist(xyd)        
-    }
-    if (clust.method=="none") {
-        xycut = xyd
-    } else {
-        if (clust.method=="pam") {
-            xycut = pam(xyd, k=clust.k, cluster.only=TRUE)
-        } else {
-            xycut = MPcutree(hclust(xyd, method=clust.method), k=clust.k)        
-        }
-        xycut = split(names(xycut), xycut)        
-        names(xycut) = paste0("G", as.character(names(xycut)))
-    }
-    
-    ## split up the 2D layout into groups
-    xy.coords = list()
-    for (i in names(xycut)) {
-        xy.coords[[i]] = coords[xycut[[i]],, drop=FALSE]
-    }
-    
-    xylim = MPsquarelim(coords[,1], coords[,2])
-    xlim = xylim$xlim
-    ylim = xylim$ylim
-    
-    p.padding = RcssGetPropertyValueOrDefault(RC, "ScatterWithK", "padding",
-        default=0.02, Rcssclass=RCC)
-    xlim = xlim + ((xlim[2]-xlim[1])*p.padding*c(-1,1))
-    ylim = ylim + ((ylim[2]-ylim[1])*p.padding*c(-1,1))
-    
-    ## create a plot area
-    Rcssplot(xlim, ylim, xaxs="i", yaxs="i", type="n", Rcss=RC, Rcssclass=RCC, axes=F, frame=F)
-    ## create boxes for main plot and the projections
-    Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcss=RC, Rcssclass=c(RCC, "main"))
-    
-    ## add points to the main plot area and the projections
-    for (i in names(xy.coords)) {
-        nowxy = xy.coords[[i]]
-        Rcsspoints(nowxy[,1], nowxy[,2], Rcss=RC, Rcssclass=c(RCC, i))
-    }
-    
-    Rcssmtext(main, side=3, Rcss=RC, Rcssclass=RCC)
-    invisible(xycut)
-}
 
 
 
@@ -558,14 +507,19 @@ MPplotScatterWithK.old = function(coords, xyd, clust.method="single", clust.k=2,
 ##'
 ##' @param coords matrix, first two columns will be interpreted as xy coordinates
 ##' @param clust character, mapping between items and cluster numbers
-##' @param Gnames logical, set TRUE to force cluster group names into G1, G2, etc.
-##' set FALSE to use the existing group names in clust
+##' @param Gnames logical, set TRUE to force cluster group names into
+##' G1, G2, etc. Set FALSE to use the existing group names in clust.
+##' (This only affects Rcss styling)
 ##' @param main character, displayed as plot title
-##' @param RC Rcss object
-##' @param RCC Rcss class
+##' @param Rcss Rcss object
+##' @param Rcssclass Rcss class
 ##' 
 ##' @export
-MPplotScatterWithK = function(coords, clust, Gnames=TRUE, main="", RC="default", RCC=c()) {
+MPplotScatterWithK = function(coords, clust, Gnames=TRUE, main="",
+    Rcss="default", Rcssclass=c()) {
+
+    RcssDefaultStyle = RcssGetDefaultStyle(Rcss)
+    RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
     
     ## use the defined cluster codes to split the points by cluster
     if (Gnames) {
@@ -585,27 +539,25 @@ MPplotScatterWithK = function(coords, clust, Gnames=TRUE, main="", RC="default",
     xlim = xylim$xlim
     ylim = xylim$ylim
     
-    p.padding = RcssGetPropertyValueOrDefault(RC, "ScatterWithK", "padding",
-        default=0.02, Rcssclass=RCC)
+    p.padding = RcssGetPropertyValueOrDefault(Rcss, "ScatterWithK", "padding",
+        default=0.02)
     xlim = xlim + ((xlim[2]-xlim[1])*p.padding*c(-1,1))
     ylim = ylim + ((ylim[2]-ylim[1])*p.padding*c(-1,1))
     
     ## create a plot area
-    Rcssplot(xlim, ylim, xaxs="i", yaxs="i", type="n", Rcss=RC, Rcssclass=RCC, axes=F, frame=F)
+    Rcssplot(xlim, ylim, xaxs="i", yaxs="i", type="n", axes=F, frame=F)
     ## create boxes for main plot and the projections
-    Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcss=RC, Rcssclass=c(RCC, "main"))
+    Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="main")
     
     ## add points to the main plot area and the projections
     for (i in names(xy.coords)) {
         nowxy = xy.coords[[i]]
-        Rcsspoints(nowxy[,1], nowxy[,2], Rcss=RC, Rcssclass=c(RCC, i))
+        Rcsspoints(nowxy[,1], nowxy[,2], Rcssclass=i)
     }
     
-    Rcssmtext(main, side=3, Rcss=RC, Rcssclass=RCC)
+    Rcssmtext(main, side=3)
     invisible(xycut)
 }
-
-
 
 
 
@@ -617,15 +569,17 @@ MPplotScatterWithK = function(coords, clust, Gnames=TRUE, main="", RC="default",
 ##' @param seed character, sample for which to show neighbors
 ##' @param seed.links integer, number of links
 ##' @param main character, displayed as plot title
-##' @param RC Rcss object
-##' @param RCC Rcss class
+##' @param Rcss Rcss object
+##' @param Rcssclass Rcss class
 ##' 
 ##' @export
 MPplotScatterWithLinks = function(coords, xyd,
-    seed = rownames(coords)[1], seed.links=round(nrow(coords)/4),
-    main="", 
-    RC="default", RCC=c()) {
-    
+    seed = rownames(coords)[1], seed.links=round(nrow(coords)/4), main="", 
+    Rcss="default", Rcssclass=c()) {
+
+    RcssDefaultStyle = RcssGetDefaultStyle(Rcss)
+    RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
+     
     ## cluster and classify objects
     if (class(xyd)=="dist") {
         xyd = as.matrix(xyd)        
@@ -642,20 +596,20 @@ MPplotScatterWithLinks = function(coords, xyd,
     xlim = xylim$xlim
     ylim = xylim$ylim
     
-    p.padding = RcssGetPropertyValueOrDefault(RC, "ScatterWithK", "padding",
-        default=0.02, Rcssclass=RCC)
+    p.padding = RcssGetPropertyValueOrDefault(Rcss, "ScatterWithK", "padding",
+        default=0.02)
     xlim = xlim + ((xlim[2]-xlim[1])*p.padding*c(-1,1))
     ylim = ylim + ((ylim[2]-ylim[1])*p.padding*c(-1,1))
     
     ## create a plot area
-    Rcssplot(xlim, ylim, xaxs="i", yaxs="i", type="n", Rcss=RC, Rcssclass=RCC, axes=F, frame=F)
+    Rcssplot(xlim, ylim, xaxs="i", yaxs="i", type="n", axes=F, frame=F)
     ## create boxes for main plot and the projections
-    Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcss=RC, Rcssclass=c(RCC, "main"))
+    Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="main")
     
     ## add points to the main plot area and the projections
     notseed = !(rownames(coords) %in% c(seed, seed.neighbors[1:seed.links]))
     if (sum(notseed)>0) {
-        Rcsspoints(coords[notseed,1], coords[notseed,2], Rcss=RC, Rcssclass=RCC)
+        Rcsspoints(coords[notseed,1], coords[notseed,2])
     }
     
     val2hex = function(x) {
@@ -664,59 +618,61 @@ MPplotScatterWithLinks = function(coords, xyd,
     
     ## draw lines from the seed to its nearest neighbors
     if (!is.null(seed)) {
-        seedcol = RcssGetPropertyValueOrDefault(RC, "lines", "col",
-            default="#ff0000", Rcssclass=c(RCC, "seed"))
+        seedcol = RcssGetPropertyValueOrDefault(Rcss, "lines", "col",
+            default="#ff0000", Rcssclass="seed")
         for (i in 1:seed.links) {
             nowtrans = val2hex((seed.links-i+1)/(seed.links))
             nowneighbor = seed.neighbors[i]
             Rcsslines(coords[c(seed, nowneighbor), 1],
                       coords[c(seed, nowneighbor), 2],
-                      col=paste0(seedcol, nowtrans), Rcss=RC, Rcssclass=c(RCC, "seed"))
+                      col=paste0(seedcol, nowtrans), Rcssclass="seed")
             Rcsspoints(coords[nowneighbor, 1], coords[nowneighbor, 2],
-                       bg=paste0(seedcol, nowtrans), Rcss=RC, Rcssclass=c(RCC, "neighbor"))
+                       bg=paste0(seedcol, nowtrans), Rcssclass="neighbor")
         }
         ## draw the seed sample last (so appears on top)
-        Rcsspoints(coords[seed,1], coords[seed,2], Rcss=RC, Rcssclass=c(RCC, "seed"))
+        Rcsspoints(coords[seed,1], coords[seed,2], Rcssclass="seed")
     }
     
     ## finish up with title 
-    Rcssmtext(main, side=3, Rcss=RC, Rcssclass=RCC)
+    Rcssmtext(main, side=3)
 }
 
 
 
 
 ## #######################################################################################
-## Plot functions borrowed from package ExpCube (Tomasz Konopka)
-
+## Plot functions modified from package ExpCube (Tomasz Konopka)
 
 
 ##' Draw a vertical recrangle with a color scale and labels
 ##'
 ##' This function is an (edited) copy of E3drawScaleLegend from ExpCube (Tomasz Konopka)
 ##' 
-##' @param legend - named vector of colors. Colors defining a color scale. All
+##' @param legend named vector of colors. Colors defining a color scale. All
 ##' names associated with vector will be draw onto to the plot. (Set some names to ""
 ##' to avoid labeling every single color in a color gradient)
-##' @param xlim - numeric vector of two elements. Gives range of x axis.
-##' @param ylim - numeric vector of two elements. Gives range of y axis.
-##' @param main - text two write above the legend
-##' @param RC - Rcss object. Style to use for plotting, uses package Rcssplot
-##' @param RCC - character vector. Classes to tune Rcssplot formatting.
+##' @param xlim numeric vector of two elements. Gives range of x axis.
+##' @param ylim numeric vector of two elements. Gives range of y axis.
+##' @param main text two write above the legend
+##' @param Rcss Rcss object. Style to use for plotting, uses package Rcssplot
+##' @param Rcssclass character vector. Classes to tune Rcssplot formatting.
 ##' 
 ##' @export
 MPdrawScaleLegend = function(legend=NULL, xlim=c(0,1), ylim=c(0,1), main="",   
-    RC="default", RCC=c()) {
-    
-    ## get features of the legend from the RC
-    relposx =  RcssGetPropertyValueOrDefault(RC, "scalelegend", "relposx",
-        default=-0.1, Rcssclass=RCC)
-    relwidth =  RcssGetPropertyValueOrDefault(RC, "scalelegend", "relwidth",
-        default=0.05, Rcssclass=RCC)
-    relposy =  RcssGetPropertyValueOrDefault(RC, "scalelegend", "relposy",
-        default=0.75, Rcssclass=RCC)    
-    relheight =  RcssGetPropertyValueOrDefault(RC, "scalelegend", "relheight",
-        default=0.15, Rcssclass=RCC)
+    Rcss="default", Rcssclass=c()) {
+
+    RcssDefaultStyle = RcssGetDefaultStyle(Rcss)
+    RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
+     
+    ## get features of the legend from the Rcss
+    relposx =  RcssGetPropertyValueOrDefault(Rcss, "scalelegend",
+        "relposx", default=-0.1)
+    relwidth =  RcssGetPropertyValueOrDefault(Rcss, "scalelegend",
+        "relwidth", default=0.05)
+    relposy =  RcssGetPropertyValueOrDefault(Rcss, "scalelegend",
+        "relposy", default=0.75)    
+    relheight =  RcssGetPropertyValueOrDefault(Rcss, "scalelegend",
+        "relheight", default=0.15)
     
     ## find distances on x/y axes
     xd = xlim[2]-xlim[1]
@@ -728,99 +684,98 @@ MPdrawScaleLegend = function(legend=NULL, xlim=c(0,1), ylim=c(0,1), main="",
     tr = c(br[1], tl[2])
     
     ysteps = seq(bl[2], tl[2], length=length(legend)+1)
-    absv = yd*RcssGetPropertyValueOrDefault(RC, "scalelegend", "relv",
-        default=0.05, Rcssclass=RCC)
+    absv = yd*RcssGetPropertyValueOrDefault(Rcss, "scalelegend", "relv",
+        default=0.05)
     
     ## draw a legend in the corner
     if (!is.null(legend) & length(legend)>0) {        
         for (j in 1:length(legend)) {
-            Rcssrect(bl[1], ysteps[j], tr[1], ysteps[j+1], col=legend[j], Rcss=RC,
-                     Rcssclass=c(RCC,"scalelegend"))
+            Rcssrect(bl[1], ysteps[j], tr[1], ysteps[j+1], col=legend[j], 
+                     Rcssclass="scalelegend")
         }
-        Rcsslines(c(bl[1], br[1], tr[1], tl[1], bl[1]), c(bl[2], br[2], tr[2], tl[2], bl[2]), 
-                  Rcss=RC, Rcssclass=c(RCC, "scalelegend"))
-        Rcsstext(br[1], seq(bl[2], tl[2], length=length(legend)), names(legend),
-                 Rcss=RC, Rcssclass=c(RCC, "scalelegend"))
-
+        Rcsslines(c(bl[1], br[1], tr[1], tl[1], bl[1]),
+                  c(bl[2], br[2], tr[2], tl[2], bl[2]), 
+                  Rcssclass="scalelegend")
+        Rcsstext(br[1], seq(bl[2], tl[2], length=length(legend)),
+                 names(legend), Rcssclass="scalelegend")        
         Rcsstext(tl[1], tl[2]+absv, main,
-                 Rcss=RC, Rcssclass=c(RCC, "scalelegend", "main"))        
+                  Rcssclass=c("scalelegend", "main"))        
     }
-    
-    
+        
 }
+
+
+
 
 ##' Plot a basic heat map
 ##'
 ##' This function is an (edited) copy of E3PlotBasicHeat from ExpCube (Tomasz Konopka)
 ##'
-##' @param dat - matrix of colors.
-##' @param legend - vector of colors. Legend shading. Warning: the user bares responsibility
+##' @param dat matrix of colors.
+##' @param legend vector of colors. Legend shading. Warning: the user bares responsibility
 ##' to make sure the legend matches with the dat matrix. 
-##' @param xlabels - logical. Toggle display of labels on x axis.
-##' @param ylabels - logical. Toggle display of labels on y axis.
-##' @param dividers - logical. Toggle vertical dotted lines between x items.
-##' @param xlab - character string. Text to display below x axis
-##' @param ylab - character string. Text to display below y axis.
-##' @param main - character string. Text to display as title, above heatmap.
-##' @param Rcss - Rcss object. Used to style the heatmap with Rcssplot.
-##' @param Rcssclass - character vector. Classes to tune Rcssplot formatting.
+##' @param xlabels logical. Toggle display of labels on x axis.
+##' @param ylabels logical. Toggle display of labels on y axis.
+##' @param dividers logical. Toggle vertical dotted lines between x items.
+##' @param xlab character string. Text to display below x axis
+##' @param ylab character string. Text to display below y axis.
+##' @param main character string. Text to display as title, above heatmap.
+##' @param Rcss Rcss object. Used to style the heatmap with Rcssplot.
+##' @param Rcssclass character vector. Classes to tune Rcssplot formatting.
 ##' 
 ##' @export
-MPplotBasicHeat = function (dat, legend = NULL, ylabels = FALSE, xlabels = TRUE, 
-    dividers = TRUE, xlab = "", ylab = "", main = "", Rcss = "default", 
-    Rcssclass = c()) {
-    
-    RC = Rcss
-    RCC = Rcssclass
+MPplotBasicHeat = function (dat, legend=NULL,
+    ylabels=FALSE, xlabels=TRUE, 
+    dividers=TRUE, xlab="", ylab="", main="",
+    Rcss="default", Rcssclass=c()) {
+
+    RcssDefaultStyle = RcssGetDefaultStyle(Rcss)
+    RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
+        
     xlim = c(0, ncol(dat))
     ylim = c(0, nrow(dat))
-    xdown = RcssGetPropertyValueOrDefault(RC, "basicheat", "xdown", 
-        default = -0.1, Rcssclass = RCC)
-    absdown = RcssGetPropertyValueOrDefault(RC, "basicheat", 
-        "absdown", default = 0, Rcssclass = RCC)
-    Rcsspar(Rcss = RC, Rcssclass = RCC)
-    plot(xlim, ylim, type = "n", xlim = xlim, ylim = ylim, xaxs = "i", 
-        yaxs = "i", xlab = "", ylab = "", frame = F, axes = F)
+    xdown = RcssGetPropertyValueOrDefault(Rcss, "basicheat", "xdown", 
+        default=-0.1)
+    absdown = RcssGetPropertyValueOrDefault(Rcss, "basicheat", 
+        "absdown", default=0)
+    Rcsspar()
+    plot(xlim, ylim, type="n", xlim=xlim, ylim=ylim, xaxs="i", yaxs="i",
+         xlab="", ylab="", frame=F, axes=F)
     for (i in 1:ncol(dat)) {
         jj = 1:nrow(dat)
         ii = rep(i, nrow(dat))
-        Rcssrect(ii - 1, jj - 1, ii, jj, col = dat[, i], Rcss = RC, 
-            Rcssclass = RCC)
+        Rcssrect(ii - 1, jj - 1, ii, jj, col = dat[, i])
         dat.na = is.na(dat[, i])
         if (sum(dat.na) > 0) {
             Rcssrect((ii - 1)[dat.na], (jj - 1)[dat.na], ii[dat.na], 
-                jj[dat.na], Rcss = RC, Rcssclass = c(RCC, "NA"))
+                jj[dat.na], Rcssclass="NA")
         }
     }
     if (xlabels) {
-        if (absdown > 0) {
+        if (absdown>0) {
             xlabpos = xdown
         }
         else {
             xlabpos = xdown * ylim[2]
         }
-        Rcsstext(seq(1, ncol(dat)) - 0.5, xlabpos, colnames(dat), 
-            Rcss = RC, Rcssclass = c(RCC, "x"))
+        Rcsstext(seq(1, ncol(dat))-0.5, xlabpos, colnames(dat), Rcssclass="x")
     }
     if (ylabels) {
-        Rcsstext(0, seq(1, nrow(dat)) - 0.5, rownames(dat), pos = 2, 
-            Rcss = RC, Rcssclass = c(RCC, "y"))
+        Rcsstext(0, seq(1, nrow(dat))-0.5, rownames(dat), pos=2, Rcssclass="y")
     }
     if (dividers) {
         for (i in 1:(ncol(dat) - 1)) {
-            Rcsslines(rep(i, 2), ylim, Rcss = RC, Rcssclass = c(RCC, 
-                "divider"))
+            Rcsslines(rep(i, 2), ylim, Rcssclass="divider")
         }
     }
-    Rcsslines(c(xlim, rev(xlim), xlim[1]), c(rep(ylim, each = 2), 
-        ylim[1]), Rcss = RC, Rcssclass = c(RCC, "box"))
-    MPdrawScaleLegend(legend = legend, xlim = xlim, ylim = ylim, 
-        RC = RC, RCC = RCC)
-    Rcssmtext(main, side = 3, Rcss = RC, Rcssclass = c(RCC, "main"))
-    Rcssmtext(ylab, side = 2, Rcss = RC, Rcssclass = c(RCC, "y"))
-    Rcssmtext(xlab, side = 1, Rcss = RC, Rcssclass = c(RCC, "x"))
+    Rcsslines(c(xlim, rev(xlim), xlim[1]), c(rep(ylim, each=2), 
+        ylim[1]), Rcssclass="box")
+    MPdrawScaleLegend(legend=legend, xlim=xlim, ylim=ylim)
+    Rcssmtext(main, side=3, Rcssclass="main")
+    Rcssmtext(ylab, side=2, Rcssclass="y")
+    Rcssmtext(xlab, side=1, Rcssclass="x")
+    
 }
-
 
 
 
@@ -829,13 +784,12 @@ MPplotBasicHeat = function (dat, legend = NULL, ylabels = FALSE, xlabels = TRUE,
 ##'
 ##' This funciton is a copyt of E3Val2Col from package ExpCube (Tomasz Konopka)
 ##' 
-##' @param x - numeric matrix.
-##' @param col - vector of two colors in #XXXXXX format. First element determines
+##' @param x numeric matrix.
+##' @param col vector of two colors in #XXXXXX format. First element determines
 ##' color associated with negative values. Second element determines color associated
 ##' with positive values
-##' @param maxval - numeric. Value for which color reaches saturation
+##' @param maxval numeric. Value for which color reaches saturation
 ##'
-##' @export
 MPvalMat2ColMat = function(x, col=c("#0000ff", "#ff0000"), maxval=1) {
 
     ## helper function to convert a number [0,1] into a hex transparency
@@ -843,7 +797,7 @@ MPvalMat2ColMat = function(x, col=c("#0000ff", "#ff0000"), maxval=1) {
         ans = as.character(as.hexmode(round(x * 255)))
         shortans = nchar(ans) < 2
         if (sum(shortans, na.rm=TRUE) > 0) {
-            ans[shortans] = paste("0", ans[shortans], sep = "")
+            ans[shortans] = paste("0", ans[shortans], sep="")
         }
         ans
     }
@@ -874,17 +828,16 @@ MPvalMat2ColMat = function(x, col=c("#0000ff", "#ff0000"), maxval=1) {
 
 
 
-##' Convert a number into a color using  transparency
+##' Convert a number into a color using transparency
 ##'
 ##' This is an (edited) copy of E3Val2Col (Tomasz Konopka)
 ##' 
-##' @param x - numeric matrix.
-##' @param col - vector of two colors in #XXXXXX format. First element determines
+##' @param x numeric matrix.
+##' @param col vector of two colors in #XXXXXX format. First element determines
 ##' color associated with negative values. Second element determines color associated
 ##' with positive values
-##' @param maxval - numeric. Value for which color reaches saturation
+##' @param maxval numeric. Value for which color reaches saturation
 ##'
-##' @export
 MPval2Col = function(x, col=c("#0000ff", "#ff0000"), maxval=1) {
 
     ## helper function to convert a number [0,1] into a hex transparency

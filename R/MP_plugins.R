@@ -1,6 +1,7 @@
+## Package: MultiPattern
+##
 ## Functions that create MP configurations (plug-ins for MPeasyConfig)
 ## 
-##
 
 
 
@@ -65,8 +66,8 @@ pam.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess.prefi
 ##' @param preprocess character
 ##'
 ##' @export
-hclust.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess.prefix="",
-    preprocess=NULL) {
+hclust.MultiPatternPlugin = function(MP, data.name, config.prefix,
+    preprocess.prefix="", preprocess=NULL) {
 
     ## get a range of k for the clustering
     clust.k = MP$settings$clust.k    
@@ -159,8 +160,8 @@ subspace2.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess
 ##' @param preprocess character
 ##'
 ##' @export
-subspacer.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess.prefix="",
-    preprocess=NULL) {
+subspacer.MultiPatternPlugin = function(MP, data.name, config.prefix,
+    preprocess.prefix="", preprocess=NULL) {
 
     Nsub = ceiling(MP$settings$subspace.num.random)
     Dsub = MP$settings$subspace.d.random
@@ -174,8 +175,10 @@ subspacer.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess
     }            
     Dsub = min(length(temp), ceiling(Dsub))
     temp.subspaces = MPgetRandomSubspaces(temp, Nsub, Dsub)
-    MPaddConfig(MP, paste0(config.prefix, data.name, preprocess.prefix, ":subspaceR"),
-                data.name=data.name, preprocess=temp.subspaces, dist.fun=dist.euclidean)
+    MPaddConfig(MP, paste0(config.prefix, data.name,
+                           preprocess.prefix, ":subspaceR"),
+                data.name=data.name, preprocess=temp.subspaces,
+                dist.fun=dist.euclidean)
     rm(temp.subspaces, Nsub, Dsub)
     
     MP
@@ -199,7 +202,8 @@ euclidean.MultiPatternPlugin = function(MP, data.name, config.prefix,
     preprocess.prefix="", preprocess=NULL) {
     
     MPaddConfig(MP, paste0(config.prefix, data.name,":euclidean"),
-                data.name=data.name, dist.fun=MPdistFactory(method="euclidean"))    
+                data.name=data.name,
+                dist.fun=MPdistFactory(method="euclidean"))    
     MP
 }
 
@@ -221,7 +225,8 @@ spearman.MultiPatternPlugin = function(MP, data.name, config.prefix,
     preprocess.prefix="", preprocess=NULL) {
 
     MPaddConfig(MP, paste0(config.prefix, data.name,":spearman"),
-                data.name=data.name, dist.fun=MPdistFactory(method="spearman"))    
+                data.name=data.name,
+                dist.fun=MPdistFactory(method="spearman"))    
     MP
 }
 
@@ -243,7 +248,8 @@ canberra.MultiPatternPlugin = function(MP, data.name, config.prefix,
     preprocess.prefix="", preprocess=NULL) {
     
     MPaddConfig(MP, paste0(config.prefix, data.name,":canberra"),
-                data.name=data.name, dist.fun=MPdistFactory(method="canberra"))    
+                data.name=data.name,
+                dist.fun=MPdistFactory(method="canberra"))    
     MP
 }
 
@@ -265,7 +271,8 @@ manhattan.MultiPatternPlugin = function(MP, data.name, config.prefix,
     preprocess.prefix="", preprocess=NULL) {
     
     MPaddConfig(MP, paste0(config.prefix, data.name,":manhattan"),
-                data.name=data.name, dist.fun=MPdistFactory(method="manhattan"))    
+                data.name=data.name,
+                dist.fun=MPdistFactory(method="manhattan"))    
     MP
 }
 
@@ -319,7 +326,8 @@ pca.MultiPatternPlugin = function(MP, data.name, config.prefix,
         ## add configurations with pairwise PCA columns
         twospaces = MPgetAll2Subspaces(head(colnames(datapca)))
         if (length(twospaces)>0) {
-            MPaddConfig(MP, paste0(config.prefix, data.name, ":", names(twospaces)),
+            MPaddConfig(MP, paste0(config.prefix, data.name, ":",
+                                   names(twospaces)),
                         data.name=pcaname, preprocess=twospaces)
         }
     }
@@ -352,8 +360,10 @@ random.MultiPatternPlugin = function(MP, data.name=NULL, config.prefix="",
         ## only add if the same configurations have not been added before
         rannames = paste0(config.prefix, "rnorm.", 1:Nrandom)
         if (sum(rannames %in% names(MP$configs))==0) {                                
-            MPaddConfig(MP, paste0(config.prefix, "rnorm.", 1:Nrandom), names(MP$data)[1], 
-                        preprocess=vector("list", Nrandom), dist.fun=dist.rnorm)
+            MPaddConfig(MP, paste0(config.prefix, "rnorm.", 1:Nrandom),
+                        names(MP$data)[1], 
+                        preprocess=vector("list", Nrandom),
+                        dist.fun=dist.rnorm)
         }
     }
     
@@ -393,8 +403,10 @@ rpca.MultiPatternPlugin = function(MP, data.name, config.prefix,
     Lname = paste0(data.name, ".rpcaL")
     Sname = paste0(data.name, ".rpcaS")
     MPaddData(MP, setNames(list(datarpca$L, datarpca$S), c(Lname, Sname)))           
-    MP = pca.MultiPatternPlugin(MP, Lname, config.prefix, preprocess.prefix, preprocess)
-    MP = pca.MultiPatternPlugin(MP, Sname, config.prefix, preprocess.prefix, preprocess)
+    MP = pca.MultiPatternPlugin(MP, Lname, config.prefix,
+        preprocess.prefix, preprocess)
+    MP = pca.MultiPatternPlugin(MP, Sname, config.prefix,
+        preprocess.prefix, preprocess)
     
     MP
 }
@@ -501,3 +513,4 @@ MPlistPlugins = function() {
     
     sort(ans)
 }
+

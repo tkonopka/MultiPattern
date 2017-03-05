@@ -15,15 +15,15 @@ will be able to compute dist using the specified method}
 
 \item{log2.shift}{numeric. Used with method=log2euclidean.}
 
-\item{clust.dist}{character, used with method=clust}
+\item{clust.dist}{character, used with method=hclust}
 
-\item{clust.method}{character, used with method=clust}
+\item{clust.method}{character, used with method=hclust}
 
-\item{clust.weight}{numeric, used with method=clust}
+\item{clust.weight}{numeric, used with method=hclust}
 
-\item{clust.k}{integer, used with method=clust}
+\item{clust.k}{integer, used with method=hclust}
 
-\item{clust.alt}{boolean, used with method=clust}
+\item{clust.alt}{boolean, used with method=hclust}
 }
 \description{
 Generates a function with syntax f(x) that returns a dist object

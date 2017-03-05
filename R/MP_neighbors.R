@@ -1,4 +1,7 @@
-
+## Package: MultiPattern
+##
+## Functions for dealing with neighborhoods 
+##
 
 
 

@@ -7,7 +7,7 @@
 dist.spearman(x)
 }
 \arguments{
-\item{x}{- matrix of values}
+\item{x}{matrix of values}
 }
 \description{
 This function rows as features and columns as features.

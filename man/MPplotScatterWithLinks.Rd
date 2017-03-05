@@ -5,8 +5,8 @@
 \title{plot a 2D scatter diagram with clusters in various style}
 \usage{
 MPplotScatterWithLinks(coords, xyd, seed = rownames(coords)[1],
-  seed.links = round(nrow(coords)/4), main = "", RC = "default",
-  RCC = c())
+  seed.links = round(nrow(coords)/4), main = "", Rcss = "default",
+  Rcssclass = c())
 }
 \arguments{
 \item{coords}{matrix, first two columns will be interpreted as xy coordinates}
@@ -19,9 +19,9 @@ MPplotScatterWithLinks(coords, xyd, seed = rownames(coords)[1],
 
 \item{main}{character, displayed as plot title}
 
-\item{RC}{Rcss object}
+\item{Rcss}{Rcss object}
 
-\item{RCC}{Rcss class}
+\item{Rcssclass}{Rcss class}
 }
 \description{
 plot a 2D scatter diagram with clusters in various style

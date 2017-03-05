@@ -9,26 +9,26 @@ MPplotBasicHeat(dat, legend = NULL, ylabels = FALSE, xlabels = TRUE,
   Rcssclass = c())
 }
 \arguments{
-\item{dat}{- matrix of colors.}
+\item{dat}{matrix of colors.}
 
-\item{legend}{- vector of colors. Legend shading. Warning: the user bares responsibility
+\item{legend}{vector of colors. Legend shading. Warning: the user bares responsibility
 to make sure the legend matches with the dat matrix.}
 
-\item{ylabels}{- logical. Toggle display of labels on y axis.}
+\item{ylabels}{logical. Toggle display of labels on y axis.}
 
-\item{xlabels}{- logical. Toggle display of labels on x axis.}
+\item{xlabels}{logical. Toggle display of labels on x axis.}
 
-\item{dividers}{- logical. Toggle vertical dotted lines between x items.}
+\item{dividers}{logical. Toggle vertical dotted lines between x items.}
 
-\item{xlab}{- character string. Text to display below x axis}
+\item{xlab}{character string. Text to display below x axis}
 
-\item{ylab}{- character string. Text to display below y axis.}
+\item{ylab}{character string. Text to display below y axis.}
 
-\item{main}{- character string. Text to display as title, above heatmap.}
+\item{main}{character string. Text to display as title, above heatmap.}
 
-\item{Rcss}{- Rcss object. Used to style the heatmap with Rcssplot.}
+\item{Rcss}{Rcss object. Used to style the heatmap with Rcssplot.}
 
-\item{Rcssclass}{- character vector. Classes to tune Rcssplot formatting.}
+\item{Rcssclass}{character vector. Classes to tune Rcssplot formatting.}
 }
 \description{
 This function is an (edited) copy of E3PlotBasicHeat from ExpCube (Tomasz Konopka)

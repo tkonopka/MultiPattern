@@ -1,12 +1,12 @@
+## Package: MultiPattern
+##
 ## Collection of "distance" functions
 ##
-## Some of these functions produce "distance" with metric properties (metric axioms).
-## Others produce "distance" that are informative as similarities without following metric properties
+## Some of these functions produce "distance" with metric properties.
+## Others produce dissimilarities without following metric properties
 ##
 ## Many are just wrappers special cases of functions defined elsewhere
 ##
-##
-
 
 
 
@@ -38,9 +38,9 @@ MPimputeNAs = function(x, method=mean) {
         }
         x[!is.finite(x)] = max.val
     }
-    return (x)
-}
 
+    x
+}
 
 
 
@@ -79,7 +79,7 @@ dist.rnorm = function(x) {
     ans[lower.tri(ans)] = t(ans)[lower.tri(ans)]
     diag(ans) = 0
     rownames(ans) = colnames(ans) = rownames(x)
-    return(as.dist(ans))        
+    as.dist(ans)
 }
 
 
@@ -104,7 +104,7 @@ dist.rbeta = function(x, alpha=0.5, beta=0.5) {
     ans[lower.tri(ans)] = t(ans)[lower.tri(ans)]
     diag(ans) = 0
     rownames(ans) = rownames(x)
-    return(as.dist(ans))        
+    as.dist(ans)
 }
 
 
@@ -128,7 +128,7 @@ dist.rnorm0 = function(x, d=round(log2(nrow(x)))) {
     NN = nrow(x)
     ans = matrix(rnorm(NN*d), ncol=d, nrow=NN)
     rownames(ans) = rownames(x)
-    return(dist(ans))        
+    dist(ans)
 }
 
 
@@ -144,19 +144,15 @@ dist.rnorm0 = function(x, d=round(log2(nrow(x)))) {
 ##' 
 ##' @export
 dist.perm = function(x, dist.method=c("euclidean", "canberra", "spearman"),
-    perm.method=c("shuffle", "bootstrap")) {
-    
+    perm.method=c("shuffle", "bootstrap")) {    
     ## get a function to compute distance
     dist.method = match.arg(dist.method)    
-    dist.fun = MPdistFactory(method=dist.method)
-    
+    dist.fun = MPdistFactory(method=dist.method)    
     ## permute the input data
     perm.method = match.arg(perm.method)
-    xp = MPrandomizeMatrix(x, perm.method=perm.method)
-    
-    return(dist.fun(xp))
+    xp = MPrandomizeMatrix(x, perm.method=perm.method)    
+    dist.fun(xp)
 }
-
 
 
 
@@ -164,6 +160,7 @@ dist.perm = function(x, dist.method=c("euclidean", "canberra", "spearman"),
 ##' Euclidean distance
 ##'
 ##' This is a wrapper for stats::dist with method="euclidean".
+##' The wrapper replaces NA and Inf values with mean and max guesses.
 ##'
 ##' @param x numeric matrix (see stats::dist for details)
 ##' 
@@ -178,6 +175,7 @@ dist.euclidean = function(x) {
 ##' Canberra distance
 ##'
 ##' This is a wrapper for stats::dist with method="canberra".
+##' The wrapper replaces NA and Inf values with mean and max guesses.
 ##' 
 ##' @param x numeric matrix
 ##'
@@ -191,7 +189,8 @@ dist.canberra = function(x) {
 
 ##' Manhattan distance
 ##'
-##' This is a wrapper for stats::dist with method="manhattan". 
+##' This is a wrapper for stats::dist with method="manhattan".
+##' The wrapper replaces NA and Inf values with mean and max guesses.
 ##'
 ##' @param x numeric matrix
 ##'
@@ -205,6 +204,8 @@ dist.manhattan = function(x) {
 
 ##' Distance using 1st principal component from PCA
 ##'
+##' The function computes the PCA, then collapses onto PC1.
+##' 
 ##' @param x numeric matrix
 ##'
 ##' @export
@@ -222,7 +223,7 @@ dist.pc1 = function(x) {
 ##'
 ##' This function rows as features and columns as features. 
 ##' 
-##' @param x - matrix of values
+##' @param x matrix of values
 ##' 
 ##' @export
 dist.spearman = function(x) {
@@ -253,7 +254,7 @@ dist.spearman = function(x) {
     ans[lower.tri(ans)] = t(ans)[lower.tri(ans)]
     rownames(ans) = colnames(ans) = colnames(x)
      
-    return(MPdistImpute(ans))
+    MPdistImpute(ans)
 }
 
 
@@ -262,13 +263,13 @@ dist.spearman = function(x) {
 ##' Euclidean distance of log2 transformed values
 ##'
 ##' @param x numeric matrix
-##' @param shift numeric, function computes log2(x+shift) before applying euclidean distance
+##' @param shift numeric, function computes log2(x+shift) before
+##' applying euclidean distance
 ##'
 ##' @export
 dist.log2euclidean = function(x, shift=1) {    
     MPdistImpute( stats::dist(log2(x+shift), method="euclidean") )
 }
-
 
 
 
@@ -364,17 +365,13 @@ dist.clust = function(x,
         xdm = xdadd
     }
     
-    ## return a dist object 
     if (is.null(rownames(x))) {
         colnames(xdm) = rownames(xdm) = NULL
     }
 
     ## return a dist object 
-    return(MPdistImpute(xdm))
+    MPdistImpute(xdm)
 }
-
-
-
 
 
 
@@ -384,11 +381,11 @@ dist.clust = function(x,
 ##' @param method character, one of the available options. The output function
 ##' will be able to compute dist using the specified method
 ##' @param log2.shift numeric. Used with method=log2euclidean.
-##' @param clust.dist character, used with method=clust
-##' @param clust.method character, used with method=clust
-##' @param clust.weight numeric, used with method=clust
-##' @param clust.k integer, used with method=clust
-##' @param clust.alt boolean, used with method=clust
+##' @param clust.dist character, used with method=hclust
+##' @param clust.method character, used with method=hclust
+##' @param clust.weight numeric, used with method=hclust
+##' @param clust.k integer, used with method=hclust
+##' @param clust.alt boolean, used with method=hclust
 ##' 
 ##' @export
 MPdistFactory = function(
@@ -406,23 +403,17 @@ MPdistFactory = function(
     ## (Perhaps switch would be easier, but 
     if (method=="euclidean") {
         return(dist.euclidean)
-    }        
-    if (method=="canberra") {
+    } else if (method=="canberra") {
         return(dist.canberra)
-    }
-    if (method=="manhattan") {
+    } else if (method=="manhattan") {
         return(dist.manhattan)
-    }
-    if (method=="pc1") {
+    } else if (method=="pc1") {
         return(dist.pc1)
-    }    
-    if (method=="rnorm") {
+    } else if (method=="rnorm") {
         return(dist.rnorm)
-    }    
-    if (method=="spearman") {
+    } else if (method=="spearman") {
         return(dist.spearman)
-    }
-    if (method=="log2euclidean") {
+    } else if (method=="log2euclidean") {
         force(log2.shift)
         return(
             function(x) {
@@ -445,10 +436,10 @@ MPdistFactory = function(
         return(
             function(x) {                
                 dist.clust(x, clust.dist=clust.dist, clust.method=clust.method,
-                           clust.weight=clust.weight, clust.k=clust.k, clust.alt=clust.alt)
+                           clust.weight=clust.weight, clust.k=clust.k,
+                           clust.alt=clust.alt)
             })
     }
     
 }
-
 

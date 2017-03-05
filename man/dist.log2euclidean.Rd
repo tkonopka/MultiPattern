@@ -9,7 +9,8 @@ dist.log2euclidean(x, shift = 1)
 \arguments{
 \item{x}{numeric matrix}
 
-\item{shift}{numeric, function computes log2(x+shift) before applying euclidean distance}
+\item{shift}{numeric, function computes log2(x+shift) before
+applying euclidean distance}
 }
 \description{
 Euclidean distance of log2 transformed values

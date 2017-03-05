@@ -2,12 +2,12 @@
 % Please edit documentation in R/MP_plot.R
 \name{MPplotmap}
 \alias{MPplotmap}
-\title{Custom function to draw TSNE/mds maps. Uses Rcssplot and some hard settings}
+\title{Custom function to draw mds maps. Uses Rcssplot and some hard settings}
 \usage{
 MPplotmap(xylayout, color = c(), highlight.points = c(),
   highlight.links = list(), xypadding = 0.05, main = "",
   legend.separate = FALSE, squarexy = TRUE, label = FALSE,
-  RC = "default", RCC = c(), ...)
+  Rcss = "default", Rcssclass = c(), ...)
 }
 \arguments{
 \item{xylayout}{matrix or list. When matrix, should contain two columns x/y for positions of
@@ -35,13 +35,13 @@ layout algos)}
 
 \item{label}{logical, TRUE to print names of points}
 
-\item{RC}{Rcss object}
+\item{Rcss}{Rcss object}
 
-\item{RCC}{Rcss class vector}
+\item{Rcssclass}{Rcss class vector}
 
 \item{...}{arguments passed on to plot (e.g. xlab, ylab)}
 }
 \description{
-Custom function to draw TSNE/mds maps. Uses Rcssplot and some hard settings
+Custom function to draw mds maps. Uses Rcssplot and some hard settings
 }
 

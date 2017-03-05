@@ -1,5 +1,6 @@
-## Functions that hold "management" objects for MultiPattern clustering
-## (objects that help to keep track of the clustering definitions and distance matrics
+## Package: MultiPattern
+##
+## Functions for managing/bookkeeping for MultiPattern clustering
 ##
 
 
@@ -16,31 +17,33 @@ NULL
 
 ##' Summary of default settings for new MultiPattern objects
 ##'
-##' num.random - number of random configurations
+##' See details for a description of each component
 ##' 
-##' num.PCs - number of PCA components
+##' num.random: number of random configurations
 ##' 
-##' rpca.term.delta - used in rpca analysis (smaller than default for speed)
+##' num.PCs: number of PCA components
+##' 
+##' rpca.term.delta: used in rpca analysis (smaller than default for speed)
 ##'
-##' clust.k - max number of clusters to use in easyConfig reg and alt
+##' clust.k: max number of clusters to use in easyConfig reg and alt
 ##' configurations
 ##'
-##' nmf.bg - background level in nmf analysis (avoids all-zero rows)
+##' nmf.bg: background level in nmf analysis (avoids all-zero rows)
 ##'
-##' nmf.rank - maximal rank of NMF analysis (zero triggers an
+##' nmf.rank: maximal rank of NMF analysis (zero triggers an
 ##' automatic decision)
 ##'
-##' subspace.num.random - number of random subspaces
+##' subspace.num.random: number of random subspaces
 ##'
-##' subspace.d.random - number/proportion of features for subspace analysis
+##' subspace.d.random: number/proportion of features for subspace analysis
 ##' 
-##' alpha - exponent for similarity transformation for meta-similarities
+##' alpha: exponent for similarity transformation for meta-similarities
 ##'
-##' beta - determines Lbeta distance for meta-similarities
+##' beta: determines Lbeta distance for meta-similarities
 ##'
-##' subsample.N - number of observations to use in subsample/bootstrap
+##' subsample.N: number of observations to use in subsample/bootstrap
 ##'
-##' subsample.R - number of subsampling/bootstrap repetitions
+##' subsample.R: number of subsampling/bootstrap repetitions
 ##' 
 ##' @export
 MPdefaultSettings = list(
@@ -122,7 +125,6 @@ MPaddData = function(MP, data) {
     assign(captureMP, MP, parent.frame())
     invisible(MP)          
 }
-
 
 
 
@@ -245,7 +247,6 @@ MPaddConfig = function(MP, config.name, data.name=names(MP$data)[1],
 
 
 
-
 ##' Remove data or configuration components from a MultiPattern object
 ##' 
 ##' @param MP a MultiPattern configuration objects
@@ -295,7 +296,6 @@ MPremove = function(MP, data=NULL, config=NULL) {
 
 
 
-
 ##' Change settings encoded in a MultiPattern object
 ##' 
 ##' @param MP a MultiPattern configuration object
@@ -337,11 +337,9 @@ MPchangeSettings = function(MP, settings = list(), warn=TRUE) {
 
 
 
-
 ## ###################################################################################
 ## Functions for adding configurations
 ## ###################################################################################
-
 
 ##' Add predefined configuration types to a MultiPattern configuration object
 ##'
@@ -439,11 +437,9 @@ MPeasyConfig = function(MP, data=NULL, config.prefix="",
 
 
 
-
 ## ###################################################################################
 ## Functions for computing based on a MultiPattern configuration object
 ## ###################################################################################
-
 
 ##' Run MultiPattern analysis.
 ##'
@@ -502,6 +498,7 @@ MPgetDistances = function(MP, configs=NULL, verbose=TRUE) {
 
 
 
+
 ##' Compute a meta distance object from an MP object. Uses subsampling and averaging,
 ##' which provides a cross-validation of sorts and reduces computation load for large
 ##' datasets.
@@ -545,11 +542,11 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
         beta = MP$settings$beta
     }
     
-    ## check that the sub sampling is compatible with MP, number of iterations is >= 1
+    ## check sub sampling is compatible with MP, no. iterations is >= 1
     if (subsample.N<1) {
-        subsample.N = length(MP$items)*subsample.N
+        subsample.N = abs(length(MP$items)*subsample.N)
     }
-    subsample.N = min(length(MP$items), ceiling(subsample.N))
+    subsample.N = max(1, min(length(MP$items), ceiling(subsample.N)))
     subsample.R = max(1, ceiling(subsample.R))
     
     if (subsample.N<2) {
@@ -557,7 +554,7 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
     }
 
     if (verbose) {
-        cat("This may take some time. Please wait... ")
+        cat("This may take some time. Please wait")
     }
     
     ## define a result object
@@ -565,6 +562,10 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
     
     ## compute meta-distances in a loop
     for (i in 1:subsample.R) {
+        if (verbose) {
+            cat(".")
+        }
+        
         ## get a subset of the items and create a new MP object
         tempMP = MP
         tempMP$items = sample(MP$items, subsample.N, replace=T)
@@ -589,11 +590,12 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
     }
 
     if (verbose) {
-        cat("done\n")
+        cat(" done\n")
     }
     
     result    
 }
+
 
 
 
@@ -763,6 +765,4 @@ MPgetRepresentatives = function(d, subsets=NULL,
     
     ans
 }
-
-
 

@@ -9,32 +9,34 @@
 MPdefaultSettings
 }
 \description{
-num.random - number of random configurations
+See details for a description of each component
 }
 \details{
-num.PCs - number of PCA components
+num.random: number of random configurations
 
-rpca.term.delta - used in rpca analysis (smaller than default for speed)
+num.PCs: number of PCA components
 
-clust.k - max number of clusters to use in easyConfig reg and alt
+rpca.term.delta: used in rpca analysis (smaller than default for speed)
+
+clust.k: max number of clusters to use in easyConfig reg and alt
 configurations
 
-nmf.bg - background level in nmf analysis (avoids all-zero rows)
+nmf.bg: background level in nmf analysis (avoids all-zero rows)
 
-nmf.rank - maximal rank of NMF analysis (zero triggers an
+nmf.rank: maximal rank of NMF analysis (zero triggers an
 automatic decision)
 
-subspace.num.random - number of random subspaces
+subspace.num.random: number of random subspaces
 
-subspace.d.random - number/proportion of features for subspace analysis
+subspace.d.random: number/proportion of features for subspace analysis
 
-alpha - exponent for similarity transformation for meta-similarities
+alpha: exponent for similarity transformation for meta-similarities
 
-beta - determines Lbeta distance for meta-similarities
+beta: determines Lbeta distance for meta-similarities
 
-subsample.N - number of observations to use in subsample/bootstrap
+subsample.N: number of observations to use in subsample/bootstrap
 
-subsample.R - number of subsampling/bootstrap repetitions
+subsample.R: number of subsampling/bootstrap repetitions
 }
 \keyword{datasets}
 

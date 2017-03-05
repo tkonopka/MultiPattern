@@ -11,7 +11,8 @@ MPsuggestConfig(MP, data, verbose = TRUE)
 
 \item{data}{character. Name of dataset defined in MP.}
 
-\item{verbose}{logical. Set FALSE to make the function silent, TRUE to see cat updates.}
+\item{verbose}{logical. Set FALSE to make the function silent;
+set TRUE to see cat updates.}
 }
 \description{
 This function can take some time to execute for large datasets. This is

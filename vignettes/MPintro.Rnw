@@ -22,7 +22,7 @@
 
 \begin{document}
 
-\title{An introduction to package \textbf{MultiPattern}}
+\title{An introduction to package MultiPattern}
 \author{Tomasz Konopka}
 
 \maketitle 
@@ -43,7 +43,7 @@ set.seed(366701)
 <<rcssplot, echo=FALSE>>=
 library("Rcssplot")
 MPcss = Rcss("MPvignette.Rcss")
-RcssSetDefaultStyle(MPcss)
+RcssDefaultStyle = MPcss
 RcssOverload()
 @
 
@@ -52,7 +52,7 @@ RcssOverload()
 
 \section{Background}
 
-The \textbf{MultiPattern} package provides a framework for unsupervised analysis of data. Its main premise is that a dataset may contain more than one underlying pattern or clustering. The goal of the package is to provide a means to discover multiple of these patterns during the course of an analysis. 
+The MultiPattern package provides a framework for unsupervised analysis of data. Its main premise is that a dataset may contain more than one underlying pattern or clustering. The goal of the package is to provide a means to discover multiple of these patterns during the course of an analysis. 
 
 In this vignette, we will look at the package structure and apply the package to some small synthetic datasets.
 
@@ -180,8 +180,8 @@ MP6metamap = MPgetMap(MP6metasims)
 \noindent We can then visualize the map as follows.
 
 <<MP6plotmetamap1, eval=FALSE>>=
-MPplotmap(MP6metamap, col=config.groups, RCC="meta")
-MPplotmap(MP6metamap, col=config.groups, RCC="meta", label=TRUE)
+MPplotmap(MP6metamap, col=config.groups, Rcssclass="meta")
+MPplotmap(MP6metamap, col=config.groups, Rcssclass="meta", label=TRUE)
 @
 
 \noindent The first command computes a multi-dimensional scaling map, adding some white noise to separate nearby points. The subsequent commands produce two graphical representations, adding styling to distinguish the random and the non-random configurations (Figure \ref{fig:fig_metamap}).
@@ -212,7 +212,7 @@ The first command here requests {\tt k=6} representative configurations that app
 
 <<MP6plotmetamap2, eval=FALSE>>=
 MPplotmap(MP6metamap, col=config.groups, highlight.points=sort(MP6reps), 
-          legend=FALSE, RCC="meta")
+          legend=FALSE, Rcssclass="meta")
 @
 
 <<fig_metamap, echo=FALSE, out.width="0.99\\textwidth", out.height="0.33\\textwidth", fig.width=5.4, fig.height=1.8, fig.cap="Multi-pattern map for the {\\tt MPdata6S} dataset: (left) an MDS representation of relationships between clustering analyses; (center) similar to previous panel, but with dots replaced by text labels; (right) similar to first panel, but with five representative configurations highlighted by darker and larger markers.">>=
@@ -284,7 +284,7 @@ MP6clust[c(1,2,13,25,37),]   ## a few of the rows in a larger matrix
 <<D6K, eval=FALSE>>=
 par(mfrow=c(1,4))
 for (i in colnames(MP6clust)) {
-  MPplotScatterWithK(D6[,1:2], MP6clust[,i], main=i, RCC="scatter")
+  MPplotScatterWithK(D6[,1:2], MP6clust[,i], main=i, Rcssclass="scatter")
 }
 @
 
@@ -315,7 +315,7 @@ par(mfrow=c(2,4))
 for (uu in names(multilabs)[1:min(8, length(multilabs))]) {
   temp = MPmultilabels
   temp[temp!=uu] = "other"
-  MPplotScatterWithK(D6[,1:2], temp, main=uu, RCC=c("scatter", "mu"))
+  MPplotScatterWithK(D6[,1:2], temp, main=uu, Rcssclass=c("scatter", "mu"))
 }
 @
 
@@ -385,7 +385,7 @@ plotMLG = function(xx, k=8) {
     temp = mpu
     temp[temp!=uu] = "other"
     MPplotScatterWithK(xx$data[,1:2], temp, main=uu, 
-         RCC=c("scatter", "mu"))
+         Rcssclass=c("scatter", "mu"))
   }
 }
 @
@@ -503,8 +503,8 @@ dist.pam2alt = MPdistFactory(method="pam", clust.k=2, clust.alt=TRUE)
 <<addconf4, eval=FALSE>>=
 D6.reglabs = pamclusters(dist.fac(D6[,1:2]), k=2)
 D6.altlabs = pamclusters(dist.pam2alt(D6[,1:2]), k=2)
-MPplotmap(D6[,1:2], split(names(D6.reglabs), D6.reglabs), RCC="scatter")
-MPplotmap(D6[,1:2], split(names(D6.altlabs), D6.altlabs), RCC="scatter")
+MPplotmap(D6[,1:2], split(names(D6.reglabs), D6.reglabs), Rcssclass="scatter")
+MPplotmap(D6[,1:2], split(names(D6.altlabs), D6.altlabs), Rcssclass="scatter")
 @
 
 <<fig_regalt, echo=FALSE, out.width="0.4\\textwidth", out.height="0.2\\textwidth", fig.width=3, fig.height=1.5, fig.cap="Clustering of dataset {\\tt MPdata6S}: (left) pam-clustering into two groups based on euclidean distance; (right) pam-clustering into two groups based on an alternative distance.">>=
@@ -665,11 +665,11 @@ temp.0 = MPgetMap(MP6.0)
 temp.a = MPgetMap(MP6.a)
 temp.b = MPgetMap(MP6.b)
 MPplotmap(temp.0, col=config.groups, 
-          main="MP6, alpha=1, beta=2", RCC="meta")
+          main="MP6, alpha=1, beta=2", Rcssclass="meta")
 MPplotmap(temp.a, col=config.groups, 
-          main="MP6, alpha=0.25, beta=2", RCC="meta")
+          main="MP6, alpha=0.25, beta=2", Rcssclass="meta")
 MPplotmap(temp.b, col=config.groups, 
-          main="MP6, alpha=1, beta=1", RCC="meta")
+          main="MP6, alpha=1, beta=1", Rcssclass="meta")
 @ 
 
 In these examples, all the multi-pattern maps separate the random configurations from the others. However, they differ in the amount of scatter and variation that is visible on the map. Such difference may prompt different choices of representative configurations, so they may be important for downstream analysis. Unfortunately, the choice of visualization seems to be a subjective step; there is not a clear means to argue a-priori whether one is more informative than any other. This subject thus remains open for further thought.
@@ -677,10 +677,9 @@ In these examples, all the multi-pattern maps separate the random configurations
 
 \section{Summary}
 
-Summary of \textbf{MultiPattern} package.
+Summary of MultiPattern package.
 
-
-This example thus illustrates that a multi-pattern analysis should be seen as a useful step in a thoughtful larger analysis protocol rather than a stand-alone 
+This example illustrates that a multi-pattern analysis should be seen as a useful step in a thoughtful larger analysis protocol rather than a stand-alone 
 packages \cite{cluster, NMF}
 clustering \cite{wiwie2015comparing}
 alternate \cite{bae2006coala, cui2007non, jain2008simultaneous, qi2009principled, bailey2013alternative, muller2015multiclust, dang2015framework,kontonasios2015subjectively, zimek2015blind}
@@ -701,14 +700,15 @@ alternate \cite{bae2006coala, cui2007non, jain2008simultaneous, qi2009principled
 
 
 \appendix
-\section{Package management}
-\subsection{Installation}
+\section{Appendix}
 
-\subsection{Session Info}
+Styling of graphics is managed through Rcssplot.
 
 <<echo=TRUE, eval=FALSE>>=
 <<rcssplot>>
 @ 
+
+\noindent The session information for this vignette.
 
 <<>>=
 sessionInfo()

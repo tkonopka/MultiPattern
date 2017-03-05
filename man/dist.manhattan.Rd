@@ -11,5 +11,6 @@ dist.manhattan(x)
 }
 \description{
 This is a wrapper for stats::dist with method="manhattan".
+The wrapper replaces NA and Inf values with mean and max guesses.
 }
 

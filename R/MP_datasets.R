@@ -1,3 +1,5 @@
+## Package: MultiPattern
+##
 ## Definitions of datasets included with the package
 ## (all data are synthetic, i.e. computer generated)
 ##

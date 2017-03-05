@@ -1,6 +1,8 @@
+## Package: MultiPattern
+##
 ## A set of helper functions used in MultiMetric
 ##
-##
+
 
 
 
@@ -24,9 +26,8 @@ MPgetAll2Subspaces = function(f) {
     }
     ans = split(ans, seq(1, nrow(ans)))
     names(ans) = sapply(ans, paste, collapse=".")    
-    return(ans)    
+    ans
 }
-
 
 
 
@@ -145,7 +146,7 @@ MPsuggestTopFeatures = function(x, ncomp=function(x) { 1+sqrt(x) },
     ## format the output answer into a vector 
     ans = sort(unique(names(unlist(ans))))
     
-    return(ans)    
+    ans
 }
 
 
@@ -176,9 +177,8 @@ MPgetKNearest = function(nowdist, seeds, k) {
         ans[[nowseed]] = temp[temp!=nowseed][1:k]
     }
     
-    return(ans)
+    ans
 }
-
 
 
 
@@ -248,8 +248,9 @@ getPCAsubset = function(dd, subset=0.6, min.n=2) {
         nowselect[1:min(subset, ncol(ddpca))] = TRUE
     }
     nowselect[1:min.n] = TRUE
+    
     ## return the transformed data
-    return(ddpca[, nowselect, drop=FALSE])
+    ddpca[, nowselect, drop=FALSE]
 }
 
 
@@ -276,7 +277,7 @@ MPsquarelim = function(x, y) {
     } else {
         xlim = xlim - (xsize-ysize)*c(-0.5,0.5)
     }    
-    return(list(xlim=xlim, ylim=ylim))
+    list(xlim=xlim, ylim=ylim)
 }
 
 
@@ -323,9 +324,8 @@ MPgetMap = function(d, whiten=0.01) {
         ans[,1:2] = ans[,1:2] + (rn*zz*whiten)
     }  
     
-    return(ans)
+    ans
 }
-
 
 
 
@@ -357,10 +357,8 @@ MPrandomizeMatrix = function(x, perm.method=c("shuffle", "bootstrap")) {
     rownames(xp) = rownames(x)
     colnames(xp) = colnames(x)
     
-    return (xp)
+    xp
 }
-
-
 
 
 
@@ -381,8 +379,6 @@ MPmatrixColNorm = function(x) {
     xp[!is.finite(xp) | is.na(xp)] = 0
     xp        
 }
-
-
 
 
 
@@ -430,21 +426,4 @@ MPcutree = function(tree, k=2, minsize=1/(10*k)) {
     
     nowcut2
 }
-
-
-
-
-##' shows the genesets that contain genes
-##'
-##' @param sets list of gene sets
-##' @param genes vector of genes, all genes must be present in a set to provide a hit
-##'
-##' @export
-MPingenesets = function(sets, genes) {
-    sets[sapply(sets, function(x) { sum(genes %in% x)==length(genes)})]
-}
-
-
-
-
 

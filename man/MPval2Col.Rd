@@ -2,18 +2,18 @@
 % Please edit documentation in R/MP_plot.R
 \name{MPval2Col}
 \alias{MPval2Col}
-\title{Convert a number into a color using  transparency}
+\title{Convert a number into a color using transparency}
 \usage{
 MPval2Col(x, col = c("#0000ff", "#ff0000"), maxval = 1)
 }
 \arguments{
-\item{x}{- numeric matrix.}
+\item{x}{numeric matrix.}
 
-\item{col}{- vector of two colors in #XXXXXX format. First element determines
+\item{col}{vector of two colors in #XXXXXX format. First element determines
 color associated with negative values. Second element determines color associated
 with positive values}
 
-\item{maxval}{- numeric. Value for which color reaches saturation}
+\item{maxval}{numeric. Value for which color reaches saturation}
 }
 \description{
 This is an (edited) copy of E3Val2Col (Tomasz Konopka)

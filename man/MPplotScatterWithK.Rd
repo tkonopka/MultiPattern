@@ -5,21 +5,22 @@
 \title{plot a 2D scatter diagram with clusters in various style}
 \usage{
 MPplotScatterWithK(coords, clust, Gnames = TRUE, main = "",
-  RC = "default", RCC = c())
+  Rcss = "default", Rcssclass = c())
 }
 \arguments{
 \item{coords}{matrix, first two columns will be interpreted as xy coordinates}
 
 \item{clust}{character, mapping between items and cluster numbers}
 
-\item{Gnames}{logical, set TRUE to force cluster group names into G1, G2, etc.
-set FALSE to use the existing group names in clust}
+\item{Gnames}{logical, set TRUE to force cluster group names into
+G1, G2, etc. Set FALSE to use the existing group names in clust.
+(This only affects Rcss styling)}
 
 \item{main}{character, displayed as plot title}
 
-\item{RC}{Rcss object}
+\item{Rcss}{Rcss object}
 
-\item{RCC}{Rcss class}
+\item{Rcssclass}{Rcss class}
 }
 \description{
 plot a 2D scatter diagram with clusters in various style

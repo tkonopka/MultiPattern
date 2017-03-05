@@ -5,22 +5,22 @@
 \title{Draw a vertical recrangle with a color scale and labels}
 \usage{
 MPdrawScaleLegend(legend = NULL, xlim = c(0, 1), ylim = c(0, 1),
-  main = "", RC = "default", RCC = c())
+  main = "", Rcss = "default", Rcssclass = c())
 }
 \arguments{
-\item{legend}{- named vector of colors. Colors defining a color scale. All
+\item{legend}{named vector of colors. Colors defining a color scale. All
 names associated with vector will be draw onto to the plot. (Set some names to ""
 to avoid labeling every single color in a color gradient)}
 
-\item{xlim}{- numeric vector of two elements. Gives range of x axis.}
+\item{xlim}{numeric vector of two elements. Gives range of x axis.}
 
-\item{ylim}{- numeric vector of two elements. Gives range of y axis.}
+\item{ylim}{numeric vector of two elements. Gives range of y axis.}
 
-\item{main}{- text two write above the legend}
+\item{main}{text two write above the legend}
 
-\item{RC}{- Rcss object. Style to use for plotting, uses package Rcssplot}
+\item{Rcss}{Rcss object. Style to use for plotting, uses package Rcssplot}
 
-\item{RCC}{- character vector. Classes to tune Rcssplot formatting.}
+\item{Rcssclass}{character vector. Classes to tune Rcssplot formatting.}
 }
 \description{
 This function is an (edited) copy of E3drawScaleLegend from ExpCube (Tomasz Konopka)

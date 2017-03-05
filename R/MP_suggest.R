@@ -1,6 +1,8 @@
-## Helper function for suggesting configurations for a MultiMetric meta-analysis
+## Package: MultiPattern
 ##
+## Function for suggesting configurations for a MultiMetric analysis
 ##
+
 
 
 
@@ -13,7 +15,8 @@
 ##' 
 ##' @param MP MultiMetric configuration object
 ##' @param data character. Name of dataset defined in MP.
-##' @param verbose logical. Set FALSE to make the function silent, TRUE to see cat updates.
+##' @param verbose logical. Set FALSE to make the function silent;
+##' set TRUE to see cat updates.
 ##' 
 ##' @export
 MPsuggestConfig = function(MP, data, verbose=TRUE) {
@@ -57,12 +60,13 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
     ## create an ad-hoc classification of features by data range (integer/real, etc)
     feature.types = data.frame(Column=colnames(dd),
         skew=0, ex.kurtosis=0, n.unique=0, stringsAsFactors=F)
+    n.u = "n.unique"
     rownames(feature.types) = colnames(dd)
     for (nowcol in colnames(dd)) {
         nowdata = as.numeric(dd[,nowcol])
         nowu = length(unique(nowdata))
         nowstats = mystats(nowdata)
-        feature.types[nowcol, c("skew", "ex.kurtosis", "n.unique")] =
+        feature.types[nowcol, c("skew", "ex.kurtosis", n.u)] =
             c(nowstats[1], nowstats[2]-3, nowu)
     }
     if (length(colnames(dd))>0) {
@@ -72,16 +76,16 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
     skewth = max(1, 0.5*log2(ncol(dd)))
     feature.class = rep("real", nrow(feature.types))
     names(feature.class) = rownames(feature.types)
-    feature.class[feature.types[, "n.unique"]==1] = "single"
-    feature.class[feature.types[, "n.unique"]==2] = "bin"
+    feature.class[feature.types[, n.u]==1] = "single"
+    feature.class[feature.types[, n.u]==2] = "bin"
     feature.class[abs(feature.types[, "skew"])>skewth &
-                  feature.types[, "n.unique"]==2] = "binskew"
-    feature.class[feature.types[, "n.unique"]<nrow(dd)/2 &
-                  feature.types[, "n.unique"]>2] = "multi"
-    feature.class[feature.types[, "n.unique"]<nrow(dd)/2 &
-                  feature.types[, "n.unique"]>2 &
+                  feature.types[, n.u]==2] = "binskew"
+    feature.class[feature.types[, n.u]<nrow(dd)/2 &
+                  feature.types[, n.u]>2] = "multi"
+    feature.class[feature.types[, n.u]<nrow(dd)/2 &
+                  feature.types[, n.u]>2 &
                   abs(feature.types[, "skew"])>skewth] = "multiskew"
-    feature.class[feature.types[, "n.unique"]>nrow(dd)/2 &
+    feature.class[feature.types[, n.u]>nrow(dd)/2 &
                   abs(feature.types[, "skew"])>skewth] = "realskew"     
     
     ## avoid splits of features with just a few features
@@ -123,7 +127,7 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
     rm(distconf)
 
     
-    ## for real-valued data, add pca  and rpca
+    ## for real-valued data, add pca 
     for (nowf in c("real", "real.skew")) {
         if (nowf %in% names(feature.class)) {
             ## for pca and rpca, avoid features with NAs
@@ -136,7 +140,7 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
                 MPeasyConfig(MP, data=data.name,
                              config.prefix=config.prefix, type=c("pca"),
                              random=FALSE)
-                ## here can remove the temporary datasets (the pca and rpca types
+                ## here can remove the temporary datasets (pca plugin
                 ## would have by now created their own helper tables)
                 MPremove(MP, data=data.name)                
             }
@@ -161,7 +165,7 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
                             clust.k=nowk, clust.method=ncm, clust.alt=FALSE)
                         nowdalt = MPdistFactory(method="hclust",
                             clust.k=nowk, clust.method=ncm, clust.alt=TRUE)
-                        ncm.init = toupper(substring(ncm, 1, 1))                        
+                        ncm.init = toupper(substring(ncm, 1, 1))
                     } else if (ncm == "pam") {
                         nowdreg = MPdistFactory(method="pam",
                             clust.k=nowk, clust.method="pam", clust.alt=FALSE)
@@ -170,9 +174,11 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
                         ncm.init = "P"
                     }
                     MPaddConfig(MP, paste0(clustconf, ncm.init, nowk,"reg"),
-                                data.name=data, preprocess=nowfeatures, dist.fun=nowdreg)
+                                data.name=data, preprocess=nowfeatures,
+                                dist.fun=nowdreg)
                     MPaddConfig(MP, paste0(clustconf, ncm.init, nowk,"alt"),
-                                data.name=data, preprocess=nowfeatures, dist.fun=nowdalt)
+                                data.name=data, preprocess=nowfeatures,
+                                dist.fun=nowdalt)
                     rm(nowdreg, nowdalt, ncm.init)                
                 }                                
             }                                
@@ -191,7 +197,8 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
     random.preprocess = random.preprocess[
         which(!paste0(config.prefix, "rnorm.", 1:Nrandom) %in% names(MP$configs))]
     if (length(random.preprocess)>0) {
-        MPaddConfig(MP, paste0(config.prefix, "rnorm"), data, preprocess=random.preprocess,
+        MPaddConfig(MP, paste0(config.prefix, "rnorm"), data,
+                    preprocess=random.preprocess,
                     dist.fun=dist.rnorm)
     }
 
@@ -201,18 +208,11 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
     }    
     num.end = length(MP$configs)
     if (verbose) {
-        cat(paste0("MPsuggestConfig created ", num.end-num.start, " configurations\n"))
+        cat(paste0("MPsuggestConfig created ", num.end-num.start,
+                   " configurations\n"))
     }
     
     assign(captureMP, MP, parent.frame())
     invisible(MP)  
 }
-
-
-
-
-
-
-
-
 

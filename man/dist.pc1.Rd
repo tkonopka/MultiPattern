@@ -10,6 +10,6 @@ dist.pc1(x)
 \item{x}{numeric matrix}
 }
 \description{
-Distance using 1st principal component from PCA
+The function computes the PCA, then collapses onto PC1.
 }
 
