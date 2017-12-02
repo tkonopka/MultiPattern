@@ -15,4 +15,3 @@ MPsquarelim(x, y)
 This function is useful for creating MDS diagrams in a square format,
 which should have x and y axes in the same scale.
 }
-

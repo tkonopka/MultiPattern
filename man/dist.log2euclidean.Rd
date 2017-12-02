@@ -15,4 +15,3 @@ applying euclidean distance}
 \description{
 Euclidean distance of log2 transformed values
 }
-

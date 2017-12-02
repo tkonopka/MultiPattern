@@ -26,4 +26,3 @@ MPplotScatterWithLinks(coords, xyd, seed = rownames(coords)[1],
 \description{
 plot a 2D scatter diagram with clusters in various style
 }
-

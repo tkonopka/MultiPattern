@@ -28,4 +28,3 @@ that use the transformed data. The configurations will of three types:
 \details{
 The maximal PC component for the configurations is determined from MP$settings.
 }
-

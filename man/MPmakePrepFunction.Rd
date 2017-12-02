@@ -15,4 +15,3 @@ If a is an integer vector}
 \description{
 Create a function for preprocessing a dataset before computing a similarity
 }
-

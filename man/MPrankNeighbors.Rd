@@ -22,4 +22,3 @@ it considers what other points are nearby and ranks them by distance.
 The output is non-parametric neighborhood object. "x[i,j] = r" implies that
 data element "j" is the "r-th" one to data element "i".
 }
-

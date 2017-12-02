@@ -28,4 +28,3 @@ Note: this function will not change MP if the dataset is not suitable
 for NMF. This includes situations when the dataset contains missing values
 or contains too-few columns.
 }
-

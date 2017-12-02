@@ -18,4 +18,3 @@ In contrast to stats::cutree(), this can output more than k clusters. However, t
 output should contain k clusters that are of nontrivial size. The largest cluster
 should be labeled as "1", the next biggest as "2" and so on
 }
-

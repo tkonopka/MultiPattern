@@ -13,4 +13,3 @@ dist.canberra(x)
 This is a wrapper for stats::dist with method="canberra".
 The wrapper replaces NA and Inf values with mean and max guesses.
 }
-

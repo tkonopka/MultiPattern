@@ -35,4 +35,3 @@ MP$settings}
 Settings for subsampling and averaging are determined by
 MP$settings$subsample.N and MP$settings$subsample.R
 }
-

@@ -18,4 +18,3 @@ with positive values}
 \description{
 This funciton is a copyt of E3Val2Col from package ExpCube (Tomasz Konopka)
 }
-

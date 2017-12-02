@@ -33,4 +33,3 @@ are new items in the MP$config list. When pca or rpca are specified in the type 
 the function also precomputes these transformations and adds these into the MP$data list. 
 All configurations relying on pca or rpca transformed data refer to these pre-computed objects.
 }
-

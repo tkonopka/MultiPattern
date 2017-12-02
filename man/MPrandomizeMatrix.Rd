@@ -18,4 +18,3 @@ bootstrap - re-arranges values in a matrix using sampleing *with* replacement}
 \description{
 Permute values in a matrix
 }
-

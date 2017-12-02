@@ -24,4 +24,3 @@ This plugin adds several configurations that use clustering-driven dissimilariti
 traditional clustering. Other configurations (marked alt) use an alternative clustering
 distance. Settings for this plugin are extracted from MP$settings.
 }
-

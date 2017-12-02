@@ -23,4 +23,3 @@ This plugin transforms an input dataset using rpca, then defines configurations
 on the transformed data. The plugin does not do anything if the input data
 contains non-finite elements. Settings for the plugin are extracted from MP$settings.
 }
-

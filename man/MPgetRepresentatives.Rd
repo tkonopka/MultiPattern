@@ -22,4 +22,3 @@ If less than 1, proportion of points to select}
 \description{
 Identify representative points from a distance object
 }
-

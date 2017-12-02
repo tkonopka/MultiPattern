@@ -25,4 +25,3 @@ G1, G2, etc. Set FALSE to use the existing group names in clust.
 \description{
 plot a 2D scatter diagram with clusters in various style
 }
-

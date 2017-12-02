@@ -4,17 +4,23 @@
 \alias{MPgetMap}
 \title{Create a map for a distance object/matrix}
 \usage{
-MPgetMap(d, whiten = 0.01)
+MPgetMap(d, tsne = FALSE, perplexity = 40, max_iter = 10,
+  whiten = FALSE)
 }
 \arguments{
 \item{d}{distance object}
 
-\item{whiten}{numeric, use low number like 0.01 (default) to slightly jiggle points
-on the map. This is a percentage of the x-y ranges.}
+\item{tsne}{logical, determine if use tsne for map layout}
+
+\item{perplexity}{integer, passed on to tsne(), slightly larger than default}
+
+\item{max_iter}{integer, passed on to tsne(), much lower default than in
+tsne's default}
+
+\item{whiten}{logical, passed on to tsne(), different default than tsne()}
 }
 \description{
 This function uses cmdscale, but additionally adds a certain amount of
 whitening determined by whiten. The whitening is pseudo-random and deterministic;
 it always gives the same result.
 }
-

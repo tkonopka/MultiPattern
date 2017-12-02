@@ -14,4 +14,3 @@ size of the random distance object}
 This produces a distances object in which distances are set to random numbers
 from the N(0,1) distribution
 }
-

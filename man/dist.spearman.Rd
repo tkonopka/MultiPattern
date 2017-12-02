@@ -12,4 +12,3 @@ dist.spearman(x)
 \description{
 This function rows as features and columns as features.
 }
-

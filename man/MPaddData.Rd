@@ -14,4 +14,3 @@ MPaddData(MP, data)
 \description{
 Add a dataset into a MultiPattern configuration object
 }
-

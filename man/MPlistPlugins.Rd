@@ -10,4 +10,3 @@ MPlistPlugins()
 This returns a vector of strings. A string x indicates that there exist
 an accessible function called x.MultiPatternPlugin.
 }
-

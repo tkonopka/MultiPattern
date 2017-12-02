@@ -22,4 +22,3 @@ vector with names, values are ranks, names correspond to elements in dd
 \description{
 This function scores graph similarity using rank neighborhoods
 }
-

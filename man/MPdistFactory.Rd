@@ -28,4 +28,3 @@ will be able to compute dist using the specified method}
 \description{
 Generates a function with syntax f(x) that returns a dist object
 }
-

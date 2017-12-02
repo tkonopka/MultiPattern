@@ -16,4 +16,3 @@ function must be able to perform method(x, na.rm=TRUE)}
 (This is a general-purpose function and works on many types of objects with some NAs.
 The object must support operations: sum, method (e.g. mean), and subsetting via []).
 }
-

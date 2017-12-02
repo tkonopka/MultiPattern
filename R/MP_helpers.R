@@ -290,39 +290,23 @@ MPsquarelim = function(x, y) {
 ##' it always gives the same result. 
 ##'
 ##' @param d distance object
-##' @param whiten numeric, use low number like 0.01 (default) to slightly jiggle points
-##' on the map. This is a percentage of the x-y ranges.
+##' @param tsne logical, determine if use tsne for map layout
+##' @param perplexity integer, passed on to tsne(), slightly larger than default
+##' @param max_iter integer, passed on to tsne(), much lower default than in
+##' tsne's default
+##' @param whiten logical, passed on to tsne(), different default than tsne()
 ##'
 ##' @export
-MPgetMap = function(d, whiten=0.01) {
+MPgetMap = function(d, tsne=FALSE, perplexity=40, max_iter=10, whiten=FALSE) {
     
-    ## get a cmdscale map
+    ## get a cmdscale map as an initial configuration
     ans = cmdscale(d)
     
-    ## custom pseudo-random number generator with fixed seeds and settings
-    ## this choice of a, b, m produces at least 1M unique random-like numbers
-    myrn = function(n, x0=1, a=5862, b=3, m=11930007) {
-        x = x0
-        nextrn = function() {
-            (a*x + b) %% m
-        }    
-        ans = rep(0, n);
-        for (i in seq(n)) {
-            x = nextrn()
-            ans[i] = x
-        }    
-        ans/m
+    # perhaps adjust the cmdscale result using tsne
+    if (tsne) {
+        ans = suppressMessages(tsne::tsne(ans, initial_config=ans, perplexity=perplexity,
+                                          max_iter=max_iter, whiten=whiten))
     }
-    
-    ## adjust results from cmdscale slightly
-    if (whiten>0 & nrow(ans)>0) {
-        ## get pseudo-random numbers and adjust cmdscale coordinates
-        rn = qnorm(matrix(myrn(2*nrow(ans)), ncol=2))        
-        xlim = range(ans[,1])
-        ylim = range(ans[,2])
-        zz = min(xlim[2]-xlim[1], ylim[2]-ylim[1])
-        ans[,1:2] = ans[,1:2] + (rn*zz*whiten)
-    }  
     
     ans
 }

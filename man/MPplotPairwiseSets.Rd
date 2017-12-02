@@ -37,4 +37,3 @@ MPplotPairwiseSets(ds, samplenames, seedsample, neighborhood = 10,
 \description{
 e.g. set A overlaps with B by 50%, with C by 30%, with D by 70%, etc.
 }
-

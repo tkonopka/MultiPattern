@@ -18,4 +18,3 @@ leave NULL to evaluate all configurations}
 This function runs analyses specified in a MultiPattern configuration object.
 It returns an object holding similarity matrices for each of the MultiPattern analyses.
 }
-

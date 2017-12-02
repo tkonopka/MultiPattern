@@ -25,4 +25,3 @@ to avoid labeling every single color in a color gradient)}
 \description{
 This function is an (edited) copy of E3drawScaleLegend from ExpCube (Tomasz Konopka)
 }
-

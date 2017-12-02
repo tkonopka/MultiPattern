@@ -14,4 +14,3 @@
 \description{
 Print a summary of a MP configuration object
 }
-

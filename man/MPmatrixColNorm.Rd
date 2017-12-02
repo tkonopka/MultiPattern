@@ -12,4 +12,3 @@ MPmatrixColNorm(x)
 \description{
 Normalize a matrix column-wise by median shift and division by sd
 }
-

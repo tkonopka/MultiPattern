@@ -18,4 +18,3 @@ This function takes as input a distance object or distance matrix (values
 describing distance between pairs of data elements). For each data element,
 it considers what other points are nearby and ranks them by distance.
 }
-

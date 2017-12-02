@@ -33,4 +33,3 @@ to make sure the legend matches with the dat matrix.}
 \description{
 This function is an (edited) copy of E3PlotBasicHeat from ExpCube (Tomasz Konopka)
 }
-

@@ -6,6 +6,7 @@
 
 ## General package maintenance - import functions from packages
 #' @import stats
+#' @import tsne
 #' @import utils
 #' @import cluster
 #' @import graphics
@@ -47,7 +48,7 @@ NULL
 ##' 
 ##' @export
 MPdefaultSettings = list(
-    num.random=100,
+    num.random=60,
     num.PCs=4,
     rpca.term.delta=1e-3, 
     clust.k=3,
@@ -55,10 +56,10 @@ MPdefaultSettings = list(
     nmf.rank = 0,
     subspace.num.random=100,
     subspace.d.random=0.5,
-    alpha=1,
+    alpha=0.5,
     beta=2,
     subsample.N=150,
-    subsample.R=20    
+    subsample.R=30    
     )
 
 
@@ -546,7 +547,7 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
     if (subsample.N<1) {
         subsample.N = abs(length(MP$items)*subsample.N)
     }
-    subsample.N = max(1, min(length(MP$items), ceiling(subsample.N)))
+    subsample.N = max(1, min(length(MP$items)-1, ceiling(subsample.N)))
     subsample.R = max(1, ceiling(subsample.R))
     
     if (subsample.N<2) {
@@ -568,7 +569,7 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
         
         ## get a subset of the items and create a new MP object
         tempMP = MP
-        tempMP$items = sample(MP$items, subsample.N, replace=T)
+        tempMP$items = sample(MP$items, subsample.N, replace=FALSE)
         ## get smaller versions of the data matrices
         ## (rename rows to avoid duplicate rownames due to bootstrap)
         for (nowdata in names(MP$data)) {

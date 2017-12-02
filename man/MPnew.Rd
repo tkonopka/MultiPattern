@@ -15,4 +15,3 @@ is equivalent to calling MPnew() and then adding data manually with MPaddData()}
 \description{
 Create a basic MP object
 }
-

@@ -21,4 +21,3 @@ canberra.MultiPatternPlugin(MP, data.name, config.prefix,
 \description{
 This plugin adds one configuration that uses a traditional canberra distance.
 }
-

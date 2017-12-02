@@ -28,4 +28,3 @@ Defaults to euclidean distance.}
 The function acceps data.fun or dist.fun as a list. In these cases, the
 configuration names are given as config.name:[id].
 }
-

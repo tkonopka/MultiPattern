@@ -16,4 +16,3 @@ MPremove(MP, data = NULL, config = NULL)
 \description{
 Remove data or configuration components from a MultiPattern object
 }
-

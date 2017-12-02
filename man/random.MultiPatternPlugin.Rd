@@ -21,4 +21,3 @@ random.MultiPatternPlugin(MP, data.name = NULL, config.prefix = "",
 \description{
 This plugin defined random dissimilarity matrices.
 }
-

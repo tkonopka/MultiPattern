@@ -16,4 +16,3 @@ MPgetKNearest(nowdist, seeds, k)
 \description{
 Extract the k items that are nearest to specified seeds
 }
-

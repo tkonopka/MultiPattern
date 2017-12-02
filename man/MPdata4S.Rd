@@ -12,4 +12,3 @@ data(MPdata4S)
 A synthetic collection of points in 2D with expected cluster groups.
 }
 \keyword{datasets}
-

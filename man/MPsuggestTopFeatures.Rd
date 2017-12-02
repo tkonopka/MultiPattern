@@ -22,4 +22,3 @@ This function looks at the features that make up individual PCA components. It
 returns those features that contribute more than others to these componets
 (according to the weight of the feature compared to the median and IQR interval)
 }
-

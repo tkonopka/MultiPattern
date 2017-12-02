@@ -12,4 +12,3 @@ MPgetAll2Subspaces(f)
 \description{
 obtain a list of all pairs from a set
 }
-

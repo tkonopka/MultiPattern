@@ -20,4 +20,3 @@ because the function applies principal component decompositions to parts of the
 input data and stores the intermediate results in the MP object. This computation
 speeds up subsequent steps of the MultiMetric analysis.
 }
-

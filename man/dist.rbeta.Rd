@@ -19,4 +19,3 @@ This function generates points in a d-dimensional unit-space with coordinates
 chosen at random from a beta distribution. The function then computes the euclidean
 distance in this space.
 }
-

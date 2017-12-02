@@ -12,4 +12,3 @@ dist.pc1(x)
 \description{
 The function computes the PCA, then collapses onto PC1.
 }
-

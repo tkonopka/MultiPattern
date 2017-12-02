@@ -21,4 +21,3 @@ subspace2.MultiPatternPlugin(MP, data.name, config.prefix,
 \description{
 Add a set of configurations to an MultiPattern object
 }
-

@@ -17,4 +17,3 @@ function must be able to perform method(x, na.rm=TRUE)}
 This is to enforce consistency when applying the 'method' function.
 e.g. to avoid confusion between mean(matrix) and mean(as.dist(matrix)), which are not the same)
 }
-

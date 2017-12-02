@@ -18,4 +18,3 @@ with positive values}
 \description{
 This is an (edited) copy of E3Val2Col (Tomasz Konopka)
 }
-

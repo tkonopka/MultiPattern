@@ -25,4 +25,3 @@ that reinforce traditional clustering. Other configuration (marked alt) create
 dissimilarities that promote alternative clustering. Settings for this plugin
 are extracted from MP$settings.
 }
-

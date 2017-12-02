@@ -19,4 +19,3 @@ e.g. free, marginals}
 \description{
 Random distance obtained through permutation of an input matrix
 }
-

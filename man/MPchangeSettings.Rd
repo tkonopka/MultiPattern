@@ -19,4 +19,3 @@ Accepted settings names are those defined in MPdefaultSettings.}
 \description{
 Change settings encoded in a MultiPattern object
 }
-

@@ -39,4 +39,3 @@ subsample.N: number of observations to use in subsample/bootstrap
 subsample.R: number of subsampling/bootstrap repetitions
 }
 \keyword{datasets}
-

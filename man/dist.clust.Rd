@@ -29,4 +29,3 @@ which returns distances in which patterns from a usual distance are reinforced b
 \description{
 Distance that incorporates weights from a clustering (hclust or pam)
 }
-

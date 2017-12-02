@@ -41,7 +41,7 @@ MPrankNeighbors = function(dd, ties="min", ...) {
     ## convert distances into ranks of neighbors
     ## There is ambiguity in how to encode, this line defines the encoding
     ans = apply(dd, 2, rank, ties=ties, ...)
-    ans = (-1+ans)/(ncol(dd))
+    ans = (-1+ans)/(ncol(dd)-1)
 
     ## symmetrize the matrix
     ans = (ans+t(ans))/2

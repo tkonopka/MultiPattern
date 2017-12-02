@@ -22,4 +22,3 @@ applied after transform.fun}
 \description{
 Compare MultiPattern similarity matrices
 }
-

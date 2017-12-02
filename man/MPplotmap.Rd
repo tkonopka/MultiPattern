@@ -44,4 +44,3 @@ layout algos)}
 \description{
 Custom function to draw mds maps. Uses Rcssplot and some hard settings
 }
-
