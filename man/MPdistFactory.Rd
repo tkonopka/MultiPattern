@@ -4,7 +4,7 @@
 \alias{MPdistFactory}
 \title{Generates a function with syntax f(x) that returns a dist object}
 \usage{
-MPdistFactory(method = c("euclidean", "manhattan", "canberra", "rnorm", "pc1",
+MPdistFactory(method = c("euclidean", "manhattan", "canberra", "pc1",
   "log2euclidean", "spearman", "hclust", "pam"), log2.shift = 1,
   clust.dist = "euclidean", clust.method = c("complete", "single",
   "average"), clust.weight = 0.5, clust.k = 2, clust.alt = FALSE)

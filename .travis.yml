@@ -1,0 +1,17 @@
+# Configuration for travis
+
+language: r
+
+warnings_are_errors: true
+
+r-packages:
+- knitr
+
+r_github_packages:
+  - r-lib/covr
+
+r_check_args: --no-vignettes --no-build-vignettes
+
+after_success:
+  - Rscript -e 'covr::codecov()'
+

@@ -12,21 +12,21 @@
 ##'
 ##' @export
 MPgetAll2Subspaces = function(f) {    
-    flen = length(f);
-    if (flen<2) {
-        stop("the feature vector must be at least of length 2\n");
+  flen = length(f);
+  if (flen<2) {
+    stop("the feature vector must be at least of length 2\n");
+  }
+  ans = matrix(NA, ncol=2, nrow=flen*(flen-1)/2)
+  kk = 1        
+  for (i in 1:(flen-1)) {
+    for (j in (i+1):flen) {
+      ans[kk,] = c(f[i], f[j])
+      kk = kk+1
     }
-    ans = matrix("", ncol=2, nrow=flen*(flen-1)/2)
-    kk = 1        
-    for (i in 1:(flen-1)) {
-        for (j in (i+1):flen) {
-            ans[kk,] = c(f[i], f[j])
-            kk = kk+1
-        }
-    }
-    ans = split(ans, seq(1, nrow(ans)))
-    names(ans) = sapply(ans, paste, collapse=".")    
-    ans
+  }
+  ans = split(ans, seq(1, nrow(ans)))
+  names(ans) = sapply(ans, paste, collapse=".")    
+  ans
 }
 
 
@@ -54,37 +54,38 @@ MPgetAll2Subspaces = function(f) {
 ##' @export
 MPgetRandomSubspaces = function(f, n, d=4, oversample=4) {
     
-    if (length(f)<d) {
-        stop("Feature vector is shorter than requested subspace")
-    }
-    if (n<=0) {
-        return(list())
-    }
-    
-    ## try to generate many sets of features
-    n2 = ceiling(n*oversample)
-    
-    if (class(f)=="character") {
-        ans = matrix("", nrow=n2, ncol=d)
-    } else {
-        ans = matrix(0, nrow=n2, ncol=d)
-    }
-    
-    ## create unique combinations of sets
-    for (i in seq_len(nrow(ans))) {
-        ans[i,] = sort(sample(f, d, replace=FALSE))
-    }
-    ans = unique(ans)
-    
-    ## cut the subspaces to the requested n
-    if (nrow(ans)>n) {
-        ans = ans[1:n,]
-    }
-    
-    ## turn the matrix into a list object with arbitrary names for the features
-    ans2 = split(ans, 1:nrow(ans))
-    
-    ans2
+  if (length(f)<d) {
+    stop("Feature vector is shorter than requested subspace")
+  }
+  if (n<=0) {
+    return(list())
+  }
+  
+  ## try to generate many sets of features
+  n2 = ceiling(n*oversample)
+
+  ans = matrix(NA, nrow=n2, ncol=d)
+  #if (class(f)=="character") {
+  #  ans = matrix("", nrow=n2, ncol=d)
+  #} else {
+  #  ans = matrix(0, nrow=n2, ncol=d)
+  #}
+  
+  ## create unique combinations of sets
+  for (i in seq_len(nrow(ans))) {
+    ans[i,] = sort(sample(f, d, replace=FALSE))
+  }
+  ans = unique(ans)
+  
+  ## cut the subspaces to the requested n
+  if (nrow(ans)>n) {
+    ans = ans[1:n,]
+  }
+  
+  ## turn the matrix into a list object with arbitrary names for the features
+  ans2 = split(ans, 1:nrow(ans))
+  
+  ans2
 }
 
 
@@ -105,79 +106,48 @@ MPgetRandomSubspaces = function(f, n, d=4, oversample=4) {
 ##' 
 ##' @export
 MPsuggestTopFeatures = function(x, ncomp=function(x) { 1+sqrt(x) },
-    iqrfactor=function(x) { log(x) }) {
-    
-    ## transform the data using PCA
-    if (class(x)!="prcomp") {
-        x = prcomp(x)
+                                iqrfactor=function(x) { log(x) }) {
+  
+  ## transform the data using PCA
+  if (class(x)!="prcomp") {
+    x = prcomp(x)
+  }
+  
+  ## convert the ncomp into an integer
+  if (class(ncomp)=="function") {
+    ncomp = max(1, ceiling(ncomp(ncol(x$rotation))))
+  } else {
+    if (as.integer(ncomp)<1) {
+      ncomp = max(1, ceiling(ncol(x$rotation)*ncomp))
     }
-    
-    ## convert the ncomp into an integer
-    if (class(ncomp)=="function") {
-        ncomp = max(1, ceiling(ncomp(ncol(x$rotation))))
-    } else {
-        if (as.integer(ncomp)<1) {
-            ncomp = max(1, ceiling(ncol(x$rotation)*ncomp))
-        }
-        ncomp = ceiling(ncomp)
-    }    
-    ncomp = max(1, min(ncomp, ncol(x$rotation)))
-    
-    ## convert the iqrfactor into a numeric value
-    if (class(iqrfactor)=="function") {
-        iqrfactor = iqrfactor(nrow(x$rotation))
-    }
-    
-    ## look at the top ncomp components and find features that contribute more than others
-    ans = list()
-    for (i in 1:ncomp) {
-        temp = x$rotation[,i]
-        temp.qs = as.numeric(quantile(abs(temp), p=c(0.25, 0.5, 0.75)))
-        temp.iqr = temp.qs[3]-temp.qs[1]
-        ## get at least one feature
-        temp.max = (abs(temp)==max(abs(temp)))
-        ## get features that contribute more than the rest
-        temp.iqr =
-            (temp > temp.qs[2] + (iqrfactor*temp.iqr)) |
-                (temp < temp.qs[2]-(iqrfactor*temp.iqr))
-        ans[[i]] =sort( temp[temp.max | temp.iqr])
-    }
-
-    ## format the output answer into a vector 
-    ans = sort(unique(names(unlist(ans))))
-    
-    ans
-}
-
-
-
-
-##' Extract the k items that are nearest to specified seeds
-##'
-##' @param nowdist a distance object or matrix
-##' @param seeds names of seed items
-##' @param k number of nearest neighbors to select
-##' 
-##' @export
-MPgetKNearest = function(nowdist, seeds, k) {
-
-    ## always use nowdist as a matrix
-    if (class(nowdist)=="dist") {
-        nowdist = as.matrix(nowdist)
-    }
-    
-    ## make sure that k is not too big
-    k = min(k, ncol(nowdist)-1)
-    
-    ## look-up nearest neighbors
-    ans = list()
-    for (nowseed in seeds) {
-        temp = sort(nowdist[nowseed,])
-        temp = names(temp)[1:(k+1)]
-        ans[[nowseed]] = temp[temp!=nowseed][1:k]
-    }
-    
-    ans
+    ncomp = ceiling(ncomp)
+  }    
+  ncomp = max(1, min(ncomp, ncol(x$rotation)))
+  
+  ## convert the iqrfactor into a numeric value
+  if (class(iqrfactor)=="function") {
+    iqrfactor = iqrfactor(nrow(x$rotation))
+  }
+  
+  ## look at the top ncomp components and find features that contribute more than others
+  ans = list()
+  for (i in 1:ncomp) {
+    temp = x$rotation[,i]
+    temp.qs = as.numeric(quantile(abs(temp), p=c(0.25, 0.5, 0.75)))
+    temp.iqr = temp.qs[3]-temp.qs[1]
+    ## get at least one feature
+    temp.max = (abs(temp)==max(abs(temp)))
+    ## get features that contribute more than the rest
+    temp.iqr =
+      (temp > temp.qs[2] + (iqrfactor*temp.iqr)) |
+      (temp < temp.qs[2]-(iqrfactor*temp.iqr))
+    ans[[i]] =sort( temp[temp.max | temp.iqr])
+  }
+  
+  ## format the output answer into a vector 
+  ans = sort(unique(names(unlist(ans))))
+  
+  ans
 }
 
 
@@ -192,31 +162,31 @@ MPgetKNearest = function(nowdist, seeds, k) {
 ##' 
 ##' @export
 MPmakePrepFunction = function(a) {
-
-    ## no preprocessing or applying a function
-    if (class(a)=="function" | is.null(a)) {
-        return(a)
-    }
-    
-    ## other output types use a to change a matrix. Need to remember what a is
-    force(a)
-    
-    ## subsetting by named columns in a matrix, or order of columns in a matrix
-    if (is.character(a) | (is.integer(a) & is.null(names(a)))) {
-        return(function(x) x[, a, drop=FALSE])        
-    }
-    
-    ## subsetting by named columns with rescaling factors
-    if (is.numeric(a) & !is.null(names(a))) {
-        return(function(x) {
-            rescale = matrix(a, nrow=nrow(x), ncol=length(a), byrow=TRUE)
-            x[, names(a), drop=FALSE]*rescale
-        })        
-    }
-    
-    ## if reached here, unrecognized type of prep
-    stop("Unrecognized type of prep instruction:",
-         " class:", class(a), ", names:", !is.null(names(a)), "\n")
+  
+  ## no preprocessing or applying a function
+  if (class(a)=="function" | is.null(a)) {
+    return(a)
+  }
+  
+  ## other output types use a to change a matrix. Need to remember what a is
+  force(a)
+  
+  ## subsetting by named columns in a matrix, or order of columns in a matrix
+  if (is.character(a) | (is.integer(a) & is.null(names(a)))) {
+    return(function(x) x[, a, drop=FALSE])        
+  }
+  
+  ## subsetting by named columns with rescaling factors
+  if (is.numeric(a) & !is.null(names(a))) {
+    return(function(x) {
+      rescale = matrix(a, nrow=nrow(x), ncol=length(a), byrow=TRUE)
+      x[, names(a), drop=FALSE]*rescale
+    })        
+  }
+  
+  ## if reached here, unrecognized type of prep
+  stop("Unrecognized type of prep instruction:",
+       " class:", class(a), ", names:", !is.null(names(a)), "\n")
 }
 
 
@@ -233,24 +203,24 @@ MPmakePrepFunction = function(a) {
 ## outputs a new matrix with the same number of rows as dd, with fewer columns
 ##
 getPCAsubset = function(dd, subset=0.6, min.n=2) {
-    if (ncol(dd)<min.n) {
-        warning("input data has ", ncol(dd), "columns and min.n is ", min.n,"")
-        return(NULL)
-    }
-    ddpca = prcomp(dd)$x
-    if (subset<1) {
-        ddcov = sum(diag(cov(dd)))
-        ddpcacov = diag(cov(ddpca))
-        ## find which columns in ddpcacov explain the featuers
-        nowselect = cumsum(ddpcacov)<=subset*ddcov            
-    } else {
-        nowselect = rep(FALSE, ncol(ddpca))
-        nowselect[1:min(subset, ncol(ddpca))] = TRUE
-    }
-    nowselect[1:min.n] = TRUE
-    
-    ## return the transformed data
-    ddpca[, nowselect, drop=FALSE]
+  if (ncol(dd)<min.n) {
+    warning("input data has ", ncol(dd), "columns and min.n is ", min.n,"")
+    return(NULL)
+  }
+  ddpca = prcomp(dd)$x
+  if (subset<1) {
+    ddcov = sum(diag(cov(dd)))
+    ddpcacov = diag(cov(ddpca))
+    ## find which columns in ddpcacov explain the featuers
+    nowselect = cumsum(ddpcacov)<=subset*ddcov            
+  } else {
+    nowselect = rep(FALSE, ncol(ddpca))
+    nowselect[1:min(subset, ncol(ddpca))] = TRUE
+  }
+  nowselect[1:min.n] = TRUE
+  
+  ## return the transformed data
+  ddpca[, nowselect, drop=FALSE]
 }
 
 
@@ -266,18 +236,18 @@ getPCAsubset = function(dd, subset=0.6, min.n=2) {
 ##'
 ##' @export
 MPsquarelim = function(x, y) {
-    ## get plain xlim/ylim
-    xlim = range(x)
-    ylim = range(y)
-    xsize = xlim[2]-xlim[1]
-    ysize = ylim[2]-ylim[1]    
-    ## make the limits "square"
-    if (xsize>ysize) {
-        ylim = ylim + (xsize-ysize)*c(-0.5,0.5)
-    } else {
-        xlim = xlim - (xsize-ysize)*c(-0.5,0.5)
-    }    
-    list(xlim=xlim, ylim=ylim)
+  ## get plain xlim/ylim
+  xlim = range(x)
+  ylim = range(y)
+  xsize = xlim[2]-xlim[1]
+  ysize = ylim[2]-ylim[1]    
+  ## make the limits "square"
+  if (xsize>ysize) {
+    ylim = ylim + (xsize-ysize)*c(-0.5,0.5)
+  } else {
+    xlim = xlim - (xsize-ysize)*c(-0.5,0.5)
+  }    
+  list(xlim=xlim, ylim=ylim)
 }
 
 
@@ -285,10 +255,8 @@ MPsquarelim = function(x, y) {
 
 ##' Create a map for a distance object/matrix
 ##'
-##' This function uses cmdscale, but additionally adds a certain amount of
-##' whitening determined by whiten. The whitening is pseudo-random and deterministic;
-##' it always gives the same result. 
-##'
+##' This function uses cmdscale, or tsne.
+##' 
 ##' @param d distance object
 ##' @param tsne logical, determine if use tsne for map layout
 ##' @param perplexity integer, passed on to tsne(), slightly larger than default
@@ -298,17 +266,17 @@ MPsquarelim = function(x, y) {
 ##'
 ##' @export
 MPgetMap = function(d, tsne=FALSE, perplexity=40, max_iter=10, whiten=FALSE) {
-    
-    ## get a cmdscale map as an initial configuration
-    ans = cmdscale(d)
-    
-    # perhaps adjust the cmdscale result using tsne
-    if (tsne) {
-        ans = suppressMessages(tsne::tsne(ans, initial_config=ans, perplexity=perplexity,
-                                          max_iter=max_iter, whiten=whiten))
-    }
-    
-    ans
+  
+  ## get a cmdscale map as an initial configuration
+  ans = cmdscale(d)
+  
+  # perhaps adjust the cmdscale result using tsne
+  if (tsne) {
+    ans = suppressMessages(tsne::tsne(ans, initial_config=ans, perplexity=perplexity,
+                                      max_iter=max_iter, whiten=whiten))
+  }
+  
+  ans
 }
 
 
@@ -326,22 +294,22 @@ MPgetMap = function(d, tsne=FALSE, perplexity=40, max_iter=10, whiten=FALSE) {
 ##' @export
 MPrandomizeMatrix = function(x, perm.method=c("shuffle", "bootstrap")) {
     
-    perm.method = match.arg(perm.method)
-
-    ## get a vector of the x values
-    xv = as.numeric(x)
-    xp = NULL
-    
-    if (perm.method=="shuffle") {        
-        xp = matrix(sample(xv, length(xv), replace=F), ncol=ncol(x))
-    } else if (perm.method=="bootstrap") {
-        xp = matrix(sample(xv, length(xv), replace=T), ncol=ncol(x))
-    }
-    
-    rownames(xp) = rownames(x)
-    colnames(xp) = colnames(x)
-    
-    xp
+  perm.method = match.arg(perm.method)
+  
+  ## get a vector of the x values
+  xv = as.numeric(x)
+  xp = NULL
+  
+  if (perm.method=="shuffle") {        
+    xp = matrix(sample(xv, length(xv), replace=F), ncol=ncol(x))
+  } else if (perm.method=="bootstrap") {
+    xp = matrix(sample(xv, length(xv), replace=T), ncol=ncol(x))
+  }
+  
+  rownames(xp) = rownames(x)
+  colnames(xp) = colnames(x)
+  
+  xp
 }
 
 
@@ -353,15 +321,15 @@ MPrandomizeMatrix = function(x, perm.method=c("shuffle", "bootstrap")) {
 ##' 
 ##' @export
 MPmatrixColNorm = function(x) {    
-    xp = x
-    for (i in 1:ncol(x)) {
-        medx = median(x[,i])
-        sdx = sd(x[,i])
-        xp[,i] = (x[,i]-medx)/sdx            
-    }
-    ## avoid NA or Inf when sdx is zero
-    xp[!is.finite(xp) | is.na(xp)] = 0
-    xp        
+  xp = x
+  for (i in 1:ncol(x)) {
+    medx = median(x[,i])
+    sdx = sd(x[,i])
+    xp[,i] = (x[,i]-medx)/sdx            
+  }
+  ## avoid NA or Inf when sdx is zero
+  xp[!is.finite(xp) | is.na(xp)] = 0
+  xp        
 }
 
 
@@ -380,34 +348,34 @@ MPmatrixColNorm = function(x) {
 ##' @export
 MPcutree = function(tree, k=2, minsize=1/(10*k)) {
     
-    ## size of the tree
-    tree.n = length(tree$order)
-    ## required cluster size
-    csize = tree.n*minsize
-    ## attempted size of cluster
-    kattempt = k
-
-    ## strategy: try cutting the tree with small ks, until reach a point where
-    ## the cuts produce at least k clusters of size csize
-    while (kattempt < tree.n/k) {
-        nowcut = cutree(tree, k=kattempt)
-        nowsizes = table(nowcut)
-        if (sum(nowsizes>=csize)>=k) {
-            break;
-        }
-        kattempt = kattempt+1        
-    }
-
-    ## repeat the cut (this is necessary when k is set too large at the beginning)
+  ## size of the tree
+  tree.n = length(tree$order)
+  ## required cluster size
+  csize = tree.n*minsize
+  ## attempted size of cluster
+  kattempt = k
+  
+  ## strategy: try cutting the tree with small ks, until reach a point where
+  ## the cuts produce at least k clusters of size csize
+  while (kattempt < tree.n/k) {
     nowcut = cutree(tree, k=kattempt)
     nowsizes = table(nowcut)
-    
-    ## rename the clusters so that large clusters have low ids, cluster 0 contains outliers
-    nowrank = rank(-nowsizes, ties.method="first")
-    nowcut2 = nowrank[nowcut]
-    names(nowcut2) = names(nowcut)
-    nowcut2[nowcut2>k] = 0
-    
-    nowcut2
+    if (sum(nowsizes>=csize)>=k) {
+      break;
+    }
+    kattempt = kattempt+1        
+  }
+  
+  ## repeat the cut (this is necessary when k is set too large at the beginning)
+  nowcut = cutree(tree, k=kattempt)
+  nowsizes = table(nowcut)
+  
+  ## rename the clusters so that large clusters have low ids, cluster 0 contains outliers
+  nowrank = rank(-nowsizes, ties.method="first")
+  nowcut2 = nowrank[nowcut]
+  names(nowcut2) = names(nowcut)
+  nowcut2[nowcut2>k] = 0
+  
+  nowcut2
 }
 

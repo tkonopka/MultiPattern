@@ -10,7 +10,7 @@ vignette: >
 
 This workbook generates figures shown on the github landing page (README.md)
 
-To create the figures execute `library("rmarkdown")`, then `render("90.readme.Rmd")`.
+To create the figures execute `library("rmarkdown")`, then `render("readme.Rmd")`.
 
 
 ```{r, knitr, echo=FALSE}

@@ -13,7 +13,8 @@ MPdistImpute(x, method = mean)
 function must be able to perform method(x, na.rm=TRUE)}
 }
 \description{
-(This is a specialized function - it converts x into a dist as the first step.
+(This is a specialized function - it converts x into a dist.
 This is to enforce consistency when applying the 'method' function.
-e.g. to avoid confusion between mean(matrix) and mean(as.dist(matrix)), which are not the same)
+e.g. to avoid confusion between mean(matrix) and mean(as.dist(matrix)),
+which are not the same)
 }

@@ -4,7 +4,7 @@
 \alias{MPrankNeighbors}
 \title{Compute non-parametric neighborhoods of data elements using ranks on a per column basis}
 \usage{
-MPrankNeighbors(dd, ties = "min", ...)
+MPrankNeighbors(dd, ties = "average", ...)
 }
 \arguments{
 \item{dd}{- matrix of distances between neighbors}

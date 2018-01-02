@@ -2,7 +2,7 @@
 % Please edit documentation in R/MP_plugins.R
 \name{subspacer.MultiPatternPlugin}
 \alias{subspacer.MultiPatternPlugin}
-\title{Add a set of configurations to an MultiPattern object}
+\title{Add a set of configurations to a MultiPattern object}
 \usage{
 subspacer.MultiPatternPlugin(MP, data.name, config.prefix,
   preprocess.prefix = "", preprocess = NULL)
@@ -19,5 +19,5 @@ subspacer.MultiPatternPlugin(MP, data.name, config.prefix,
 \item{preprocess}{character}
 }
 \description{
-Add a set of configurations to an MultiPattern object
+Add a set of configurations to a MultiPattern object
 }

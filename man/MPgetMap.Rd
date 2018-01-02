@@ -20,7 +20,5 @@ tsne's default}
 \item{whiten}{logical, passed on to tsne(), different default than tsne()}
 }
 \description{
-This function uses cmdscale, but additionally adds a certain amount of
-whitening determined by whiten. The whitening is pseudo-random and deterministic;
-it always gives the same result.
+This function uses cmdscale, or tsne.
 }

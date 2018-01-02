@@ -131,7 +131,7 @@ names(MP6$configs)[c(1:6,23:26)]  ## a selection of the configuration names
 
 \noindent These names are not complete descriptions of the underlying analyses. However, they are nonetheless informative. For example, the name of the first configuration suggests it performs an analysis based on euclidean distance. The third analysis considers only the first principal component. Other configurations apply strategies based on a clustering approach. (More details of these analyses are outlined below in section \ref{sec:sec_details}.)
 
-Some configurations are marked 'random'. These actually disregard the numeric data and use random numbers instead. They act as negative controls. It will be handy to be able to distinguish these configurations from the others. We can achieve this by defining the following list. 
+** To do ** Introduce meaningful groups of analyses 
 
 <<>>=
 config.names = names(MP6$configs)
@@ -187,14 +187,7 @@ MPplotmap(MP6metamap, col=config.groups, Rcssclass="meta", label=TRUE)
 \noindent The first command computes a multi-dimensional scaling map, adding some white noise to separate nearby points. The subsequent commands produce two graphical representations, adding styling to distinguish the random and the non-random configurations (Figure \ref{fig:fig_metamap}).
 
 
-An important distinction between this visualization and common uses of MDS is that the dots in the visualization do not correspond to the elements in the original dataset. Rather, the dots represent complete analyses based on the dataset. The distinction can perhaps become more clear by studying specific features of the visualization:
-
-\begin{itemize}
-\item The configurations marked as random (gray) are set close to each other and appear separate from the non-random ones (red). This means that relationships between data points captured by the non-random configurations are different from random.
-\item The non-random configurations are scattered around the plot. This indicates that the individual analyses bring out distinct pattern from each other. 
-\end{itemize}
-
-The meta-dissimilarity visualization thus captures relations between various independent unsupervised analyses performed on the dataset. But in order to link this new information to the original data, we need to delve a little deeper.
+An important distinction between this visualization and common uses of MDS is that the dots in the visualization do not correspond to the elements in the original dataset. Rather, the dots represent complete analyses based on the dataset. They are scattered around the plot. This indicates that the individual analyses bring out distinct pattern from each other. The meta-dissimilarity visualization thus captures relations between various independent unsupervised analyses performed on the dataset. 
 
 
 
@@ -205,6 +198,7 @@ Based on the computed meta-dissimilarities between dozens of analyses, we can se
 
 <<MP6reps>>=
 MP6reps = MPgetRepresentatives(dist(MP6metamap), method="extreme", k=6)
+MP6reps = setNames(MP6reps, LETTERS[1:length(MP6reps)])
 MP6reps
 @
 
@@ -221,15 +215,8 @@ Rcsspar(mfrow=c(1,3))
 <<MP6plotmetamap2>>   
 @ 
 
-\noindent One of the representatives is part of the 'random' set, so it is not informative about the dataset. We thus continue with the remaining four. 
 
-<<>>=
-MP6reps = grep("rnorm", MP6reps, inv=T, val=T)
-MP6reps = setNames(MP6reps, LETTERS[1:length(MP6reps)])
-MP6reps
-@
-
-\noindent From our initial set of 122 analysis configurations, we now have four approaches that might be interesting for follow-up. 
+\noindent From our initial set of analysis configurations, we now have a smaller number of approaches that might be interesting for follow-up. 
 
 
 
@@ -436,7 +423,7 @@ MP6$settings
 help(MPdefaultSettings)
 @ 
 
-\noindent For example, {\tt num.random} determines the number of random (control) configurations created by function {\tt MPsuggest}. As another example, {\tt subsample.R} determines the number of bootstrap repetitions performed by function {\tt MPgetAverageMetaDistance}. 
+\noindent For example, {\tt subsample.R} determines the number of bootstrap repetitions performed by function {\tt MPgetAverageMetaDistance}. 
 
 Values for analysis settings can be changed either using function {\tt MPchangeSettings} or via direct manipulation.
 
@@ -592,7 +579,7 @@ MPfam
 We can add a family of configurations using function {\tt MPeasyConfig}. This requires a specification of a family type. As an example, let's use the {\tt pca} family.
 
 <<family2>>=
-MPeasyConfig(MPfam, data="D6b", type="pca", random=FALSE)
+MPeasyConfig(MPfam, data="D6b", type="pca")
 MPfam
 names(MPfam$configs)
 @ 
@@ -629,7 +616,7 @@ reg.MultiPatternPlugin = function(MP, data.name, config.prefix,
 Given the {\tt MultiPatternPlugin} function, we can again use {\tt MPeasyConfig} to add a family of configurations based on regularized euclidean distance with various cutoffs. 
 
 <<family4>>=
-MPeasyConfig(MPfam, data="D6b", type="reg", random=FALSE)
+MPeasyConfig(MPfam, data="D6b", type="reg")
 MPfam
 names(MPfam$configs)
 @ 
@@ -672,7 +659,7 @@ MPplotmap(temp.b, col=config.groups,
           main="MP6, alpha=1, beta=1", Rcssclass="meta")
 @ 
 
-In these examples, all the multi-pattern maps separate the random configurations from the others. However, they differ in the amount of scatter and variation that is visible on the map. Such difference may prompt different choices of representative configurations, so they may be important for downstream analysis. Unfortunately, the choice of visualization seems to be a subjective step; there is not a clear means to argue a-priori whether one is more informative than any other. This subject thus remains open for further thought.
+Unfortunately, the choice of visualization seems to be a subjective step; there is not a clear means to argue a-priori whether one is more informative than any other. This subject thus remains open for further thought.
 
 
 \section{Summary}
