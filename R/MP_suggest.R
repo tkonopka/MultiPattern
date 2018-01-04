@@ -16,7 +16,7 @@
 ##' @param MP MultiMetric configuration object
 ##' @param data character. Name of dataset defined in MP.
 ##' @param verbose logical. Set FALSE to make the function silent;
-##' set TRUE to see cat updates.
+##' set TRUE to see updates (via message).
 ##' 
 ##' @export
 MPsuggestConfig = function(MP, data, verbose=TRUE) {
@@ -38,8 +38,8 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
   ## get the actual data matrix
   dd = MP$data[[data]]
   
-  if (verbose & object.size(dd)>1e7) {
-    cat("This may take a little time. Please wait... ")
+  if (verbose & object.size(dd)>1e6) {
+    message("This may take a little time. Please wait... ")
   }
   
   num.start = length(MP$configs)
@@ -191,13 +191,13 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
   }
   
   ## finish with some updates to the user
-  if (verbose & object.size(dd)>1e7) {
-    cat("done\n")
+  if (verbose & object.size(dd)>1e6) {
+    message("done")
   }    
   num.end = length(MP$configs)
   if (verbose) {
-    cat(paste0("MPsuggestConfig created ", num.end-num.start,
-               " configurations\n"))
+    message(paste0("MPsuggestConfig created ", num.end-num.start,
+               " configurations"))
   }
   
   assign(captureMP, MP, parent.frame())

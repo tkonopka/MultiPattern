@@ -70,6 +70,17 @@ test_that("get random subspaces (special cases)", {
 })
 
 
+test_that("get random subspaces can gives empty", {
+  output = MPgetRandomSubspaces(letters[1:8], n=0)
+  expected = list()
+  expect_equal(output, expected)
+})
+
+
+test_that("get random subspaces gives error when requested d is too large", {
+  expect_error(MPgetRandomSubspaces(letters[1:5], n=2, d=6))
+})
+
 
 
 ###############################################################################
@@ -83,8 +94,8 @@ mydata = cbind(A=0,
                D=5,
                E=11,
                F=0.3,
-               G=rnorm(mylen, 0, 0.001),
-               H=rnorm(mylen, 0, 0.01),
+               G=rep(c(0.01, 0.02, 0.03, 0.04), 5),
+               H=rep(c(0.1, 0.2, 0.3, 0.4), each=5), 
                I=-100,
                J=999,
                K=(1:mylen)*(mylen:1)/1000
@@ -97,6 +108,15 @@ test_that("identify feature that varies most", {
   expected = c("B", "C")
   expect_equal(output, expected)
 })
+
+test_that("identify feature that varies most (fractional n)", {
+  ## create dataset with many constant features and one with some variation
+  output = MPsuggestTopFeatures(mydata, ncomp=0.05)
+  expected = MPsuggestTopFeatures(mydata, ncomp=1)
+  expect_equal(output, expected)
+})
+
+
 
 test_that("identify set of features", {
   ## create dataset with many constant features and one with some variation

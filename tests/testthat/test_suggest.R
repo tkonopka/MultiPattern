@@ -34,6 +34,14 @@ colnames(abc.multi) = paste0("multi.", letters[1:4])
 rownames(abc.multi) = snames
 
 
+## a large dataset (for triggering large object messages)
+largeN = 2e4
+largedata = cbind(A=1:largeN, B=1:largeN, C=1:largeN, D=1:largeN)
+rownames(largedata) = paste0("S", 1:largeN)
+mplarge = MPnew(rownames(largedata), data=list(large=largedata))
+
+
+
 ## extract configuration names
 confNames = function(mp) {
   result = names(mp$configs)
@@ -61,6 +69,21 @@ core.configs = c("euclidean", "canberra",
                  "subspaceR.3", "subspaceR.4")
 corepca.configs = c("PC1", "PC1.PC2")
 core.rnorm = c("rnorm.1", "rnorm.2")
+
+
+test_that("suggest gives error when non-MP input", {
+  expect_error(MPsuggestConfig(1:4, data="abc"))
+})
+
+
+test_that("suggest displays message when in verbose mode", {
+  mp = MPnew(snames, data=list(abc=abc))
+  expect_silent(MPsuggestConfig(mp, data="abc", verbose=FALSE))
+  mp = MPnew(snames, data=list(abc=abc))
+  expect_message(MPsuggestConfig(mp, data="abc", verbose=TRUE))
+  ## for large datasets expect time-warning
+  expect_message(MPsuggestConfig(mplarge, data="large", verbose=TRUE), "wait")
+})
 
 
 test_that("suggest a series of configs (data with real-valued fields)", {
@@ -125,4 +148,41 @@ test_that("suggest a series of configs (all data types at once)", {
   ##paste0("AUTO:", core.rnorm))
   expect_equal(confNames(mp), sort(expected))
 })
+
+
+
+test_that("suggest gives error when not MultiPattern object", {
+  expect_error(MPsuggestConfig(1:4, data=c("abc"), verbose=FALSE))
+})
+
+
+test_that("suggest gives error with multiple datasets", {
+  mp = MPnew(snames, data=list(abc.bin=abc.bin, abc.multi=abc.multi))
+  ## ask for automatic config suggestions
+  expect_error(MPsuggestConfig(mp, data=c("abc.bin", "abc.multi"), verbose=FALSE))
+})
+
+
+test_that("suggest gives error when refers to inexistent dataset", {
+  mp = MPnew(snames, data=list(abc.bin=abc.bin))
+  ## ask for automatic config suggestions
+  expect_error(MPsuggestConfig(mp, data="abc.multi", verbose=FALSE))
+})
+
+
+test_that("suggest gives messages in verbose mode", {
+  mp = MPnew(snames, data=list(abc.bin=abc.bin))
+  ## ask for automatic config suggestions
+  expect_error(MPsuggestConfig(mp, data="abc.multi", verbose=FALSE))
+})
+
+
+test_that("suggest gives messages when data is single-values", {
+  all0 = cbind(A=rep(0, 10), B=rep(0, 10))
+  rownames(all0) = letters[1:10]
+  mp = MPnew(rownames(all0), data=list(ZZ=all0))
+  ## ask for automatic config suggestions
+  expect_error(MPsuggestConfig(mp, data="ZZ", verbose=FALSE))
+})
+
 

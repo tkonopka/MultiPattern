@@ -155,6 +155,9 @@ MPaddConfig = function(MP, config.name, data.name=names(MP$data)[1],
   if (class(MP) != "MultiPattern") {
     stop("Argument MP must be of class MultiPattern\n");
   }
+  if (class(config.name) != "character") {
+    stop("Argument config.name must be character\n")
+  }        
   if (class(data.name) != "character") {
     stop("Argument data.name must be character\n")
   }        
@@ -165,10 +168,6 @@ MPaddConfig = function(MP, config.name, data.name=names(MP$data)[1],
   ## Hard check, accept only one of preprocess or dist.fun as a list
   if (class(preprocess)=="list" & class(dist.fun)=="list") {
     stop("only one of preprocess or dist.fun can be a list\n")
-  }
-  ## Hard check for config.name
-  if (sum(is.null(config.name))+sum(is.na(config.name))>0) {
-    stop("config.name must be valid string code\n")
   }
   
   ## capture MP expression for assignment at the end

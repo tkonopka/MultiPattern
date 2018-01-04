@@ -25,7 +25,7 @@ ddistB = dist(dtestB)
 ## Tests for normalizing distance matrices
 
 
-test_that("normalized distances error checks", {
+test_that("normalization of distances performs error checks", {
   ## input must be a matrix-like object
   expect_error(MPrankNeighbors(letters))
   expect_error(MPrankNeighbors(NA))
@@ -37,11 +37,23 @@ test_that("normalized distances error checks", {
   expect_error(MPrankNeighbors(dtestA[c(), 1]))
 })
 
+
+test_that("normalization of dstiances gives error on non-numerics", {
+  ## matrices must have numeric data (not letters of factors)
+  badmatrix = data.frame(A=1:4, B=1:4, C=1:4, D=1:4)
+  rownames(badmatrix) = LETTERS[1:4]
+  expect_silent(MPrankNeighbors(badmatrix))
+  badmatrix["A", "C"] = "zero"
+  expect_error(MPrankNeighbors(badmatrix))
+})
+
+
 test_that("normalized distances are always matrices", {
   normA = MPrankNeighbors(ddistA)
   expect_equal(class(normA), "matrix")
 })
-  
+
+
 test_that("normalized distances are 0-1", {
   unit_range = c(0, 1)
   normA = MPrankNeighbors(ddistA)
@@ -56,43 +68,4 @@ test_that("normalized distances have zero diagonals", {
   normB = MPrankNeighbors(ddistB)
   expect_equal(sum(diag(normA))+sum(diag(normB)), 0)  
 })
-
-
-
-
-###############################################################################
-## Tests for finding neighbors
-
-if (FALSE) {
-test_that("finding nearest neighbors from S1", {
-  ## item one is closest to item 2
-  output_one= MPgetNeighborSet(ddistA, "S1", maxrank=1)
-  output_full= MPgetNeighborSet(ddistA, "S1", maxrank=0)
-  expected_one= c(S2=1)
-  expected_full= c(S2=1, S3=2, S4=3)
-  expect_equal(output_one, expected_one)
-  expect_equal(output_full, expected_full)
-})
-
-test_that("finding nearest neighbors from S3", {
-  ## item two is close to item 1 and 3
-  output_two= MPgetNeighborSet(ddistA, "S3", maxrank=2)
-  output_full= MPgetNeighborSet(ddistA, "S3", maxrank=0)
-  expected_two= c(S4=1, S2=2)
-  expected_full = c(S4=1, S2=2, S1=3)
-  expect_equal(output_two, expected_two)
-  expect_equal(output_full, expected_full)
-})
-
-test_that("finding nearest neighbors with ties", {
-  ## check some hand-picked items
-  output_full= MPgetNeighborSet(ddistB, "S1", maxrank=0)
-  expected_full = c(S0=1, S2=2.5, S3=2.5, S4=4)
-  expect_equal(output_full, expected_full)
-  ## up to rank 2 should only give one hit (others are tied at higher ranks)
-  output_two= MPgetNeighborSet(ddistB, "S1", maxrank=2)
-  expected_two = c(S0=1)
-  expect_equal(output_two, expected_two)
-})
-}
 

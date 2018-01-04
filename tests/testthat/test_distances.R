@@ -7,7 +7,7 @@ cat("\ntest_distances.R ")
 ## Tests for imputing values in matrices
 
 
-test_that("remove NAs from matrices or data frames", {
+test_that("MPimputeNAs removes NAs from matrices or data frames", {
   ## create a test object
   xx = cbind(A=c(1,2,NA), B=c(NA, 4, 5))
 
@@ -22,7 +22,7 @@ test_that("remove NAs from matrices or data frames", {
   expect_equal(output2, expected2)
 })
 
-test_that("remove infinite values from matrices or data frames", {
+test_that("MPimputeNAs removes infinite values from matrices or data frames", {
   ## create a test object
   xx = cbind(A=c(1,2,Inf), B=c(-Inf, 4, 5))
 
@@ -32,7 +32,7 @@ test_that("remove infinite values from matrices or data frames", {
   expect_equal(output, expected)
 })
 
-test_that("remove infinite values from matrices or data frames (edge cases)", {
+test_that("MPimputeNAs removes infinite values from matrices (edge cases)", {
   ## create a test object with all bad values
   xx = cbind(A=c(Inf,Inf), B=c(-Inf, Inf))
 
@@ -42,6 +42,17 @@ test_that("remove infinite values from matrices or data frames (edge cases)", {
   expected = cbind(A=c(1, 1), B=c(0, 1))
   expect_equal(output, expected)
 })
+
+test_that("MPimputeNAs remove all-NA values from matrices (edge cases)", {
+  ## create a test object with all bad values
+  xx = cbind(A=c(NA,NA), B=c(NA, NA))
+
+  ## imputing here normalizes the values into 0,1 range
+  output = MPimputeNAs(xx)
+  expected = cbind(A=c(0, 0), B=c(0, 0))
+  expect_equal(output, expected)
+})
+
 
 
 
@@ -85,20 +96,31 @@ test_that("classic euclidean/canberra/manhattan distances (cases with NAs)", {
 })
 
 
-test_that("additional dist functions spearman/pc1", {
+test_that("create distance functions based on a name", {
   ## make a larger dataset so that spearman does not complain
   xx = cbind(A=c(1,2,3), B=c(2,3,4), C=c(3,4,5), D=11:13,
              E=c(6, 2, 8), F=c(1, 1, 0), G=c(1,4,1), H=c(0, 3, 8))
   rownames(xx) = letters[1:3]
-  ## compute distances
-  output_euclidean = dist.pc1(xx)
-  output_spearman = dist.spearman(xx)
-  output_log2euc = dist.log2euclidean(xx)
-  ## tests are naive, should have non-zero values
-  expect_gt(sum(output_euclidean), 0)
-  expect_gt(sum(output_spearman), 0)
-  expect_gt(sum(output_log2euc), 0)
+  ## compute pc1 distances
+  out.pc1.1 = MPdistFactory("pc1")(xx)
+  out.pc1.2 = dist.pc1(xx)
+  expect_equal(as.matrix(out.pc1.1), as.matrix(out.pc1.2))
+  expect_gt(sum(out.pc1.1), 0)
+  
+  ## compute spearman distances
+  out.spearman.1 = MPdistFactory("spearman")(xx)
+  out.spearman.2 = dist.spearman(xx)
+  expect_equal(as.matrix(out.spearman.1), as.matrix(out.spearman.2))
+  expect_gt(sum(out.spearman.1), 0)
+  
+  ## compute log2-transformed values
+  out.log2.1 = MPdistFactory("log2euclidean")(xx)
+  out.log2.2 = dist.log2euclidean(xx)
+  expect_equal(as.matrix(out.log2.1), as.matrix(out.log2.2))
+  expect_gt(sum(out.log2.1), 0)
+  
 })
+
 
 test_that("tests for distances based on clustering", {
   
@@ -132,4 +154,12 @@ test_that("tests for distances based on clustering without rownames", {
   ## the dist function will create sample names using integers
   expect_equal(colnames(output_matrix), rownames(output_matrix))
   expect_equal(colnames(output_matrix), as.character(1:5))
+})
+
+test_that("dist.clust works with different clust.weights", {
+  xx = cbind(A=c(1,2,3,4,5), B=c(2,3,4,5,3), C=c(3,4,5,1,0), D=11:15)
+  out1 = as.matrix(dist.clust(xx, clust.alt=FALSE))
+  out2 = as.matrix(dist.clust(xx, clust.weight=NA))
+  ## the dist function will create sample names using integers
+  expect_gt(sum(abs(out1-out2)), 0)
 })

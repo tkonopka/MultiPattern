@@ -66,6 +66,7 @@ test_that("easy subspace2", {
 ## Tests for adding pca-themed configs using easyConfig
 
 ## expected configurations based on 3 and 4 PCA components
+pca2 = sort(c("PC1", "PC1.PC2"))
 pca3 = sort(c("PC1", "PC1.PC2", "PC1.PC3", "PC2.PC3", "PC1..PC3"))
 pca4 = sort(c("PC1", "PC1.PC2", "PC1.PC3", "PC1.PC4",
               "PC2.PC3", "PC2.PC4", "PC3.PC4", "PC1..PC3", "PC1..PC4"))
@@ -87,6 +88,16 @@ test_that("easy PCA up to 3", {
 })
 
 
+test_that("easy PCA up to fraaction", {
+  mp = MPnew(snames, data=list(abc=abc))
+  ## ask for number of PCs to be half of the variance (here PC1 and PC2)
+  MPchangeSettings(mp, list(num.PCs=0.5))
+  MPeasyConfig(mp, data="abc", type="pca")
+  expected = paste0("abc:", pca2)
+  expect_equal(confNames(mp), expected)
+})
+
+
 test_that("easy robust PCA up to 3", {
   mp = MPnew(snames, data=list(abc=abc))
   MPchangeSettings(mp, list(num.PCs=3))
@@ -94,6 +105,32 @@ test_that("easy robust PCA up to 3", {
   expected = c(paste0("abc.rpcaS:", pca3), paste0("abc.rpcaL:", pca3))
   expect_equal(confNames(mp), sort(expected))
 })
+
+
+
+
+###############################################################################
+## Tests for adding configurations to multiple datasets
+
+test_that("easyconfig on two datasets", {
+  mp = MPnew(snames, data=list(A=abc, B=abc))
+  MPeasyConfig(mp, type=list(A="euclidean", B="manhattan"))
+  expected = c("A:euclidean", "B:manhattan")
+  expect_equal(confNames(mp), expected)
+})
+
+
+test_that("easyconfig cannot understand data name and type in a list", {
+  mp = MPnew(snames, data=list(A=abc, B=abc))
+  expect_error(MPeasyConfig(mp, data="A", type=list(A="euclidean", B="manhattan")))
+})
+
+
+test_that("easyconfig type list must have names", {
+  mp = MPnew(snames, data=list(A=abc, B=abc))
+  expect_error(MPeasyConfig(mp, type=list("euclidean", "manhattan")))
+})
+
 
 
 

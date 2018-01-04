@@ -22,13 +22,25 @@ mptest$settings$subsample.N = 10
 MPeasyConfig(mptest, 
              type=list(A="hclust", B=c("euclidean", "manhattan")),
              )
+MPremove(mptest, config=grep("3", names(mptest$configs), value=T))
 
+## a large dataset (for triggering large object messages)
+largeN = 1e4
+largedata = cbind(A=1:largeN, B=1:largeN, C=1:largeN, D=1:largeN)
+rownames(largedata) = paste0("S", 1:largeN)
+mplarge = MPnew(rownames(largedata), data=list(large=largedata))
+MPeasyConfig(mplarge, type=c("euclidean", "manhattan"))
 
 
 
 
 ###############################################################################
 ## Tests computing distances
+
+
+test_that("compute distances gives error with non-MP object", {
+  expect_error(MPgetDistances(1:10))
+})
 
 
 test_that("compute all distances in a MP analysis", {
@@ -40,14 +52,46 @@ test_that("compute all distances in a MP analysis", {
 test_that("compute some distances in an MP analysis", {
   myconf = names(mptest$configs)
   myconf = myconf[grep("clust.A", myconf)]
-  result = MPgetDistances(mptest, configs=myconf, verbose=FALSE)
+  result = MPgetDistances(mptest, configs=myconf)
   expect_equal(sort(names(result)), sort(myconf))
 })
 
 
+test_that("compute distances gives error when configs don't match object", {
+  myconf = c(names(mptest$configs)[1], "bad_name")
+  expect_error(MPgetDistances(mptest, configs=myconf))
+})
+
+
+test_that("MPgetDistances is silent for small datasets", {
+  myconf = names(mptest$configs)[1]
+  expect_silent(MPgetDistances(mptest, configs=myconf, verbose=FALSE))
+  ## this should be silent even when verbose is on because dataset is small
+  expect_silent(MPgetDistances(mptest, configs=myconf, verbose=TRUE))
+})
+
+
+test_that("MPgetDistances prints time warnings for large datasets", {
+  myconf = names(mplarge$configs)[1]
+  expect_silent(MPgetDistances(mplarge, configs=myconf, verbose=FALSE))
+  expect_message(MPgetDistances(mplarge, configs=myconf, verbose=TRUE))
+})
+
+
+
 
 ###############################################################################
-## Tests computing meta-distances
+## Tests computing average meta-distances
+
+test_that("compute avg meta-distances gives error with non-MP object", {
+  expect_error(MPgetAverageMetaDistance(1:10))
+})
+
+
+test_that("compute avg meta-distances gives messages", {
+  expect_silent(MPgetAverageMetaDistance(mptest, verbose=FALSE))
+  expect_message(MPgetAverageMetaDistance(mptest, verbose=TRUE))
+})
 
 
 test_that("compute averge meta-dstances in an MP analysis (using subsampling)", {
@@ -60,6 +104,33 @@ test_that("compute averge meta-dstances in an MP analysis (using subsampling)", 
 })
 
 
+test_that("compute averge meta-dstances gives error when subsampling mis-specified", {
+  expect_error(MPgetAverageMetaDistance(mptest, verbose=FALSE, subsample.N=1))
+  expect_error(MPgetAverageMetaDistance(mptest, verbose=FALSE, subsample.N=1.5))
+})
+
+
+test_that("compute averge meta-dstances uses fractional or integer subsample size", {
+  mptest$settings$subsample.R = 4
+  set.seed(1234)
+  result1 = MPgetAverageMetaDistance(mptest, subsample.N=0.8, verbose=FALSE)
+  set.seed(1234)
+  result2 = MPgetAverageMetaDistance(mptest, subsample.N=0.8*length(mptest$items),
+                                     verbose=FALSE)
+  expect_equal(result1, result2)
+})
+
+
+
+
+###############################################################################
+## Tests computing complete meta-distances (no sub-sampling)
+
+test_that("compute meta-distances gives error with wrong input class", {
+  expect_error(MPgetMetaDistances(mptest))
+})
+
+
 test_that("compute meta-distances using all configs/samples", {
   mpsims = MPgetDistances(mptest, verbose=FALSE)
   result.1 = MPgetMetaDistance(mpsims)
@@ -67,8 +138,10 @@ test_that("compute meta-distances using all configs/samples", {
   expect_equal(result.1, result.2)
   result.a2 = MPgetMetaDistance(mpsims, alpha=2)
   result.b1 = MPgetMetaDistance(mpsims, beta=1)
+  result.aneg = MPgetMetaDistance(mpsims, alpha=-0.5)
   expect_false(identical(result.1, result.a2))
   expect_false(identical(result.1, result.b1))
+  expect_false(identical(result.1, result.aneg))
 })
 
 
@@ -77,8 +150,23 @@ test_that("compute meta-distances using all configs/samples", {
 ###############################################################################
 ## Tests for getting representatives
 
+test_that("find representatives gives error with unusual inputs", {
+  ## create some good and bad maps
+  someN = 40
+  somenames = paste0("S", 1:someN)
+  badmap1 = matrix("a", nrow=someN, ncol=someN)
+  rownames(badmap1) = colnames(badmap1) = somenames
+  rownames(badmap1) = NULL
+  goodmap = matrix(0, nrow=someN, ncol=someN)
+  rownames(goodmap) = colnames(goodmap) = somenames
+  ## test if getRepresentatives throws errors
+  expect_error(MPgetRepresentatives(1:4))
+  expect_error(MPgetRepresentatives(badmap1, k=4))
+  expect_silent(MPgetRepresentatives(goodmap, k=4))
+})
 
-test_that("compute meta-distances using all configs/samples", {
+
+test_that("find representatives among a map", {
   mpmeta = MPgetAverageMetaDistance(mptest, verbose=FALSE)
   mapdist = dist(MPgetMap(mpmeta))
   ## with k<1, should select a fraction of available configurations 

@@ -1,6 +1,6 @@
 ## tests for creating MP conigurations
 
-cat("\ntest_new.R ")
+cat("\ntest_management.R ")
 
 
 ###############################################################################
@@ -65,8 +65,15 @@ test_that("create object and attach datasets", {
 })
 
 
+
+
 ###############################################################################
-## Tests for modifying MultiPattern objects
+## Tests for adding datasets into MultiPattern objects
+
+
+test_that("adding to non-MP object gives error", {
+  expect_error(MPaddData(1:4, list(Four=MPdata4S)))
+})
 
 
 test_that("add more datasets into an MP configuration (all at once)", {
@@ -91,10 +98,34 @@ test_that("attempt add data in non-list format", {
 })
 
 
+test_that("attempt add data in un-named list", {
+  ## attempt to add in non-list
+  mp = MPnew(snames)
+  datalist = list()
+  datalist[[1]] = MPdata4S
+  expect_error(MPaddData(mp, data=datalist))
+})
+
+
 test_that("attempt add dataset with a repeat name", {
   mp = MPnew(snames)
   MPaddData(mp, list(A=MPdata4S))
   expect_error(MPaddData(mp, list(A=MPdata6S)))
+})
+
+
+
+
+###############################################################################
+## Tests for adding datasets into MultiPattern objects
+
+
+test_that("adding configs gives errors on wrong input", {
+  mp = MPnew(snames, data=list(A=MPdata4S))
+  expect_error(MPaddConfig(1:4, "euclidean", data.name="A", dist=dist.euclidean))
+  expect_error(MPaddConfig(mp, 1, data.name="A", dist=dist.euclidean))
+  expect_error(MPaddConfig(mp, "euclidean", data.name=1, dist=dist.euclidean))
+  expect_error(MPaddConfig(mp, "euclidean", data.name="B", dist=dist.euclidean))
 })
 
 
@@ -108,11 +139,28 @@ test_that("add individual analysis configuration", {
 })
 
 
-test_that("add family of analysis configurations via preproces list", {
+test_that("add family of analysis configurations via named preproces list", {
   mp = MPnew(snames, data=list(A=MPdata4S, B=MPdata6S))
   MPaddConfig(mp, "confA", data.name="A", preprocess=prep.list)
   expect_equal(length(mp$configs), 2)
   expect_equal(names(mp$configs), c("confA.one", "confA.both"))
+})
+
+
+test_that("add family of analysis configurations via preproces list", {
+  mp = MPnew(snames, data=list(A=MPdata4S, B=MPdata6S))
+  prep2.list = prep.list
+  names(prep2.list) = NULL
+  MPaddConfig(mp, "confA", data.name="A", preprocess=prep2.list)
+  expect_equal(length(mp$configs), 2)
+  expect_equal(names(mp$configs), c("confA.1", "confA.2"))
+})
+
+
+test_that("cannot add two configurations with same name", {
+  mp = MPnew(snames, data=list(A=MPdata4S, B=MPdata6S))
+  MPaddConfig(mp, "confA", data.name="A", dist.fun=dist.euclidean)
+  expect_error(MPaddConfig(mp, "confA", data.name="A", dist.fun=dist.manhattan))
 })
 
 
@@ -145,6 +193,12 @@ test_that("check objects for tests are well-formed", {
 })
 
 
+
+
+###############################################################################
+## Tests for removing configurations/data from MP objects
+
+
 test_that("remove a dataset", {
   ## this tests starts with a pre-made objects
   mpnow = mplarge
@@ -174,8 +228,12 @@ test_that("remove a configuration", {
 
 test_that("remove a configuration (warnings, errors)", {
   mpnow = mplarge
+  ## must act on MultiPattern object
+  expect_error(MPremove(1:4))
   ## attempt to remove non-existing configuration is silent
   MPremove(mpnow, config="does-not-exist")
+  ## attempt to remove via indexes is invalid
+  expect_error(MPremove(mpnow, config=1))
   expect_equal(mplarge, mpnow)
   ## attempt to remove dataset that does not exist should give error
   expect_warning(MPremove(mpnow, data="ZZ"))
@@ -188,9 +246,14 @@ test_that("remove a configuration (warnings, errors)", {
 ## Tests for changing settings within a configuration
 
 
-test_that("remove a configuration (warnings, errors)", {
+test_that("change settings attached to a MultiPattern", {
   mpnow = mplarge
   mysettings = list(num.PCs=5, some.other=0)
+  ## acting on non-MultiPattern object gives error
+  expect_error(MPchangeSettings(1:4, mysettings))
+  ## specifying settings in a vector gives error
+  badsettings = c(num.PCs=5, some.other=0)
+  expect_error(MPchangeSettings(mpnow, badsettings))
   ## attempt to add a new setting (some.other) should give warning
   expect_warning(MPchangeSettings(mpnow, mysettings))
   ## can turn warnings off
