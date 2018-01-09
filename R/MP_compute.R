@@ -27,7 +27,7 @@ MPgetDistances = function(MP, configs=NULL, verbose=TRUE) {
   }
   
   if (verbose & object.size(MP)>1e6) {
-    message("This may take some time. Please wait... ")
+    message("This may take some time. Please wait... ", appendLF=FALSE)
   }
   
   ## check that specified configs are defined
@@ -58,7 +58,7 @@ MPgetDistances = function(MP, configs=NULL, verbose=TRUE) {
   class(ans) = "MultiPatternSimilarities"
   
   if (verbose & object.size(MP)>1e6) {
-    message("done\n")
+    message("done")
   }
   
   ans
@@ -122,7 +122,7 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
   }
   
   if (verbose) {
-    message("This may take some time. Please wait")
+    message("This may take some time. Please wait", appendLF=FALSE)
   }
   
   ## define a result object
@@ -131,7 +131,7 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
   ## compute meta-distances in a loop
   for (i in 1:subsample.R) {
     if (verbose) {
-      message(".")
+      message(".", appendLF=FALSE)
     }
     
     ## get a subset of the items and create a new MP object
@@ -158,7 +158,7 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
   }
   
   if (verbose) {
-    message(" done\n")
+    message(" done")
   }
   
   result    

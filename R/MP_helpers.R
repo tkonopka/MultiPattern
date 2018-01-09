@@ -258,6 +258,7 @@ MPsquarelim = function(x, y) {
 ##' This function uses cmdscale, or tsne.
 ##' 
 ##' @param d distance object
+##' @param kstart integer
 ##' @param tsne logical, determine if use tsne for map layout
 ##' @param perplexity integer, passed on to tsne(), slightly larger than default
 ##' @param max_iter integer, passed on to tsne(), much lower default than in
@@ -265,10 +266,15 @@ MPsquarelim = function(x, y) {
 ##' @param whiten logical, passed on to tsne(), different default than tsne()
 ##'
 ##' @export
-MPgetMap = function(d, tsne=FALSE, perplexity=40, max_iter=10, whiten=FALSE) {
+MPgetMap = function(d, kstart=2, tsne=FALSE, perplexity=40, max_iter=10, whiten=FALSE) {
   
   ## get a cmdscale map as an initial configuration
-  ans = cmdscale(d)
+  if (kstart>2) {
+    temp = cmdscale(d, k=kstart)
+    ans = cmdscale(dist(temp, method="manhattan"), k=2)
+  } else {
+    ans = cmdscale(d)
+  }
   
   # perhaps adjust the cmdscale result using tsne
   if (tsne) {

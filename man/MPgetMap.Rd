@@ -4,11 +4,13 @@
 \alias{MPgetMap}
 \title{Create a map for a distance object/matrix}
 \usage{
-MPgetMap(d, tsne = FALSE, perplexity = 40, max_iter = 10,
+MPgetMap(d, kstart = 2, tsne = FALSE, perplexity = 40, max_iter = 10,
   whiten = FALSE)
 }
 \arguments{
 \item{d}{distance object}
+
+\item{kstart}{integer}
 
 \item{tsne}{logical, determine if use tsne for map layout}
 
