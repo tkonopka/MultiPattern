@@ -2,7 +2,7 @@
 % Please edit documentation in R/MP_plugins.R
 \name{spearman.MultiPatternPlugin}
 \alias{spearman.MultiPatternPlugin}
-\title{Add a set of configurations to an MultiPattern object}
+\title{Add a set of configurations to a MultiPattern object}
 \usage{
 spearman.MultiPatternPlugin(MP, data.name, config.prefix,
   preprocess.prefix = "", preprocess = NULL)

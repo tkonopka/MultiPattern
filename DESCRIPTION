@@ -1,7 +1,7 @@
 Package: MultiPattern
 Title: Multi-pattern discovery in R
 Version: 0.0.1.0
-Authors@R: person("Tomasz", "Konopka", email = "tokonopk@gmail.com", role = c("aut", "cre"))
+Authors@R: person("Tomasz", "Konopka", email = "tokonopka@gmail.com", role = c("aut", "cre"))
 Author: Tomasz Konopka [aut, cre]
 Maintainer: Tomasz Konopka <tokonopka@gmail.com>
 Description: Multi-pattern discovery in R. 
@@ -9,9 +9,10 @@ Depends:
     R (>= 3.1.2)
 Imports:
     cluster,
+    dbscan,
     graphics,
     NMF,
-    Rcssplot,
+    Rcssplot (>= 0.3.0),
     rpca,
     stats,
     tsne,

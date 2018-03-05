@@ -68,11 +68,18 @@ core.configs = c("euclidean", "canberra",
                  "subspaceR.1", "subspaceR.2",
                  "subspaceR.3", "subspaceR.4")
 corepca.configs = c("PC1", "PC1.PC2")
+coredbscan.configs = paste0("dbscan.", 1:4)
 core.rnorm = c("rnorm.1", "rnorm.2")
 
 
 test_that("suggest gives error when non-MP input", {
   expect_error(MPsuggestConfig(1:4, data="abc"))
+})
+
+
+test_that("suggest gives error when data is too small", {
+  mpsmall = MPnew(snames[1:8], data=list(abc=abc[1:8,]))
+  expect_error(MPsuggestConfig(mpsmall, data="abc"))
 })
 
 
@@ -92,11 +99,10 @@ test_that("suggest a series of configs (data with real-valued fields)", {
   mp$settings$num.random=2
   mp$settings$subspace.num.random=4
   mp$settings$num.PCs=2
-  ## ask for automatic config suggestions
-  MPsuggestConfig(mp, data="abc", verbose=FALSE)
+  mp = MPsuggestConfig(mp, data="abc", verbose=FALSE)
   expected = c(paste0("AUTO:abc:real:", core.configs),
-               paste0("AUTO:abc:real:", corepca.configs))
-  ##paste0("AUTO:", core.rnorm))
+               paste0("AUTO:abc:real:", corepca.configs),
+               paste0("AUTO:abc:real:", coredbscan.configs))
   expect_equal(confNames(mp), sort(expected))
 })
 
@@ -108,11 +114,9 @@ test_that("suggest a series of configs (data with bin-valued fields)", {
   mp$settings$num.random=2
   mp$settings$subspace.num.random=4
   mp$settings$num.PCs=2
-  ## ask for automatic config suggestions
-  MPsuggestConfig(mp, data="abc.binbin", verbose=FALSE)
+  mp = MPsuggestConfig(mp, data="abc.binbin", verbose=FALSE)
   expected = c(paste0("AUTO:abc.binbin:bin:", core.configs),
                paste0("AUTO:abc.binbin:binskew:", core.configs))
-  ##paste0("AUTO:", core.rnorm))
   expect_equal(confNames(mp), sort(expected))
 })
 
@@ -123,10 +127,8 @@ test_that("suggest a series of configs (data with multi-valued fields)", {
   mp$settings$num.random=2
   mp$settings$subspace.num.random=4
   mp$settings$num.PCs=2
-  ## ask for automatic config suggestions
-  MPsuggestConfig(mp, data="abc.multi", verbose=FALSE)
+  mp = MPsuggestConfig(mp, data="abc.multi", verbose=FALSE)
   expected = c(paste0("AUTO:abc.multi:multi:", core.configs))
-  ##paste0("AUTO:", core.rnorm))
   expect_equal(confNames(mp), sort(expected))
 })
 
@@ -138,17 +140,15 @@ test_that("suggest a series of configs (all data types at once)", {
   mp$settings$num.random=2
   mp$settings$subspace.num.random=4
   mp$settings$num.PCs=2
-  ## ask for automatic config suggestions
-  MPsuggestConfig(mp, data="abc.all", verbose=FALSE)
+  mp = MPsuggestConfig(mp, data="abc.all", verbose=FALSE)
   expected = c(paste0("AUTO:abc.all:real:", core.configs),
                paste0("AUTO:abc.all:real:", corepca.configs),
+               paste0("AUTO:abc.all:real:", coredbscan.configs),
                paste0("AUTO:abc.all:bin:", core.configs),
                paste0("AUTO:abc.all:binskew:", core.configs),
                paste0("AUTO:abc.all:multi:", core.configs))
-  ##paste0("AUTO:", core.rnorm))
   expect_equal(confNames(mp), sort(expected))
 })
-
 
 
 test_that("suggest gives error when not MultiPattern object", {
@@ -158,21 +158,18 @@ test_that("suggest gives error when not MultiPattern object", {
 
 test_that("suggest gives error with multiple datasets", {
   mp = MPnew(snames, data=list(abc.bin=abc.bin, abc.multi=abc.multi))
-  ## ask for automatic config suggestions
   expect_error(MPsuggestConfig(mp, data=c("abc.bin", "abc.multi"), verbose=FALSE))
 })
 
 
 test_that("suggest gives error when refers to inexistent dataset", {
   mp = MPnew(snames, data=list(abc.bin=abc.bin))
-  ## ask for automatic config suggestions
   expect_error(MPsuggestConfig(mp, data="abc.multi", verbose=FALSE))
 })
 
 
 test_that("suggest gives messages in verbose mode", {
   mp = MPnew(snames, data=list(abc.bin=abc.bin))
-  ## ask for automatic config suggestions
   expect_error(MPsuggestConfig(mp, data="abc.multi", verbose=FALSE))
 })
 

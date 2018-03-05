@@ -196,9 +196,10 @@ dist.log2euclidean = function(x, shift=1) {
 ##' single, average) or "pam"
 ##' @param clust.k integer, determines depth of clustering weights
 ##' @param clust.weight numeric, determines weighting of cluster distances relative to
-##' neighbor rank distance. Set to 0 to obtain pure neighbor rank distance (clustering is ignored).
-##' Set to Inf to obtain pure cluster-based distance. Default is 0.5 to nudge neighbor rank distance
-##' in the direction of the cluster distance.
+##' neighbor rank distance.
+##' Set to 0 to obtain pure neighbor rank distance (clustering is ignored).
+##' Set to Inf to obtain pure cluster-based distance.
+##; Default is 0.5 to nudge neighbor rank distance in the direction of the cluster distance.
 ##' @param clust.alt boolean. Set TRUE to obtain an alternative clustering. Default is FALSE
 ##' which returns distances in which patterns from a usual distance are reinforced by clustering.
 ##' 
@@ -214,7 +215,7 @@ dist.clust = function(x,
   }
   
   if (clust.k*2 > nrow(x)+2) {
-    stop("dist.k2alt must act on object with a minimum number of objects clust.k*2")
+    stop("dist.clust must act on object with a minimum number of objects clust.k*2")
   }
   
   ## produce a first distance matrix using some method, and make a clustering
@@ -289,6 +290,63 @@ dist.clust = function(x,
 
 
 
+##' Distance that incorporates weights from a dbscan clustering 
+##'
+##' @param x numeric matrix
+##' @param eps numeric, passed to dbscane eps
+##' @param clust.weight numeric, determines weighting of cluster distances relative to
+##' neighbor rank distance.
+##' Set to 0 to obtain pure neighbor rank distance (clustering is ignored).
+##' Set to Inf to obtain pure cluster-based distance.
+##' Default is 0.5 to nudge neighbor rank distance in the direction of the cluster distance.
+##' 
+##' @export
+dist.dbscan = function(x, eps=1, clust.weight=0.8) {
+
+  x.data = x
+  if (class(x.data)!="matrix") {
+    x.data = as.matrix(x.data)
+  }
+  x.data = MPimputeNAs(x.data)
+  if (is.null(rownames(x))) {
+    rownames(x.data) = paste0("S", 1:nrow(x))
+  }
+
+  ## produce a first distance matrix
+  xd = dist.euclidean(x.data)
+  xdm = MPrankNeighbors(as.matrix(xd))
+
+  ## produce a clustering
+  x.dbscan = dbscan::dbscan(x.data, eps=eps)
+  xcut = split(rownames(x.data), x.dbscan$cluster)
+  
+  ## create a dissimilarity matrix where all items are equally distant
+  ## then adjust making same-cluster items closer
+  xdadd = matrix(1, ncol=nrow(xdm), nrow=nrow(xdm),
+                 dimnames=list(rownames(xdm), rownames(xdm)))
+  for (i in seq_along(xcut)) {
+    if (names(xcut)[i] != "0") {
+      temp = xcut[[i]]
+      xdadd[temp, temp] = xdadd[temp, temp] - 1; 
+    }
+  }
+  diag(xdadd) = 0                
+  
+  if (is.finite(clust.weight)) {
+    xdm = xdm+(clust.weight*xdadd)
+  } else {
+    xdm = xdadd
+  }
+  if (is.null(rownames(x))) {
+    colnames(xdm) = rownames(xdm) = NULL
+  }
+  
+  ## return a dist object
+  MPdistImpute(xdm)
+}
+
+
+
 
 ##' Generates a function with syntax f(x) that returns a dist object
 ##'
@@ -300,13 +358,17 @@ dist.clust = function(x,
 ##' @param clust.weight numeric, used with method=hclust
 ##' @param clust.k integer, used with method=hclust
 ##' @param clust.alt boolean, used with method=hclust
-##' 
+##' @param eps numeric used with method=dbscane
+##'
 ##' @export
 MPdistFactory = function(method=c("euclidean", "manhattan", "canberra", "pc1",
-                                  "log2euclidean", "spearman", "hclust", "pam"),
+                                  "log2euclidean", "spearman",
+                                  "hclust", "pam", "dbscan"),
                          log2.shift = 1,   
-                         clust.dist="euclidean", clust.method=c("complete", "single", "average"),
-                         clust.weight=0.5, clust.k=2, clust.alt=FALSE) {
+                         clust.dist="euclidean",
+                         clust.method=c("complete", "single", "average"),
+                         clust.weight=0.8, clust.k=2, clust.alt=FALSE,
+                         eps=1) {
   
   ## collapse the given method into one of the allowed options
   method = match.arg(method)
@@ -330,7 +392,7 @@ MPdistFactory = function(method=c("euclidean", "manhattan", "canberra", "pc1",
         dist.log2euclidean(x, shift=log2.shift)
       })
   }
-  
+
   ## the following options are sligtly more complex distance functions
   ## that require a bit of extra code    
   if (method=="hclust" | method=="pam") {
@@ -348,6 +410,15 @@ MPdistFactory = function(method=c("euclidean", "manhattan", "canberra", "pc1",
         dist.clust(x, clust.dist=clust.dist, clust.method=clust.method,
                    clust.weight=clust.weight, clust.k=clust.k,
                    clust.alt=clust.alt)
+      })
+  }
+
+  if (method=="dbscan") {
+    force(eps)
+    force(clust.weight)
+    return(
+      function(x) {
+        dist.dbscan(x, eps=eps, clust.weight=clust.weight)
       })
   }
   

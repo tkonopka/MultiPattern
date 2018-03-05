@@ -22,9 +22,7 @@
 ##' @export
 MPgetDistances = function(MP, configs=NULL, verbose=TRUE) {
     
-  if (class(MP) != "MultiPattern") {
-    stop("object not of class MultiPattern\n")
-  }
+  checkArgClass(MP, "MultiPattern")
   
   if (verbose & object.size(MP)>1e6) {
     message("This may take some time. Please wait... ", appendLF=FALSE)
@@ -92,9 +90,7 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
                                     subsample.N=NULL, subsample.R=NULL,
                                     alpha=NULL, beta=NULL, verbose=TRUE, ...) {
   
-  if (class(MP) != "MultiPattern") {
-    stop("object not of class MultiPattern\n")
-  }
+  checkArgClass(MP, "MultiPattern")
   
   ## determine properties of sub-sampling and meta-distance scaling
   if (is.null(subsample.N)) {
@@ -122,12 +118,12 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
   }
   
   if (verbose) {
-    message("This may take some time. Please wait", appendLF=FALSE)
+    message("This may take some time. Please wait ", appendLF=FALSE)
   }
   
   ## define a result object
   result = NULL;
-  
+
   ## compute meta-distances in a loop
   for (i in 1:subsample.R) {
     if (verbose) {
@@ -179,9 +175,7 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
 ##' @export
 MPgetMetaDistance = function(MPS, standardize=MPrankNeighbors, alpha=1, beta=2, ...) {
     
-  if (class(MPS) != "MultiPatternSimilarities") {
-    stop("object not of class MultiPatternSimilarities\n")
-  }
+  checkArgClass(MPS, "MultiPatternSimilarities")
   
   nowsize = length(MPS)
   ans = matrix(0, ncol=nowsize, nrow=nowsize)
@@ -231,7 +225,7 @@ MPgetMetaDistance = function(MPS, standardize=MPrankNeighbors, alpha=1, beta=2, 
           ans[i,j] = ans[j,i] = Ldist(MPS[[i]], MPS[[j]], beta)                    
         }
       }
-        }        
+    }        
   }
   
   ans

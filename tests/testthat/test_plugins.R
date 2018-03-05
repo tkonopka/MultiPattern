@@ -10,7 +10,7 @@ cat("\ntest_plugins.R ")
 test_that("listing and creating plugins", {
   ## check in-built plugins
   output = MPlistPlugins()
-  expected = c("canberra", "euclidean", "manhattan", "spearman", 
+  expected = c("canberra", "dbscan", "euclidean", "manhattan", "spearman", 
                "subspace1", "subspace2", "subspacer", 
                "pca", "rpca",
                "hclust", "pam", "nmf")

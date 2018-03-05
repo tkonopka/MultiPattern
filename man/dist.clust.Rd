@@ -19,9 +19,9 @@ single, average) or "pam"}
 \item{clust.k}{integer, determines depth of clustering weights}
 
 \item{clust.weight}{numeric, determines weighting of cluster distances relative to
-neighbor rank distance. Set to 0 to obtain pure neighbor rank distance (clustering is ignored).
-Set to Inf to obtain pure cluster-based distance. Default is 0.5 to nudge neighbor rank distance
-in the direction of the cluster distance.}
+neighbor rank distance.
+Set to 0 to obtain pure neighbor rank distance (clustering is ignored).
+Set to Inf to obtain pure cluster-based distance.}
 
 \item{clust.alt}{boolean. Set TRUE to obtain an alternative clustering. Default is FALSE
 which returns distances in which patterns from a usual distance are reinforced by clustering.}

@@ -50,7 +50,8 @@ NULL
 MPdefaultSettings = list(
   num.random=60,
   num.PCs=4,
-  rpca.term.delta=1e-3, 
+  rpca.term.delta=1e-3,
+  dbscan.intervals=c(0.1,0.2,0.3,0.4),
   clust.k=3,
   nmf.bg = 1e-5,
   nmf.rank = 0,
@@ -59,7 +60,7 @@ MPdefaultSettings = list(
   alpha=0.5,
   beta=2,
   subsample.N=150,
-  subsample.R=30    
+  subsample.R=20    
 )
 
 
@@ -75,17 +76,17 @@ MPdefaultSettings = list(
 MPnew = function(items, data=NULL) {
     
   ## create a blank MultiPattern object
-  ans = list(items=items, data=list(), configs=list())
-  ans$settings = MPdefaultSettings
-  class(ans) = "MultiPattern"
-  class(ans$settings) = "MultiPatternSettings"
+  MP = list(items=items, data=list(), configs=list())
+  MP$settings = MPdefaultSettings
+  class(MP) = "MultiPattern"
+  class(MP$settings) = "MultiPatternSettings"
   
   ## perhaps add datasets into this object
   if (!is.null(data)) {
-    MPaddData(ans, data)
+    MP = MPaddData(MP, data)
   }
   
-  ans
+  MP
 }
 
 
@@ -98,16 +99,9 @@ MPnew = function(items, data=NULL) {
 ##'
 ##' @export
 MPaddData = function(MP, data) {
-  
-  if (class(MP) != "MultiPattern") {
-    stop("Argument MP must be of class MultiPattern\n")
-  }
-  if (class(data) != "list") {
-    stop("Argument data must be a list\n")
-  }    
-  
-  ## capture MP expression for assignment at the end
-  captureMP = deparse(substitute(MP))
+
+  checkArgClass(MP, "MultiPattern")
+  checkArgClass(data, "list")
   
   ## check naming of data objects
   datanames = names(data)
@@ -122,9 +116,7 @@ MPaddData = function(MP, data) {
   ## update the list of data objects in this MultiPattern configuration
   MP$data = c(MP$data, data)
   
-  ## assign and return an updated MP object
-  assign(captureMP, MP, parent.frame())
-  invisible(MP)          
+  MP
 }
 
 
@@ -151,16 +143,10 @@ MPaddData = function(MP, data) {
 MPaddConfig = function(MP, config.name, data.name=names(MP$data)[1],
                        preprocess=NULL, dist.fun=dist.euclidean) {
   
-  ## Hard checks for object class types
-  if (class(MP) != "MultiPattern") {
-    stop("Argument MP must be of class MultiPattern\n");
-  }
-  if (class(config.name) != "character") {
-    stop("Argument config.name must be character\n")
-  }        
-  if (class(data.name) != "character") {
-    stop("Argument data.name must be character\n")
-  }        
+  checkArgClass(MP, "MultiPattern")
+  checkArgClass(config.name, "character")
+  checkArgClass(data.name, "character")
+  
   ## Hard checks for data compatibility
   if (!data.name %in% names(MP$data)) {
     stop("data.name -", data.name, "- not defined in MultiPattern object\n")
@@ -169,9 +155,6 @@ MPaddConfig = function(MP, config.name, data.name=names(MP$data)[1],
   if (class(preprocess)=="list" & class(dist.fun)=="list") {
     stop("only one of preprocess or dist.fun can be a list\n")
   }
-  
-  ## capture MP expression for assignment at the end
-  captureMP = deparse(substitute(MP))
   
   ## get names of new configurations.
   ## If inputs specify just one configuration, its name is just config.name.
@@ -198,7 +181,6 @@ MPaddConfig = function(MP, config.name, data.name=names(MP$data)[1],
     newnames = config.name
     dist.fun = list(a=dist.fun)
   }
-  rm(now.list)
   
   ## check if any of the new names overlap with existing names
   badnames = newnames[newnames %in% names(MP$configs)]
@@ -220,7 +202,7 @@ MPaddConfig = function(MP, config.name, data.name=names(MP$data)[1],
     if (class(prep)!="function" & class(prep)!="NULL") {
       aa$info = prep
     }
-    return(aa)
+    aa
   }
   
   ## create configuration objects and add to newconfigs list
@@ -239,9 +221,7 @@ MPaddConfig = function(MP, config.name, data.name=names(MP$data)[1],
   ## update MP with new configurations
   MP$configs = c(MP$configs, newconfigs)
   
-  ## assign and return an updated MP object
-  assign(captureMP, MP, parent.frame())
-  invisible(MP)            
+  MP
 }
 
 
@@ -256,19 +236,11 @@ MPaddConfig = function(MP, config.name, data.name=names(MP$data)[1],
 ##' @export
 MPremove = function(MP, data=NULL, config=NULL) {
   
-  ## Hard checks for object class
-  if (class(MP) != "MultiPattern") {
-    stop("Argument MP must be of class MultiPattern\n");
-  }
-  
-  ## capture MP expression for assignment at the end
-  captureMP = deparse(substitute(MP))
+  checkArgClass(MP, "MultiPattern")
   
   ## remove configurations
   if (!is.null(config)) {
-    if (class(config) != "character") {
-      stop("Argument config must be character\n")
-    }
+    checkArgClass(config, "character")
     MP$configs[config] = NULL
   }
   
@@ -288,9 +260,7 @@ MPremove = function(MP, data=NULL, config=NULL) {
     MP$configs = MP$configs[okconfigs]
   }
   
-  ## assign and return an updated MP obejct
-  assign(captureMP, MP, parent.frame())
-  invisible(MP)
+  MP
 }
 
 
@@ -308,30 +278,20 @@ MPremove = function(MP, data=NULL, config=NULL) {
 ##' @export
 MPchangeSettings = function(MP, settings = list(), warn=TRUE) {
     
-  ## Hard checks for object class
-  if (class(MP) != "MultiPattern") {
-    stop("Argument MP must be of class MultiPattern\n");
-  }
-  if (class(settings) != "list") {
-    stop("Argument settings my be of class list\n")
-  }
-  
-  ## capture MP expression for assignment at the end
-  captureMP = deparse(substitute(MP))
+  checkArgClass(MP, "MultiPattern")
+  checkArgClass(settings, "list")
   
   ## check that components in settings are allowed
   sn = names(settings)
   noncore = sn[!sn %in% names(MPdefaultSettings)]
   if (length(noncore)>0 & warn) {
-    warning("MPchangeSettings: non-core settings: ", paste(noncore, collapse=", "), "\n")
+    warning("\nnon-core setting(s): ", paste(noncore, collapse=", "), "\n")
   }
   for (nows in names(settings)) {
     MP$settings[[nows]] = settings[[nows]]
   }
   
-  ## assign and return an updated MP obejct
-  assign(captureMP, MP, parent.frame())
-  invisible(MP)
+  MP
 }
     
 
@@ -363,33 +323,29 @@ MPchangeSettings = function(MP, settings = list(), warn=TRUE) {
 MPeasyConfig = function(MP, data=NULL, config.prefix="",
                         preprocess.prefix="", 
                         type=c("pca", "euclidean", "spearman", "canberra",
-                               "manhattan", "hclust", "pam"),
+                               "manhattan", "hclust", "pam", "dbscan"),
                         preprocess=NULL) {
   
   ## capture MP expression for assignment at the end
-  captureMP = deparse(substitute(MP))
+  ##captureMP = deparse(substitute(MP))
   
   if (!is.null(data)) {
     data.missing = data[!(data %in% names(MP$data))]
     if (length(data.missing)) {
       stop("Missing data: ", data.missing, "\n")
     }
-    rm(data.missing)
   }
   if (class(type)=="list") {
     if (!is.null(data)) {
-      stop("type in list form requires data=NULL\n")
+      stop("when type is a list, data must null\n")
     }
     if (length(type)>0) {
-      if (is.null(names(type))) {
-        stop("type in list form requires names\n")
-      } else {
-        data.type = names(type)
-        data.type = data.type[!(data.type %in% names(MP$data))]
-        if (length(data.type)>0) {
-          stop("Unrecognized datasets: ", paste(data.type, collapse=", "), "\n")
-        }
-      }
+      checkNotNull(names(type), "names in a type list")      
+      data.type = names(type)
+      data.type = data.type[!(data.type %in% names(MP$data))]
+      if (length(data.type)>0) {
+        stop("Unrecognized datasets: ", paste(data.type, collapse=", "), "\n")
+      }      
     }
   }
   
@@ -416,13 +372,10 @@ MPeasyConfig = function(MP, data=NULL, config.prefix="",
     nowtypes = tolower(typelist[[nowd]])        
     for (nowtype in nowtypes) {
       plugin.fun = match.fun(paste0(nowtype, ".MultiPatternPlugin"))
-      MP = plugin.fun(MP, nowd, config.prefix,
-                preprocess.prefix, preprocess)
+      MP = plugin.fun(MP, nowd, config.prefix, preprocess.prefix, preprocess)
     }             
   }    
   
-  ## assign and return an updated MP obejct
-  assign(captureMP, MP, parent.frame())
-  invisible(MP)                
+  MP
 }
 

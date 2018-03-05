@@ -30,7 +30,8 @@
 MPplotmap = function(xylayout, color=c(),
                      highlight.points=c(), 
                      xypadding=0.05, main="", legend.separate=FALSE,
-                     squarexy=TRUE, label=FALSE, Rcss="default", Rcssclass=c(), ...) {
+                     squarexy=TRUE, label=FALSE,
+                     Rcss="default", Rcssclass=c(), ...) {
   
   if (!class(xylayout) %in% c("matrix", "data.frame", "list")) {
     stop("xylayout must be a matrix, data.frame, or list\n")
@@ -38,6 +39,7 @@ MPplotmap = function(xylayout, color=c(),
   
   RcssDefaultStyle = RcssGetDefaultStyle(Rcss)
   RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
+  RcssOverload()
   
   ## for ease-of-use, allow input to be a list of layouts
   if (class(xylayout)=="list") {
@@ -74,43 +76,43 @@ MPplotmap = function(xylayout, color=c(),
   
   ## create a two sided layout for the chart
   if (legend.separate) {
-    Rcsspar(mfrow=c(1,2))
+    par(mfrow=c(1,2))
   }
   
   ## add elements to the first plot
-  Rcssplot(xlim, ylim, type="n", xlim=xlim, ylim=ylim,
+  plot(xlim, ylim, type="n", xlim=xlim, ylim=ylim,
            xaxs="i", yaxs="i", ...)  
-  Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="box")    
+  rect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="box")    
   if (label) {        
     if (length(normal.rows)>0) {
-      Rcsstext(xylayout[normal.rows,1], xylayout[normal.rows,2],
+      text(xylayout[normal.rows,1], xylayout[normal.rows,2],
                normal.rows)
     }
     for (nowg in names(color)) {
       color.rows = color[[nowg]]
       if (length(color.rows)>0) {
-        Rcsstext(xylayout[color.rows,1], xylayout[color.rows,2],
+        text(xylayout[color.rows,1], xylayout[color.rows,2],
                  color.rows, Rcssclass=nowg)
       }
     }        
     if (length(highlight.rows)>0) {
-      Rcsstext(xylayout[highlight.rows,1], xylayout[highlight.rows,2],
+      text(xylayout[highlight.rows,1], xylayout[highlight.rows,2],
                highlight.rows, Rcssclass="highlight")
     }            
   } else {
     if (length(normal.rows)>0) {
-      Rcsspoints(xylayout[normal.rows,1], xylayout[normal.rows,2])
+      points(xylayout[normal.rows,1], xylayout[normal.rows,2])
     }
     for (nowg in names(color)) {
       color.rows = color[[nowg]]
       if (length(color.rows)>0) {
-        Rcsspoints(xylayout[color.rows,1], xylayout[color.rows,2],
+        points(xylayout[color.rows,1], xylayout[color.rows,2],
                            Rcssclass=nowg)
       }
     }
     ## draw the highlight dots
     if (length(highlight.rows)>0) {
-      Rcsspoints(xylayout[highlight.rows, 1],
+      points(xylayout[highlight.rows, 1],
                  xylayout[highlight.rows, 2],
                  Rcssclass="highlight")
       if (length(highlight.points)>0) {
@@ -118,34 +120,34 @@ MPplotmap = function(xylayout, color=c(),
         if (legend.separate) {
           nowtext = names(highlight.points);                    
         }
-        Rcsstext(xylayout[highlight.points, 1],
-                 xylayout[highlight.points, 2],
-                 names(highlight.points),
-                 Rcssclass="highlight")
+        text(xylayout[highlight.points, 1],
+             xylayout[highlight.points, 2],
+             names(highlight.points),
+             Rcssclass="highlight")
       }
     }
   }
-  Rcssmtext(main, side=3, Rcssclass="main")
+  mtext(main, side=3, Rcssclass="main")
   
   ## add elements to a second plot
   if (legend.separate) {
-    Rcssplot(xlim, ylim, xlim=xlim, ylim=ylim,
-             xaxs="i", yaxs="i", type="n", frame=FALSE)
+    plot(xlim, ylim, xlim=xlim, ylim=ylim,
+         xaxs="i", yaxs="i", type="n", frame=FALSE)
     if (length(highlight.points)>0) {
       nnp = length(highlight.points)
       tempy = seq(ylim[2], ylim[1], length=nnp+2)[2:(nnp+1)] 
-      Rcsspoints(rep(xlim[1], nnp), tempy,  Rcssclass="highlight") 
-      Rcsstext(rep(xlim[1], nnp), tempy,
-               paste0(nowtext, " - ", highlight.points), pos=4,
-               Rcssclass="highlight")            
-        }
+      points(rep(xlim[1], nnp), tempy,  Rcssclass="highlight") 
+      text(rep(xlim[1], nnp), tempy,
+           paste0(nowtext, " - ", highlight.points), pos=4,
+           Rcssclass="highlight")            
+    }
     if (length(color)>0) {
       nnp = length(color)
       tempy = seq(ylim[2], ylim[1], length=nnp+2)[2:(nnp+1)]
       for (i in seq_len(length(color))) {
         nowg = names(color)[i]
-        Rcsspoints(mean(xlim), tempy[i], Rcssclass=nowg)           
-                Rcsstext(mean(xlim), tempy[i], nowg, pos=4, Rcssclass=nowg) 
+        points(mean(xlim), tempy[i], Rcssclass=nowg)           
+        text(mean(xlim), tempy[i], nowg, pos=4, Rcssclass=nowg) 
       }
     }
   }
@@ -172,6 +174,7 @@ MPplotScatterWithK = function(coords, clust, Gnames=TRUE, main="",
   
   RcssDefaultStyle = RcssGetDefaultStyle(Rcss)
   RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
+  RcssOverload()
   
   ## use the defined cluster codes to split the points by cluster
   if (Gnames) {
@@ -191,23 +194,22 @@ MPplotScatterWithK = function(coords, clust, Gnames=TRUE, main="",
   xlim = xylim$xlim
   ylim = xylim$ylim
   
-  p.padding = RcssGetPropertyValueOrDefault(Rcss, "ScatterWithK", "padding",
-                                            default=0.02)
+  p.padding = RcssValue("ScatterWithK", "padding", default=0.02)
   xlim = xlim + ((xlim[2]-xlim[1])*p.padding*c(-1,1))
   ylim = ylim + ((ylim[2]-ylim[1])*p.padding*c(-1,1))
   
   ## create a plot area
-  Rcssplot(xlim, ylim, xaxs="i", yaxs="i", type="n", axes=F, frame=F)
+  plot(xlim, ylim, xaxs="i", yaxs="i", type="n", axes=F, frame=F)
   ## create boxes for main plot and the projections
-  Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="main")
+  rect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="main")
   
   ## add points to the main plot area and the projections
   for (i in names(xy.coords)) {
     nowxy = xy.coords[[i]]
-    Rcsspoints(nowxy[,1], nowxy[,2], Rcssclass=i)
+    points(nowxy[,1], nowxy[,2], Rcssclass=i)
   }
   
-  Rcssmtext(main, side=3)
+  mtext(main, side=3)
   invisible(xycut)
 }
 
@@ -232,6 +234,7 @@ MPplotScatterWithLinks = function(coords, xyd,
   
   RcssDefaultStyle = RcssGetDefaultStyle(Rcss)
   RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
+  RcssOverload()
   
   ## cluster and classify objects
   if (class(xyd)=="dist") {
@@ -249,20 +252,19 @@ MPplotScatterWithLinks = function(coords, xyd,
   xlim = xylim$xlim
   ylim = xylim$ylim
   
-  p.padding = RcssGetPropertyValueOrDefault(Rcss, "ScatterWithK", "padding",
-                                            default=0.02)
+  p.padding = RcssValue("ScatterWithK", "padding", default=0.02)
   xlim = xlim + ((xlim[2]-xlim[1])*p.padding*c(-1,1))
   ylim = ylim + ((ylim[2]-ylim[1])*p.padding*c(-1,1))
   
   ## create a plot area
-  Rcssplot(xlim, ylim, xaxs="i", yaxs="i", type="n", axes=F, frame=F)
+  plot(xlim, ylim, xaxs="i", yaxs="i", type="n", axes=F, frame=F)
   ## create boxes for main plot and the projections
-  Rcssrect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="main")
+  rect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="main")
   
   ## add points to the main plot area and the projections
   notseed = !(rownames(coords) %in% c(seed, seed.neighbors[1:seed.links]))
   if (sum(notseed)>0) {
-    Rcsspoints(coords[notseed,1], coords[notseed,2])
+    points(coords[notseed,1], coords[notseed,2])
   }
   
   val2hex = function(x) {
@@ -271,23 +273,22 @@ MPplotScatterWithLinks = function(coords, xyd,
   
   ## draw lines from the seed to its nearest neighbors
   if (!is.null(seed)) {
-    seedcol = RcssGetPropertyValueOrDefault(Rcss, "lines", "col",
-                                            default="#ff0000", Rcssclass="seed")
+    seedcol = RcssValue("lines", "col", default="#ff0000", Rcssclass="seed")
     for (i in 1:seed.links) {
       nowtrans = val2hex((seed.links-i+1)/(seed.links))
       nowneighbor = seed.neighbors[i]
-      Rcsslines(coords[c(seed, nowneighbor), 1],
-                coords[c(seed, nowneighbor), 2],
-                col=paste0(seedcol, nowtrans), Rcssclass="seed")
-      Rcsspoints(coords[nowneighbor, 1], coords[nowneighbor, 2],
-                 bg=paste0(seedcol, nowtrans), Rcssclass="neighbor")
+      lines(coords[c(seed, nowneighbor), 1],
+            coords[c(seed, nowneighbor), 2],
+            col=paste0(seedcol, nowtrans), Rcssclass="seed")
+      points(coords[nowneighbor, 1], coords[nowneighbor, 2],
+             bg=paste0(seedcol, nowtrans), Rcssclass="neighbor")
     }
     ## draw the seed sample last (so appears on top)
-    Rcsspoints(coords[seed,1], coords[seed,2], Rcssclass="seed")
+    points(coords[seed,1], coords[seed,2], Rcssclass="seed")
   }
   
   ## finish up with title 
-  Rcssmtext(main, side=3)
+  mtext(main, side=3)
 }
 
 

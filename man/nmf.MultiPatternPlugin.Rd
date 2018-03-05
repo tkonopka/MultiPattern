@@ -2,7 +2,7 @@
 % Please edit documentation in R/MP_plugins.R
 \name{nmf.MultiPatternPlugin}
 \alias{nmf.MultiPatternPlugin}
-\title{Add a set of configurations to an MultiPattern object}
+\title{Add a set of configurations to a MultiPattern object}
 \usage{
 nmf.MultiPatternPlugin(MP, data.name, config.prefix, preprocess.prefix = "",
   preprocess = NULL)

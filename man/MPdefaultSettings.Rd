@@ -4,7 +4,7 @@
 \name{MPdefaultSettings}
 \alias{MPdefaultSettings}
 \title{Summary of default settings for new MultiPattern objects}
-\format{An object of class \code{list} of length 12.}
+\format{An object of class \code{list} of length 13.}
 \usage{
 MPdefaultSettings
 }

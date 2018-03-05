@@ -12,11 +12,8 @@
 ##' @param ... additional arguments, not used
 ##' 
 ##' @export
-print.MultiPattern = function(x, ...) {    
-  if (class(x) != "MultiPattern") {
-    stop("object not of class MultiPattern\n")
-  }
-  capturex = as.character(deparse(substitute(x)))
+print.MultiPattern = function(x, ...) {
+  checkArgClass(x, "MultiPattern")
   message("MultiPattern configuration object\n")
   message(sprintf("%-5s", length(x$items)), "observations")
   message(sprintf("%-5s", length(x$data)), "data objects")
@@ -37,10 +34,8 @@ print.MultiPattern = function(x, ...) {
 ##' @param ... additional arguments, not used
 ##' 
 ##' @export
-print.MultiPatternSimilarities = function(x, ...) {
-  if (class(x) != "MultiPatternSimilarities") {
-    stop("object not of class MultiPatternSimilarities\n")
-  }    
+print.MultiPatternSimilarities = function(x, ...) {  
+  checkArgClass(x, "MultiPatternSimilarities")
   message("MultiPattern similarities\n")
   message("Similarities:\t\t", length(x))
 }
@@ -55,9 +50,7 @@ print.MultiPatternSimilarities = function(x, ...) {
 ##' 
 ##' @export
 print.MultiPatternSettings = function(x, ...) {
-  if (class(x) != "MultiPatternSettings") {
-    stop("object not of class MultiPatternSettings\n")
-  }    
+  checkArgClass(x, "MultiPatternSettings")
   message("MultiPattern analysis settings\n")
   ## find length of names(x)
   xmax = max(nchar(names(x)))

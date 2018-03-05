@@ -6,7 +6,7 @@
 \usage{
 MPeasyConfig(MP, data = NULL, config.prefix = "", preprocess.prefix = "",
   type = c("pca", "euclidean", "spearman", "canberra", "manhattan", "hclust",
-  "pam"), preprocess = NULL)
+  "pam", "dbscan"), preprocess = NULL)
 }
 \arguments{
 \item{MP}{MultiPattern configuration object}

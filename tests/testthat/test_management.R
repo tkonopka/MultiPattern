@@ -2,6 +2,8 @@
 
 cat("\ntest_management.R ")
 
+## initial time for all tests round 6.1s
+
 
 ###############################################################################
 ## Data objects
@@ -18,8 +20,8 @@ dist.list = list(euc=dist.euclidean, man=dist.manhattan)
 
 ## object with multiple datasets and configurations
 mplarge = MPnew(snames, data=list(A=MPdata4S, B=MPdata6S))
-MPaddConfig(mplarge, "confA", data.name="A", dist.fun=dist.list)
-MPaddConfig(mplarge, "confB", data.name="B", dist.fun=dist.list)
+mplarge = MPaddConfig(mplarge, "confA", data.name="A", dist.fun=dist.list)
+mplarge = MPaddConfig(mplarge, "confB", data.name="B", dist.fun=dist.list)
 
 
 
@@ -78,15 +80,15 @@ test_that("adding to non-MP object gives error", {
 
 test_that("add more datasets into an MP configuration (all at once)", {
   mp = MPnew(snames)
-  MPaddData(mp, list(Four=MPdata4S, Six=MPdata6S))
+  mp = MPaddData(mp, list(Four=MPdata4S, Six=MPdata6S))
   expect_equal(length(mp$data), 2)
 })
 
 
 test_that("add more datasets into an MP configuration (one at a time)", {
   mp = MPnew(snames)
-  MPaddData(mp, list(Four=MPdata4S))
-  MPaddData(mp, list(Six=MPdata6S))
+  mp = MPaddData(mp, list(Four=MPdata4S))
+  mp = MPaddData(mp, list(Six=MPdata6S))
   expect_equal(length(mp$data), 2)
 })
 
@@ -109,7 +111,7 @@ test_that("attempt add data in un-named list", {
 
 test_that("attempt add dataset with a repeat name", {
   mp = MPnew(snames)
-  MPaddData(mp, list(A=MPdata4S))
+  mp = MPaddData(mp, list(A=MPdata4S))
   expect_error(MPaddData(mp, list(A=MPdata6S)))
 })
 
@@ -131,9 +133,9 @@ test_that("adding configs gives errors on wrong input", {
 
 test_that("add individual analysis configuration", {
   mp = MPnew(snames, data=list(A=MPdata4S, B=MPdata6S))
-  MPaddConfig(mp, "confA", data.name="A")
+  mp = MPaddConfig(mp, "confA", data.name="A")
   expect_equal(length(mp$configs), 1)
-  MPaddConfig(mp, "confB", data.name="B")
+  mp = MPaddConfig(mp, "confB", data.name="B")
   expect_equal(length(mp$configs), 2)
   expect_equal(names(mp$configs), c("confA", "confB"))
 })
@@ -141,7 +143,7 @@ test_that("add individual analysis configuration", {
 
 test_that("add family of analysis configurations via named preproces list", {
   mp = MPnew(snames, data=list(A=MPdata4S, B=MPdata6S))
-  MPaddConfig(mp, "confA", data.name="A", preprocess=prep.list)
+  mp = MPaddConfig(mp, "confA", data.name="A", preprocess=prep.list)
   expect_equal(length(mp$configs), 2)
   expect_equal(names(mp$configs), c("confA.one", "confA.both"))
 })
@@ -151,7 +153,7 @@ test_that("add family of analysis configurations via preproces list", {
   mp = MPnew(snames, data=list(A=MPdata4S, B=MPdata6S))
   prep2.list = prep.list
   names(prep2.list) = NULL
-  MPaddConfig(mp, "confA", data.name="A", preprocess=prep2.list)
+  mp = MPaddConfig(mp, "confA", data.name="A", preprocess=prep2.list)
   expect_equal(length(mp$configs), 2)
   expect_equal(names(mp$configs), c("confA.1", "confA.2"))
 })
@@ -159,14 +161,14 @@ test_that("add family of analysis configurations via preproces list", {
 
 test_that("cannot add two configurations with same name", {
   mp = MPnew(snames, data=list(A=MPdata4S, B=MPdata6S))
-  MPaddConfig(mp, "confA", data.name="A", dist.fun=dist.euclidean)
+  mp = MPaddConfig(mp, "confA", data.name="A", dist.fun=dist.euclidean)
   expect_error(MPaddConfig(mp, "confA", data.name="A", dist.fun=dist.manhattan))
 })
 
 
 test_that("add family of analysis configurations via dist list", {
   mp = MPnew(snames, data=list(A=MPdata4S, B=MPdata6S))
-  MPaddConfig(mp, "confA", data.name="A", dist.fun=dist.list)
+  mp = MPaddConfig(mp, "confA", data.name="A", dist.fun=dist.list)
   expect_equal(length(mp$configs), 2)
   expect_equal(names(mp$configs), c("confA.euc", "confA.man"))
 })
@@ -203,11 +205,11 @@ test_that("remove a dataset", {
   ## this tests starts with a pre-made objects
   mpnow = mplarge
   ## remove one dataset (should also remove associated configurations)
-  MPremove(mpnow, data="B")
+  mpnow = MPremove(mpnow, data="B")
   expect_equal(names(mpnow$data), "A")
   expect_equal(names(mpnow$configs), c("confA.euc", "confA.man"))
   ## removal of second dataset should leave empty object
-  MPremove(mpnow, data="A")
+  mpnow = MPremove(mpnow, data="A")
   expect_equal(length(mpnow$configs)+length(mpnow$data), 0)
 })
 
@@ -216,11 +218,11 @@ test_that("remove a configuration", {
   ## this tests starts with a pre-made objects
   mpnow = mplarge
   ## remove one configuration 
-  MPremove(mpnow, config="confB.euc")
+  mpnow = MPremove(mpnow, config="confB.euc")
   expect_equal(names(mpnow$data), c("A", "B"))
   expect_equal(names(mpnow$configs), c("confA.euc", "confA.man", "confB.man"))
   ## removal of all configurations for a dataset does not remove the dataset
-  MPremove(mpnow, config="confB.man")
+  mpnow = MPremove(mpnow, config="confB.man")
   expect_equal(names(mpnow$data), c("A", "B"))
   expect_equal(names(mpnow$configs), c("confA.euc", "confA.man"))
 })
@@ -231,7 +233,7 @@ test_that("remove a configuration (warnings, errors)", {
   ## must act on MultiPattern object
   expect_error(MPremove(1:4))
   ## attempt to remove non-existing configuration is silent
-  MPremove(mpnow, config="does-not-exist")
+  mpnow = MPremove(mpnow, config="does-not-exist")
   ## attempt to remove via indexes is invalid
   expect_error(MPremove(mpnow, config=1))
   expect_equal(mplarge, mpnow)
@@ -258,7 +260,7 @@ test_that("change settings attached to a MultiPattern", {
   expect_warning(MPchangeSettings(mpnow, mysettings))
   ## can turn warnings off
   mpnow = mplarge
-  MPchangeSettings(mpnow, mysettings, warn=FALSE)
+  mpnow = MPchangeSettings(mpnow, mysettings, warn=FALSE)
   ## object should reflect changes values
   expect_equal(mpnow$settings$num.PCs, 5)
   expect_equal(mpnow$settings$some.other, 0)
@@ -273,14 +275,14 @@ test_that("change settings attached to a MultiPattern", {
 
 test_that("create sets of configurations with easy config", {
   mp = MPnew(snames, data=list(A=MPdata4S))
-  MPeasyConfig(mp, data="A", type=c("euclidean", "spearman", "hclust"))
+  mp = MPeasyConfig(mp, data="A", type=c("euclidean", "spearman", "hclust"))
   expect_gt(length(mp$configs), 6)
 })
 
 
 test_that("create sets of configurations with easy config with prefix", {
   mp = MPnew(snames, data=list(A=MPdata4S))
-  MPeasyConfig(mp, data="A", type=c("hclust"), config.prefix="zz")
+  mp = MPeasyConfig(mp, data="A", type=c("hclust"), config.prefix="zz")
   ## this should have all configurations start with zz
   expect_equal(sum(grepl("^zz", names(mp$configs))), length(mp$configs))
   ## this should not have any rnorm configurations
@@ -290,8 +292,8 @@ test_that("create sets of configurations with easy config with prefix", {
 
 test_that("create sets of configurations for different datasets", {
   mp = MPnew(snames, data=list(A=MPdata4S, B=MPdata6S))
-  MPeasyConfig(mp, 
-               type=list(A="hclust", B=c("euclidean", "pam")))
+  mp = MPeasyConfig(mp, 
+                    type=list(A="hclust", B=c("euclidean", "pam")))
   ## this should have all configurations start with zz
   expect_gt(sum(grepl("clust", names(mp$configs))), 2)
   expect_equal(sum(grepl("A:clust.P", names(mp$configs))), 0)

@@ -163,3 +163,18 @@ test_that("dist.clust works with different clust.weights", {
   ## the dist function will create sample names using integers
   expect_gt(sum(abs(out1-out2)), 0)
 })
+
+
+test_that("tests for distances based on dbscan", {
+  
+  xx = cbind(A=c(1,2,3,4,5), B=c(2,3,4,5,3), C=c(3,4,5,1,0))
+  xx = rbind(xx, xx+20)
+  rownames(xx) = letters[1:10]
+  
+  ## compute distances
+  output.00 = dist.dbscan(xx, eps=5, clust.weight=0)
+  output.05 = dist.dbscan(xx, eps=5, clust.weight=1)
+
+  ## the answers should be different
+  expect_gt(sum(output.05), sum(output.00))
+})

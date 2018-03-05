@@ -6,7 +6,7 @@
 
 
 
-##' Add a set of configurations to an MultiPattern object
+##' Add a set of configurations to a MultiPattern object
 ##'
 ##' This plugin adds several configurations that use clustering-driven dissimilarities
 ##' (using pam clustering). Some configurations (marked reg) create dissimilarities
@@ -38,11 +38,10 @@ pam.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess.prefi
                               clust.k=nowk, clust.method="pam", clust.alt=FALSE)
       nowdalt = MPdistFactory(method="pam",
                               clust.k=nowk, clust.method="pam", clust.alt=TRUE)
-      MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "reg"),
+      MP = MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "reg"),
                   data.name=data.name, dist.fun=nowdreg)
-      MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "alt"),
+      MP = MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "alt"),
                   data.name=data.name, dist.fun=nowdalt)
-      rm(nowdreg, nowdalt, ncm.init)                    
     }
   }
   
@@ -52,7 +51,7 @@ pam.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess.prefi
 
 
 
-##' Add a set of configurations to an MultiPattern object
+##' Add a set of configurations to a MultiPattern object
 ##'
 ##' This plugin adds several configurations that use clustering-driven dissimilarities
 ##' (using hclust). Some configurations (marked reg) create dissimilarities that reinforce
@@ -68,7 +67,7 @@ pam.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess.prefi
 ##' @export
 hclust.MultiPatternPlugin = function(MP, data.name, config.prefix,
                                      preprocess.prefix="", preprocess=NULL) {
-  
+
   ## get a range of k for the clustering
   clust.k = MP$settings$clust.k    
   clust.k.range = seq(2, abs(clust.k))
@@ -84,21 +83,64 @@ hclust.MultiPatternPlugin = function(MP, data.name, config.prefix,
         nowdalt = MPdistFactory(method="hclust",
                                 clust.k=nowk, clust.method=ncm, clust.alt=TRUE)
         ncm.init = toupper(substring(ncm, 1, 1))                        
-        MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "reg"),
+        MP = MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "reg"),
                     data.name=data.name, dist.fun=nowdreg)
-        MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "alt"),
-                    data.name=data.name, dist.fun=nowdalt)
-        rm(nowdreg, nowdalt, ncm.init)
+        MP = MPaddConfig(MP, paste0(clustconf, ncm.init, nowk, "alt"),
+                         data.name=data.name, dist.fun=nowdalt)
       }
     }
   }
   
-  MP    
+  MP
 }
 
 
 
-##' Add a set of configurations to an MultiPattern object
+
+#' Add a set of configurations to a MultiPattern object
+##'
+##' This plugin adds several configurations that use dbscan-driven dissimilarities.
+##' 
+##' @param MP MultiPattern
+##' @param data.name character
+##' @param config.prefix character
+##' @param preprocess.prefix character
+##' @param preprocess character
+##'
+##' @export
+dbscan.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess.prefix="",
+                                  preprocess=NULL) {
+
+  ## get a range of eps scaling factors
+  intervals = MP$settings$dbscan.intervals
+  
+  ## get some characteristic scales in the data
+  data.q = apply(MP$data[[data.name]], 2, quantile, p=c(0.25, 0.5, 0.75))
+  rownames(data.q) = c("Q25", "M", "Q75")
+  data.qdist = as.matrix(stats::dist(data.q, method="euclidean"))
+  data.scale = mean(data.qdist["M", c("Q25", "Q75")])
+  eps.vals = data.scale*intervals
+  
+  ## prep names for configurations
+  if (preprocess.prefix!="") {
+    prepreocess.prefix = paste0(":", preprocess.prefix)
+  }
+  clustconf = paste0(config.prefix, data.name, preprocess.prefix, ":dbscan.")
+  
+  ## add cluster-based distance for each k
+  for (i in seq_along(eps.vals)) {
+    noweps = eps.vals[i]
+    nowdbscan = MPdistFactory(method="dbscan", eps=noweps, clust.method="dbscan")
+    MP = MPaddConfig(MP, paste0(clustconf, i), data.name=data.name, dist.fun=nowdbscan)
+  }
+
+  MP
+}
+
+
+
+
+##' Add a set of configurations to a MultiPattern object
 ##'
 ##' @param MP MultiPattern
 ##' @param data.name character
@@ -111,17 +153,18 @@ subspace1.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess
                                         preprocess=NULL) {
   
   if (is.null(preprocess)) {
-    temp = as.list(colnames(MP$data[[data.name]]))
-    names(temp) = colnames(MP$data[[data.name]])
+    subspaces = as.list(colnames(MP$data[[data.name]]))
+    names(subspaces) = colnames(MP$data[[data.name]])
   } else {
-    temp = as.list(preprocess)
-    names(temp) = preprocess
+    subspaces = as.list(preprocess)
+    names(subspaces) = preprocess
   }
-  MPaddConfig(MP, paste0(config.prefix, data.name, preprocess.prefix, ":subspace1"),
-              data.name=data.name, preprocess=temp)
+  MP = MPaddConfig(MP, paste0(config.prefix, data.name, preprocess.prefix, ":subspace1"),
+                   data.name=data.name, preprocess=subspaces)
   
   MP    
 }
+
 
 
 
@@ -138,12 +181,12 @@ subspace2.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess
                                         preprocess=NULL) {
   
   if (is.null(preprocess)) {
-    temp = MPgetAll2Subspaces(colnames(MP$data[[data.name]]))
+    subspaces = MPgetAll2Subspaces(colnames(MP$data[[data.name]]))
   } else {
-    temp = MPgetAll2Subspaces(preprocess)
+    subspaces = MPgetAll2Subspaces(preprocess)
   }
-  MPaddConfig(MP, paste0(config.prefix, data.name, preprocess.prefix, ":subspace2"),
-              data.name=data.name, preprocess=temp)
+  MP = MPaddConfig(MP, paste0(config.prefix, data.name, preprocess.prefix, ":subspace2"),
+                   data.name=data.name, preprocess=subspaces)
   
   MP
 }
@@ -174,12 +217,11 @@ subspacer.MultiPatternPlugin = function(MP, data.name, config.prefix,
     Dsub = abs(Dsub*length(temp))
   }            
   Dsub = min(length(temp), ceiling(Dsub))
-  temp.subspaces = MPgetRandomSubspaces(temp, Nsub, Dsub)
-  MPaddConfig(MP, paste0(config.prefix, data.name,
-                         preprocess.prefix, ":subspaceR"),
-              data.name=data.name, preprocess=temp.subspaces,
-              dist.fun=dist.euclidean)
-  rm(temp.subspaces, Nsub, Dsub)
+  subspaces = MPgetRandomSubspaces(temp, Nsub, Dsub)
+  MP = MPaddConfig(MP, paste0(config.prefix, data.name,
+                              preprocess.prefix, ":subspaceR"),
+                   data.name=data.name, preprocess=subspaces,
+                   dist.fun=dist.euclidean)
   
   MP
 }
@@ -187,7 +229,7 @@ subspacer.MultiPatternPlugin = function(MP, data.name, config.prefix,
 
 
 
-##' Add a set of configurations to an MultiPattern object
+##' Add a set of configurations to a MultiPattern object
 ##'
 ##' This plugin adds one configuration that uses a traditional euclidean distance.
 ##' 
@@ -204,13 +246,12 @@ euclidean.MultiPatternPlugin = function(MP, data.name, config.prefix,
   MPaddConfig(MP, paste0(config.prefix, data.name,":euclidean"),
               data.name=data.name,
               dist.fun=MPdistFactory(method="euclidean"))    
-  MP
 }
 
 
 
 
-##' Add a set of configurations to an MultiPattern object
+##' Add a set of configurations to a MultiPattern object
 ##'
 ##' This plugin adds one configuration that uses a spearman-correlation dissimilarity
 ##' 
@@ -225,15 +266,14 @@ spearman.MultiPatternPlugin = function(MP, data.name, config.prefix,
                                        preprocess.prefix="", preprocess=NULL) {
   
   MPaddConfig(MP, paste0(config.prefix, data.name,":spearman"),
-              data.name=data.name,
-              dist.fun=MPdistFactory(method="spearman"))    
-  MP
+                   data.name=data.name,
+                   dist.fun=MPdistFactory(method="spearman"))    
 }
 
 
 
 
-##' Add a set of configurations to an MultiPattern object
+##' Add a set of configurations to a MultiPattern object
 ##'
 ##' This plugin adds one configuration that uses a traditional canberra distance.
 ##' 
@@ -250,13 +290,12 @@ canberra.MultiPatternPlugin = function(MP, data.name, config.prefix,
   MPaddConfig(MP, paste0(config.prefix, data.name,":canberra"),
               data.name=data.name,
               dist.fun=MPdistFactory(method="canberra"))    
-  MP
 }
 
 
 
 
-##' Add a set of configurations to an MultiPattern object
+##' Add a set of configurations to a MultiPattern object
 ##'
 ##' This plugin adds one configuration that uses a traditional manhattan distance.
 ##' 
@@ -273,13 +312,12 @@ manhattan.MultiPatternPlugin = function(MP, data.name, config.prefix,
   MPaddConfig(MP, paste0(config.prefix, data.name,":manhattan"),
               data.name=data.name,
               dist.fun=MPdistFactory(method="manhattan"))    
-  MP
 }
 
 
 
 
-##' Add a set of configurations to an MultiPattern object
+##' Add a set of configurations to a MultiPattern object
 ##'
 ##' This plugin transforms an input dataset using PCA, then adds configurations
 ##' that use the transformed data. The configurations will of three types:
@@ -304,32 +342,34 @@ pca.MultiPatternPlugin = function(MP, data.name, config.prefix,
   
   ## get matrices with the all the raw data and with PCA transformed data
   datapca = getPCAsubset(MP$data[[data.name]], subset=numPCs)
+
+  if (is.null(datapca)) {
+    return(MP)
+  }
   
-  if (!is.null(datapca)) {
-    pcaname = paste0(data.name, ".pca")
-    ## add dataset to the MPconfig
-    MPaddData(MP, setNames(list(datapca), pcaname)) 
-    ## create a series of configurations for pca
-    pcasets = list()
-    imax = min(ncol(MP$data[[data.name]])-1, ncol(datapca))
-    for (i in 1:imax) {
-      if (i==1) {
-        pcasets[[colnames(datapca)[1]]] = colnames(datapca)[1]                        
-      } else if (i>2) {
-        pcasets[[paste(colnames(datapca)[c(1,i)], collapse="..")]] = colnames(datapca)[1:i]
-      }
+  pcaname = paste0(data.name, ".pca")
+  ## add dataset to the MPconfig
+  MP = MPaddData(MP, setNames(list(datapca), pcaname)) 
+  ## create a series of configurations for pca
+  pcasets = list()
+  imax = min(ncol(MP$data[[data.name]])-1, ncol(datapca))
+  for (i in 1:imax) {
+    if (i==1) {
+      pcasets[[colnames(datapca)[1]]] = colnames(datapca)[1]                        
+    } else if (i>2) {
+      pcasets[[paste(colnames(datapca)[c(1,i)], collapse="..")]] = colnames(datapca)[1:i]
     }
-    ## add configuration with increasing PCA details
-    ## (these are all euclidean-distance configs based on PCA-trasnsformed data)
-    MPaddConfig(MP, paste0(config.prefix, data.name, ":", names(pcasets)),
-                data.name=pcaname, preprocess=pcasets)
-    ## add configurations with pairwise PCA columns
-    twospaces = MPgetAll2Subspaces(head(colnames(datapca)))
-    if (length(twospaces)>0) {
-      MPaddConfig(MP, paste0(config.prefix, data.name, ":",
-                             names(twospaces)),
-                  data.name=pcaname, preprocess=twospaces)
-    }
+  }
+  ## add configuration with increasing PCA details
+  ## (these are all euclidean-distance configs based on PCA-trasnsformed data)
+  MP = MPaddConfig(MP, paste0(config.prefix, data.name, ":", names(pcasets)),
+                   data.name=pcaname, preprocess=pcasets)
+  ## add configurations with pairwise PCA columns
+  twospaces = MPgetAll2Subspaces(head(colnames(datapca)))
+  if (length(twospaces)>0) {
+    MP = MPaddConfig(MP, paste0(config.prefix, data.name, ":",
+                                names(twospaces)),
+                     data.name=pcaname, preprocess=twospaces)
   }
   
   MP
@@ -338,7 +378,7 @@ pca.MultiPatternPlugin = function(MP, data.name, config.prefix,
 
 
 
-##' Add a set of configurations to an MultiPattern object
+##' Add a set of configurations to a MultiPattern object
 ##'
 ##' This plugin transforms an input dataset using rpca, then defines configurations
 ##' on the transformed data. The plugin does not do anything if the input data
@@ -367,7 +407,7 @@ rpca.MultiPatternPlugin = function(MP, data.name, config.prefix,
   colnames(datarpca$L) = colnames(datarpca$S) = colnames(MP$data[[data.name]])            
   Lname = paste0(data.name, ".rpcaL")
   Sname = paste0(data.name, ".rpcaS")
-  MPaddData(MP, setNames(list(datarpca$L, datarpca$S), c(Lname, Sname)))           
+  MP = MPaddData(MP, setNames(list(datarpca$L, datarpca$S), c(Lname, Sname)))           
   MP = pca.MultiPatternPlugin(MP, Lname, config.prefix,
                               preprocess.prefix, preprocess)
   MP = pca.MultiPatternPlugin(MP, Sname, config.prefix,
@@ -379,7 +419,7 @@ rpca.MultiPatternPlugin = function(MP, data.name, config.prefix,
 
 
 
-##' Add a set of configurations to an MultiPattern object
+##' Add a set of configurations to a MultiPattern object
 ##'
 ##' This plugin transforms an input dataset using rpca, then defines configurations
 ##' on the transformed data. The plugin does not do anything if the input data
@@ -428,12 +468,12 @@ nmf.MultiPatternPlugin = function(MP, data.name, config.prefix,
     datanmf[[paste0(data.name, ".nmf", nowr)]] = NMF::basis(nownmf)
   }
   ## add datasets into MP
-  MPaddData(MP, datanmf)
+  MP = MPaddData(MP, datanmf)
   ## add euclidean distance configurations for each dataset
   for (nowr in seq(2, maxr, by=2)) {
-    MPaddConfig(MP, paste0(config.prefix, data.name,":nmf", nowr),
-                data.name=paste0(data.name, ".nmf", nowr),
-                dist.fun=dist.euclidean)            
+    MP = MPaddConfig(MP, paste0(config.prefix, data.name,":nmf", nowr),
+                     data.name=paste0(data.name, ".nmf", nowr),
+                     dist.fun=dist.euclidean)            
   }
   
   MP

@@ -14,10 +14,10 @@ cat("\ntest_plot.R ")
 snames = rownames(MPdata4S)
 mptest = MPnew(snames, data=list(A=MPdata4S[, 1:2]))
 mptest$subsample.R = 4
-MPeasyConfig(mptest, type=c("hclust", "euclidean"))
+mptest = MPeasyConfig(mptest, type=c("hclust", "euclidean"))
 ## to speed up examples, remove some configurations
-MPremove(mptest,
-         config=c("A:clust.S2reg", "A:clust.S2alt", "A:clust.S3reg", "A:clust.S3alt"))
+mptest = MPremove(mptest,
+                  config=c("A:clust.S2reg", "A:clust.S2alt", "A:clust.S3reg", "A:clust.S3alt"))
 mpsims = MPgetDistances(mptest, verbose=FALSE)
 mpmeta = MPgetAverageMetaDistance(mptest, verbose=FALSE)
 mpmap = MPgetMap(mpmeta)

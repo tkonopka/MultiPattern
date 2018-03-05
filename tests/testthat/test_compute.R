@@ -19,17 +19,17 @@ dist.list = list(euc=dist.euclidean, man=dist.manhattan)
 ## object with multiple datasets and configurations
 mptest = MPnew(snames, data=list(A=MPdata4S[, 1:2], B=MPdata6S[,1:2]))
 mptest$settings$subsample.N = 10
-MPeasyConfig(mptest, 
-             type=list(A="hclust", B=c("euclidean", "manhattan")),
-             )
-MPremove(mptest, config=grep("3", names(mptest$configs), value=T))
+mptest = MPeasyConfig(mptest, 
+                      type=list(A="hclust", B=c("euclidean", "manhattan")),
+                      )
+mptest = MPremove(mptest, config=grep("3", names(mptest$configs), value=T))
 
 ## a large dataset (for triggering large object messages)
 largeN = 1e4
 largedata = cbind(A=1:largeN, B=1:largeN, C=1:largeN, D=1:largeN)
 rownames(largedata) = paste0("S", 1:largeN)
 mplarge = MPnew(rownames(largedata), data=list(large=largedata))
-MPeasyConfig(mplarge, type=c("euclidean", "manhattan"))
+mplarge = MPeasyConfig(mplarge, type=c("euclidean", "manhattan"))
 
 
 
