@@ -29,11 +29,6 @@ NULL
 ##' clust.k: max number of clusters to use in easyConfig reg and alt
 ##' configurations
 ##'
-##' nmf.bg: background level in nmf analysis (avoids all-zero rows)
-##'
-##' nmf.rank: maximal rank of NMF analysis (zero triggers an
-##' automatic decision)
-##'
 ##' subspace.num.random: number of random subspaces
 ##'
 ##' subspace.d.random: number/proportion of features for subspace analysis
@@ -51,10 +46,8 @@ MPdefaultSettings = list(
   num.random=60,
   num.PCs=4,
   rpca.term.delta=1e-3,
-  dbscan.intervals=c(0.1,0.2,0.3,0.4),
+  dbscan.intervals=c(0.1, 0.2, 0.3, 0.4),
   clust.k=3,
-  nmf.bg = 1e-5,
-  nmf.rank = 0,
   subspace.num.random=100,
   subspace.d.random=0.5,
   alpha=0.5,

@@ -55,7 +55,8 @@ print.MultiPatternSettings = function(x, ...) {
   ## find length of names(x)
   xmax = max(nchar(names(x)))
   for (s in names(x)) {
-    message(sprintf(paste0("%", xmax, "s"),s), ":\t", x[[s]])
+    xs = paste(x[[s]], collapse=" ")
+    message(sprintf(paste0("%", xmax, "s"),s), ":\t", xs)
   }
 }
 

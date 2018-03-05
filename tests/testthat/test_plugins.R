@@ -12,8 +12,7 @@ test_that("listing and creating plugins", {
   output = MPlistPlugins()
   expected = c("canberra", "dbscan", "euclidean", "manhattan", "spearman", 
                "subspace1", "subspace2", "subspacer", 
-               "pca", "rpca",
-               "hclust", "pam", "nmf")
+               "pca", "rpca", "hclust", "pam")
   expect_equal(sort(output), sort(expected))
 
   ## create a new plugin (here dummy function)

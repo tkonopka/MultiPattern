@@ -4,7 +4,7 @@
 \name{MPdefaultSettings}
 \alias{MPdefaultSettings}
 \title{Summary of default settings for new MultiPattern objects}
-\format{An object of class \code{list} of length 13.}
+\format{An object of class \code{list} of length 11.}
 \usage{
 MPdefaultSettings
 }
@@ -20,11 +20,6 @@ rpca.term.delta: used in rpca analysis (smaller than default for speed)
 
 clust.k: max number of clusters to use in easyConfig reg and alt
 configurations
-
-nmf.bg: background level in nmf analysis (avoids all-zero rows)
-
-nmf.rank: maximal rank of NMF analysis (zero triggers an
-automatic decision)
 
 subspace.num.random: number of random subspaces
 

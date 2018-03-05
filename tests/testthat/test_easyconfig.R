@@ -159,10 +159,4 @@ test_that("easy pam", {
   expect_equal(confNames(mp), expected)
 })
 
-test_that("easy nmf", {
-  mp = MPnew(snames, data=list(abc=abc))
-  mp = MPeasyConfig(mp, data="abc", type="nmf")
-  expected = sort(c("abc:nmf2", "abc:nmf4"))
-  expect_equal(confNames(mp), expected)
-})
 

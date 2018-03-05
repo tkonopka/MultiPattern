@@ -513,7 +513,7 @@ As an example, let's work with the {\tt D6} dataset and suppose we are intereste
 ## function for a "regularized" euclidean distance
 ## x - input matrix
 ## p - regularization quantile (smaller distances will be regularized)
-dist.regularized = function(x, p=0.1) {
+dist.reg = function(x, p=0.1) {
     ## get traditional euclidean distance
     xd = dist(x)    
     ## find regularization level and adjust xd
@@ -522,7 +522,7 @@ dist.regularized = function(x, p=0.1) {
     ## output adjusted distance
     xd
 }
-class(dist.regularized(D6[,1:2]))
+class(dist.reg(D6[,1:2]))
 @ 
 
 \noindent The custom function takes a matrix as input and returns an object of class {\tt dist} as output. (The last command is a quick test that the function works, but you can test it more thoroughly with some examples; compare the output with a traditional call to {\tt dist}).
@@ -539,7 +539,7 @@ mp6.custom
 <<newconf3>>=
 mp6.custom = MPaddConfig(mp6.custom, "euclidean", data="D6", dist.fun=dist.euclidean)
 mp6.custom = MPaddConfig(mp6.custom, "canberra",  data="D6", dist.fun=dist.canberra)
-mp6.custom = MPaddConfig(mp6.custom, "reg",       data="D6", dist.fun=dist.regularized)
+mp6.custom = MPaddConfig(mp6.custom, "reg",       data="D6", dist.fun=dist.reg)
 mp6.custom
 @ 
 
@@ -595,7 +595,7 @@ reg.MultiPatternPlugin = function(MP, data.name, config.prefix,
   makeRegDist = function(q) {
     force(q)
     function(x) {
-      dist.regularized(x, q)
+      dist.reg(x, q)
     }
   }    
   ## add a series of configuration, using one MPaddConfig at-a-time
