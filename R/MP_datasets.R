@@ -6,6 +6,44 @@
 
 
 ## #######################################################################
+## Datasets with 1 group
+
+#' Toy dataset with one group (small)
+#'
+#' A synthetic collection of points in 2D with expected cluster groups.
+#'
+#' @name MPdata1S
+#' @docType data
+#' @usage data(MPdata1S)
+#' 
+#' @format A data frame with three columns: \code{D1}, \code{D2}, \code{class}.
+"MPdata1S"
+
+#' Toy dataset with one group (medium)
+#'
+#' A synthetic collection of points in 2D with expected cluster groups.
+#' 
+#' @name MPdata1M
+#' @docType data 
+#' @usage data(MPdata1M)
+#' 
+#' @format A data frame with three columns: \code{D1}, \code{D2}, \code{class}.
+"MPdata1M"
+
+#' Toy dataset with one group (large)
+#'
+#' A synthetic collection of points in 2D with expected cluster groups.
+#' 
+#' @name MPdata1L
+#' @docType data 
+#' @usage data(MPdata1L)
+#' 
+#' @format A data frame with three columns: \code{D1}, \code{D2}, \code{class}.
+"MPdata1L"
+
+
+
+## #######################################################################
 ## Datasets with 2 groups
 
 #' Toy dataset with two groups (small)

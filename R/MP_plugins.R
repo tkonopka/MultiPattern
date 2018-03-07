@@ -133,7 +133,7 @@ dbscan.MultiPatternPlugin = function(MP, data.name, config.prefix, preprocess.pr
     nowdbscan = MPdistFactory(method="dbscan", eps=noweps, clust.method="dbscan")
     MP = MPaddConfig(MP, paste0(clustconf, i), data.name=data.name, dist.fun=nowdbscan)
   }
-
+  
   MP
 }
 

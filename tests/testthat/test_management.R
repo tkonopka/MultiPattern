@@ -78,6 +78,13 @@ test_that("adding to non-MP object gives error", {
 })
 
 
+test_that("adding an empty dataset gives error", {
+  mp = MPnew(snames)
+  expect_error(MPaddData(mp, list(zero.rows=MPdata4S[c(),])))
+  expect_error(MPaddData(mp, list(zero.cols=MPdata4S[,c()])))
+})
+
+
 test_that("add more datasets into an MP configuration (all at once)", {
   mp = MPnew(snames)
   mp = MPaddData(mp, list(Four=MPdata4S, Six=MPdata6S))

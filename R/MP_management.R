@@ -105,6 +105,14 @@ MPaddData = function(MP, data) {
   if (length(badnames)>0) {
     stop("Duplicate data object names: ", paste(badnames, collapse=", "), "\n")
   }
+
+  ## check data objects are non-empty
+  sapply(datanames, function(x) {
+    dx = data[[x]]
+    if (nrow(dx)==0 | ncol(dx)==0) {
+      stop(paste0("data objects cannot be empty (", x, " is empty)\n"))
+    }
+  })
   
   ## update the list of data objects in this MultiPattern configuration
   MP$data = c(MP$data, data)
