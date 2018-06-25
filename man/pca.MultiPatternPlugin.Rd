@@ -20,10 +20,9 @@ pca.MultiPatternPlugin(MP, data.name, config.prefix, preprocess.prefix = "",
 }
 \description{
 This plugin transforms an input dataset using PCA, then adds configurations
-that use the transformed data. The configurations will of three types:
-(i) individual PC components, e.g. only PC1 or only PC2;
-(ii) series of PC components, e.g. PC1 to PC2 (PC1..PC2) or PC1 to PC3 (PC1..PC3);
-(iii) pairs of PC components, e.g. PC1, PC2 (PC1.PC2) or PC2, PC4 (PC2.PC4)
+that use the transformed data. The configurations will of two types:
+individual PC components, e.g. only PC1 or only PC2;
+pairs of PC components, e.g. PC1, PC2 (PC1.PC2) or PC2, PC4 (PC2.PC4)
 }
 \details{
 The maximal PC component for the configurations is determined from MP$settings.

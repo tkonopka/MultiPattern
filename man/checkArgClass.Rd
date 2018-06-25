@@ -16,3 +16,4 @@ checkArgClass(x, expected, msg = "")
 \description{
 check that an object is of the epected class, or stop
 }
+\keyword{internal}

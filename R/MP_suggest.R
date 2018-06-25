@@ -53,16 +53,30 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
   feature.class = MPPartitionFeatures(dd)
   MP$auto = feature.class
   
-  ## add configurations to MP based on these categories of variables
-  distconf = paste0(config.prefix, data, ":", names(feature.class))
-  MP = MPaddConfig(MP, paste0(distconf, ":euclidean"),
-                   data, preprocess=feature.class, dist.fun=dist.euclidean)
-  MP = MPaddConfig(MP, paste0(distconf, ":canberra"),
-                   data, preprocess=feature.class, dist.fun=dist.canberra)
-  rm(distconf)
+  ## for characters, add hamming
+  feature.char = feature.class[["char"]]
+  if (length(feature.char)>0) {
+    MP = MPeasyConfig(MP, data=data, config.prefix=config.prefix,
+                      preprocess.prefix="char",
+                      preprocess=feature.char,
+                      type="hamming")
+  }
+
+  ## remaining features are all numeric
+  feature.class[["char"]] = NULL
+  
+  if (length(feature.class)>0) {
+    ## add configurations to MP based on these categories of variables
+    distconf = paste0(config.prefix, data, ":", names(feature.class))
+    MP = MPaddConfig(MP, paste0(distconf, ":euclidean"),
+                     data, preprocess=feature.class, dist.fun=dist.euclidean)
+    MP = MPaddConfig(MP, paste0(distconf, ":canberra"),
+                     data, preprocess=feature.class, dist.fun=dist.canberra)
+    rm(distconf)
+  }
   
   ## for real-valued data, add pca 
-  for (nowf in intersect(c("real", "real.skew"), names(feature.class))) {
+  for (nowf in intersect(c("real", "realskew", "bin", "binskew"), names(feature.class))) {
     ## for pca and rpca, avoid features with NAs
     nowdd = dd[, feature.class[[nowf]], drop=FALSE]
     nowdd.ok = apply(nowdd, 2, function(x) {sum(!is.finite(x))==0})
@@ -71,7 +85,7 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
       data.name = paste0(data, ":", nowf)
       MP = MPaddData(MP, setNames(list(nowdd), data.name))        
       MP = MPeasyConfig(MP, data=data.name,
-                        config.prefix=config.prefix, type=c("pca"))
+                        config.prefix=config.prefix, type=c("pca", "ica"))
       ## here can remove the temporary datasets (pca plugin
       ## would have by now created their own helper tables)
       MP = MPremove(MP, data=data.name)                
@@ -110,18 +124,12 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
       }                                
     }
     
-    if (length(nowfeatures)>=2 & nowf %in% c("real", "realskew")) {
-      MP = MPeasyConfig(MP, data=data,
-                        config.prefix=config.prefix,
-                        preprocess.prefix=nowf, preprocess=nowfeatures,
-                        type="dbscan")
-    }
     if (length(nowfeatures)>2) {
       MP = MPeasyConfig(MP, data=data, config.prefix=config.prefix,
                         preprocess.prefix=nowf, preprocess=nowfeatures,
                         type="subspaceR")
     }
-
+    
   }
   
   ## finish with some updates to the user
@@ -142,11 +150,10 @@ MPsuggestConfig = function(MP, data, verbose=TRUE) {
 ##' Partition features in a data matrix into categories like "real",
 ##' "realskew", "bin", "multi", etc.
 ##'
-##' (This is an internal function only)
-##'
 ##' @param data matrix of data
 ##'
 ##' @return named list, names indicate feature class, contents are features
+##'
 MPPartitionFeatures = function(data) {
 
   ## helper function to compute skew and kurtosis from vectors
@@ -159,14 +166,28 @@ MPPartitionFeatures = function(data) {
     mu4 = sum((x-xmean)^4)
     c(skew=n^(1/2)*mu3/mu2^(3/2), kurtosis=n*mu4/(mu2^2))
   } 
+
+  ## identify all character/factor columns
+  result = list()
+  if ("data.frame" %in% class(data)) {
+    result$char = colnames(data)[sapply(data, class) %in% c("character", "factor")]
+  } else {
+    if (class(data[,1]) %in% c("character", "factor")) {
+      result$char = colnames(data)
+    }
+  }
+  
+  if (length(result[["char"]]) == ncol(data)) {
+    return(result)
+  }
   
   ## create an ad-hoc classification of features by data range (integer/real, etc)
-  feature.types = data.frame(Column=colnames(data),
+  feature.types = data.frame(Column=setdiff(colnames(data), result$character),
                              skew=0, ex.kurtosis=0, n.unique=0, stringsAsFactors=F)
   n.u = "n.unique"
   ft.columns = c("skew", "ex.kurtosis", "n.unique")
-  rownames(feature.types) = colnames(data)
-  for (nowcol in colnames(data)) {
+  rownames(feature.types) = feature.types[, "Column"]
+  for (nowcol in rownames(feature.types)) {
     nowdata = as.numeric(data[,nowcol])
     nowu = length(unique(nowdata))
     nowstats = mystats(nowdata)
@@ -196,22 +217,22 @@ MPPartitionFeatures = function(data) {
     if (ii %in% names(feature.table) & iiskew %in% names(feature.table)) {
       iifrac = feature.table[ii]/(feature.table[ii]+feature.table[iiskew])
       if (iifrac<0.01 | feature.table[ii]<3) {
-        feature.class[feature.class %in% c(ii, iiskew)] = ii
-      } else if (iifrac>0.99 | feature.table[iiskew]<3) {
         feature.class[feature.class %in% c(ii, iiskew)] = iiskew
+      } else if (iifrac>0.99 | feature.table[iiskew]<3) {
+        feature.class[feature.class %in% c(ii, iiskew)] = ii
       }
     }
   }    
   
   ## organize the features into a list by data type
-  feature.class = split(names(feature.class), feature.class)
+  result = c(result, split(names(feature.class), feature.class))
   ## avoid working with features with a single value
-  feature.class[["single"]] = NULL
-  if (length(feature.class)==0) {
+  result[["single"]] = NULL
+  if (length(result)==0) {
     stop("data does not appear to have distinct values\n")
   }
-
-  feature.class
+  
+  result
 }
 
 

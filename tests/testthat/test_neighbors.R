@@ -1,6 +1,6 @@
 ## tests for functions in MP_neighbors.R
 
-cat("\ntest_neighbors.R ")
+cat("\ntest_neighbors.R\n")
 
 
 ###############################################################################

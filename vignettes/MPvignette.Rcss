@@ -14,12 +14,13 @@ plot {
 
 par {
   mar: 0.32 0.62 0.92 0.62;
+  ps: 9;
 }
 
 points {
   pch: 1;
-  cex: 1.1;
-  lwd: 1.8;
+  cex: 0.7;
+  lwd: 1.5;
   col: #3b3b3b;
 }
 text, mtext {
@@ -28,68 +29,79 @@ text, mtext {
 
 /** for ploting raw dataset **/
 points.A {
-  cex: 1;
   pch: 1;
 }
 points.B {
-  cex: 1;
   pch: 2;
 }
 points.C {
-  cex: 1;
   pch: 3;
 }
 points.D {
-  cex: 1;
   pch: 4;
 }
 points.E {
-  cex: 1;
   pch: 5;
 }
 points.F {
-  cex: 1;
   pch: 6;
 }
+
 
 
 
 rect.meta {
   border: #111111;  
   lwd: 0.5;
-  col: #f6f8fb;
 }
 points.meta, points.traditional {
-  cex: 1.5;
-  col: #db4333;
+  cex: 0.65;
+  col: #db6454;
+  pch: 19;
   lwd: 2;
   xpd: 1;
 }
-points.meta.rnorm {
-  cex: 2;
-  col: #666666;
-  lwd: 1;
+text.meta {
+  cex: 1;
 }
-
-/** Highlighted points in MDS **/
 text.meta.highlight {
   pos: 4;
-  offset: 0.25;
+  offset: 0.35;
+  cex: 1;
+  xpd: 1;
+}
+text.meta.legend {
+  pos: 4;
 }
 points.meta.highlight {
   pch: 21;
-  cex: 2.2;
-  lwd: 3;
-  bg: #ffffff;
-  col: #a63626; 
+  cex: 1.4;
+  lwd: 1;
+  /** bg: #ffffff; **/
+  /** col: #a63626;  **/
+  bg: #777777;
+  col: #000000;
 }
+points.meta.clust {
+  col: #db9333;
+}
+points.meta.pca {
+  col: #7b1e7a;
+}
+points.meta.ica {
+  col: #0e79b2;
+}
+mtext.meta {
+  cex: 0.9;
+}
+
 
 ScatterWithK {
   padding: 0.13;
 }
 
 rect.scatter {
-  col: #fbf8f6;
+/**  col: #fbf8f6; **/
 }
 points.scatter.G0 {
   pch: 1;
@@ -112,7 +124,7 @@ mtext.scatter {
   adj: 0.05;
   line: -1.25;
   font: 2;
-  cex: 0.8;
+  cex: 1;
 }
 mtext.scatter.mu {
   col: #db4333;

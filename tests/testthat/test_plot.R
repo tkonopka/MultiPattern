@@ -3,7 +3,7 @@
 ## The tests are satisfied when the calls to plot do not yield errors 
 ## when a proper input is given)
 
-cat("\ntest_plot.R ")
+cat("\ntest_plot.R\n")
 
 
 ###############################################################################

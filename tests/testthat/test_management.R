@@ -1,8 +1,6 @@
 ## tests for creating MP conigurations
 
-cat("\ntest_management.R ")
-
-## initial time for all tests round 6.1s
+cat("\ntest_management.R\n")
 
 
 ###############################################################################

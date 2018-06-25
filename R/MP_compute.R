@@ -24,7 +24,7 @@ MPgetDistances = function(MP, configs=NULL, verbose=TRUE) {
     
   checkArgClass(MP, "MultiPattern")
   
-  if (verbose & object.size(MP)>1e6) {
+  if (verbose & object.size(MP$data)>1e5) {
     message("This may take some time. Please wait... ", appendLF=FALSE)
   }
   
@@ -55,7 +55,7 @@ MPgetDistances = function(MP, configs=NULL, verbose=TRUE) {
   names(ans) = configs
   class(ans) = "MultiPatternSimilarities"
   
-  if (verbose & object.size(MP)>1e6) {
+  if (verbose & object.size(MP$data)>1e5) {
     message("done")
   }
   
@@ -107,11 +107,19 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
   }
   
   ## check sub sampling is compatible with MP, no. iterations is >= 1
+  numitems = length(MP$items)
   if (subsample.N<1) {
-    subsample.N = abs(length(MP$items)*subsample.N)
+    subsample.N = abs(numitems*subsample.N)
   }
-  subsample.N = max(1, min(length(MP$items)-1, ceiling(subsample.N)))
+  subsample.N = max(1, min(numitems-1, ceiling(subsample.N)))
   subsample.R = max(1, ceiling(subsample.R))
+  
+  ## perhaps adjust strategy to leave-1-out
+  strategy = "random"
+  if (subsample.N==numitems-1 & subsample.R>=numitems) {
+    subsample.R = numitems
+    strategy = "leave-1-out"
+  }
   
   if (subsample.N<2) {
     stop("Subsampling gives too-small a dataset");
@@ -132,11 +140,17 @@ MPgetAverageMetaDistance = function(MP, standardize=MPrankNeighbors,
     
     ## get a subset of the items and create a new MP object
     tempMP = MP
-    tempMP$items = sample(MP$items, subsample.N, replace=FALSE)
+    
+    ## select subsample randomly or as systematic leave-1 out
+    if (strategy=="leave-1-out") {
+      tempMP$items = MP$items[-i]
+    } else {
+      tempMP$items = sample(MP$items, subsample.N, replace=FALSE)
+    }
+    
     ## get smaller versions of the data matrices
-    ## (rename rows to avoid duplicate rownames due to bootstrap)
     for (nowdata in names(MP$data)) {
-      tempMP$data[[nowdata]] = MP$data[[nowdata]][tempMP$items,]
+      tempMP$data[[nowdata]] = MP$data[[nowdata]][tempMP$items,,drop=FALSE]
       rownames(tempMP$data[[nowdata]]) = paste0("B", 1:subsample.N)
     }
     ## compute similarities and meta-similarities for the tempMP
@@ -201,32 +215,18 @@ MPgetMetaDistance = function(MPS, standardize=MPrankNeighbors, alpha=1, beta=2, 
                  })
   }
   
-  ## helper function with L-alpha norm
+  ## helper function with L-beta norm
   Ldist = function(a, b, beta) {
     temp = (abs(a-b))^beta        
     sum(temp)^(1/beta)
   }
-  simpledist = function(a, b) {
-    sqrt(sum((a-b)*(a-b)))
-  }
-  
-  if (beta==2) {
-    for (i in seq_len(nowsize)) {
-      for (j in seq_len(nowsize)) {
-        if (j>i) {
-          ans[i,j] = ans[j,i] = simpledist(MPS[[i]], MPS[[j]])
-        }
+  for (i in seq_len(nowsize)) {
+    for (j in seq_len(nowsize)) {
+      if (j>i) {
+        ans[i,j] = ans[j,i] = Ldist(MPS[[i]], MPS[[j]], beta)                    
       }
-    }        
-  } else {        
-    for (i in seq_len(nowsize)) {
-      for (j in seq_len(nowsize)) {
-        if (j>i) {
-          ans[i,j] = ans[j,i] = Ldist(MPS[[i]], MPS[[j]], beta)                    
-        }
-      }
-    }        
-  }
+    }
+  }        
   
   ans
 }

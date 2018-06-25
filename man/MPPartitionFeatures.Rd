@@ -14,5 +14,6 @@ MPPartitionFeatures(data)
 named list, names indicate feature class, contents are features
 }
 \description{
-(This is an internal function only)
+Partition features in a data matrix into categories like "real",
+"realskew", "bin", "multi", etc.
 }

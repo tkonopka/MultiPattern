@@ -1,20 +1,22 @@
 Package: MultiPattern
-Title: Multi-pattern discovery in R
+Title: Multi-Pattern Discovery Framework
 Version: 0.0.1.0
 Authors@R: person("Tomasz", "Konopka", email = "tokonopka@gmail.com", role = c("aut", "cre"))
 Author: Tomasz Konopka [aut, cre]
 Maintainer: Tomasz Konopka <tokonopka@gmail.com>
-Description: Multi-pattern discovery in R. 
+Description: Multi-pattern discovery is a task in exploratory data analysis. Similarly as in clustering, its goal is to identify patterns in data. However, whereas conventional clustering aims to output one clustering solution, a multi-pattern analysis is based on the idea that complex data may encode more than meaningful structure. Thus, a multi-pattern analysis aims to characterize more than one pattern and describe the relations between them. The MultiPattern package provides an interface to several pattern-finding algorithms and provides tools for performing cross-cutting meta-comparisons and visualizations.
 Depends:
-    R (>= 3.1.2)
+    R (>= 3.4.1)
 Imports:
     cluster,
     dbscan,
     graphics,
+    fastICA,
+    NMF,
     Rcssplot (>= 0.3.0),
     rpca,
     stats,
-    tsne,
+    umap,
     utils
 License: GPL-2
 LazyData: true

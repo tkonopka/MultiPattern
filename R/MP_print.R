@@ -10,7 +10,7 @@
 ##'
 ##' @param x a MultiPattern configuration object
 ##' @param ... additional arguments, not used
-##' 
+##'
 ##' @export
 print.MultiPattern = function(x, ...) {
   checkArgClass(x, "MultiPattern")
@@ -22,7 +22,7 @@ print.MultiPattern = function(x, ...) {
     message(paste0("      |- ", sprintf("%-12s", names(x$data)[i]), 
                " - ", sprintf("%6d", ncol(xd)), " features"))   
   }
-  message(sprintf("%-5s", length(x$configs)), "analyses configurations")
+  message(sprintf("%-5s", length(x$configs)), "analysis configurations")
 }
 
 
@@ -32,7 +32,7 @@ print.MultiPattern = function(x, ...) {
 ##'
 ##' @param x a MultiPatternSimilarities object
 ##' @param ... additional arguments, not used
-##' 
+##'
 ##' @export
 print.MultiPatternSimilarities = function(x, ...) {  
   checkArgClass(x, "MultiPatternSimilarities")
@@ -47,7 +47,7 @@ print.MultiPatternSimilarities = function(x, ...) {
 ##'
 ##' @param x a MultiPatternSettings object (list)
 ##' @param ... additional arguments, not used
-##' 
+##'
 ##' @export
 print.MultiPatternSettings = function(x, ...) {
   checkArgClass(x, "MultiPatternSettings")

@@ -65,11 +65,6 @@ MPgetRandomSubspaces = function(f, n, d=4, oversample=4) {
   n2 = ceiling(n*oversample)
 
   ans = matrix(NA, nrow=n2, ncol=d)
-  #if (class(f)=="character") {
-  #  ans = matrix("", nrow=n2, ncol=d)
-  #} else {
-  #  ans = matrix(0, nrow=n2, ncol=d)
-  #}
   
   ## create unique combinations of sets
   for (i in seq_len(nrow(ans))) {
@@ -83,9 +78,7 @@ MPgetRandomSubspaces = function(f, n, d=4, oversample=4) {
   }
   
   ## turn the matrix into a list object with arbitrary names for the features
-  ans2 = split(ans, 1:nrow(ans))
-  
-  ans2
+  split(ans, 1:nrow(ans))
 }
 
 
@@ -105,11 +98,16 @@ MPgetRandomSubspaces = function(f, n, d=4, oversample=4) {
 ##' @param iqrfactor numeric. threshold to consider a feature in a PC as worthy of selection
 ##' 
 ##' @export
-MPsuggestTopFeatures = function(x, ncomp=function(x) { 1+sqrt(x) },
-                                iqrfactor=function(x) { log(x) }) {
+MPsuggestTopFeatures = function(x, ncomp=function(y) { 1+sqrt(y) },
+                                iqrfactor=function(y) { log(y)} ) {
   
   ## transform the data using PCA
   if (class(x)!="prcomp") {
+    ## eliminate constant columns in x (constant columns make prcomp non-deterministic)
+    x = x[, apply(x, 2, sd)>0, drop=FALSE]
+    if (ncol(x)<2) {
+      return(colnames(x))
+    }
     x = prcomp(x)
   }
   
@@ -192,19 +190,17 @@ MPmakePrepFunction = function(a) {
 
 
 
-## helper function cuts a matrix into a small with at least min.n columns
+## helper function cuts a matrix into a small with at least 2 columns
 ## and with all columns that contain covthreshold of the total variance
 ##
 ## dd - input matrix
 ## subset - if less than one, proportion of variance explained by pca
 ##          if greater than one, number of PCA components
-## min.n - minimum number of columns to output
 ##
 ## outputs a new matrix with the same number of rows as dd, with fewer columns
 ##
-getPCAsubset = function(dd, subset=0.6, min.n=2) {
-  if (ncol(dd)<min.n) {
-    warning("input data has ", ncol(dd), "columns and min.n is ", min.n,"")
+getPCAsubset = function(dd, subset=0.6) {
+  if (ncol(dd)<2 | subset<=0) {
     return(NULL)
   }
   ddpca = prcomp(dd)$x
@@ -217,10 +213,35 @@ getPCAsubset = function(dd, subset=0.6, min.n=2) {
     nowselect = rep(FALSE, ncol(ddpca))
     nowselect[1:min(subset, ncol(ddpca))] = TRUE
   }
-  nowselect[1:min.n] = TRUE
+  nowselect[1:2] = TRUE
   
   ## return the transformed data
-  ddpca[, nowselect, drop=FALSE]
+  result = ddpca[, nowselect, drop=FALSE]
+  colnames(result) = paste0("PC", seq(ncol(result)))
+  result
+}
+
+
+
+
+## transform matrix using PCA and ICA and obtain a matrix with a
+## small number of components
+##
+## outputs a new matrix with same number of rows as dd, with fewer columns
+##
+getICAsubset = function(dd, n.comp=2) {
+  if (ncol(dd)<2 | n.comp<=0) {
+    return(NULL)
+  }
+  if (n.comp<1) {
+    n.comp = round(n.comp*ncol(dd))
+  }
+  n.comp = max(2, min(n.comp, ncol(dd)))
+  ddpca = prcomp(dd)$x
+  ddica = fastICA::fastICA(ddpca, n.comp)
+  result = ddica$S[, 1:n.comp]
+  colnames(result) = paste0("IC", seq(ncol(result)))
+  result
 }
 
 
@@ -258,22 +279,29 @@ MPsquarelim = function(x, y) {
 ##' This function uses cmdscale, or tsne.
 ##' 
 ##' @param d distance object
-##' @param tsne logical, determine if use tsne for map layout
-##' @param perplexity integer, passed on to tsne(), slightly larger than default
-##' @param max_iter integer, passed on to tsne(), much lower default than in
-##' tsne's default
-##' @param whiten logical, passed on to tsne(), different default than tsne()
+##' @param method character, method to prepare map
+##' @param ... other parameters can be passed to umap
 ##'
 ##' @export
-MPgetMap = function(d, tsne=FALSE, perplexity=40, max_iter=1, whiten=FALSE) {
+MPgetMap = function(d, method=c("umap", "cmdscale"), ...) {
+  
+  method = match.arg(method)
   
   ## get a cmdscale map as an initial configuration
-  ans = cmdscale(d)
+  d = as.matrix(d)
   
   # perhaps adjust the cmdscale result using tsne
-  if (tsne) {
-    ans = suppressMessages(tsne::tsne(ans, initial_config=ans, perplexity=perplexity,
-                                      max_iter=max_iter, whiten=whiten))
+  if (method=="umap") {
+    conf = umap::umap.defaults
+    conf$init = "spectral"
+    conf$input = "dist"
+    conf$min.dist = 0.2
+    V = nrow(d)
+    conf$n.neighbors = min(V-1, 1+floor(sqrt(V)))
+    ans = suppressWarnings(umap::umap(d, conf, ...))
+    ans = ans$layout
+  } else if (method=="cmdscale") {
+    ans = cmdscale(d)
   }
   
   ans

@@ -6,9 +6,9 @@
 
 ## General package maintenance - import functions from packages
 #' @import stats
-#' @import tsne
 #' @import utils
 #' @import cluster
+#' @import fastICA
 #' @import graphics
 #' @import Rcssplot
 NULL
@@ -23,7 +23,13 @@ NULL
 ##' num.random: number of random configurations
 ##' 
 ##' num.PCs: number of PCA components
-##' 
+##'
+##' num.ICs: number of ICA components
+##'
+##' nmf.rank: number of NMF components
+##'
+##' nmf.bg: background value added to avoid null rows in NMF
+##'
 ##' rpca.term.delta: used in rpca analysis (smaller than default for speed)
 ##'
 ##' clust.k: max number of clusters to use in easyConfig reg and alt
@@ -45,6 +51,9 @@ NULL
 MPdefaultSettings = list(
   num.random=60,
   num.PCs=4,
+  num.ICs=4,
+  nmf.rank=6,
+  nmf.bg=0.1,
   rpca.term.delta=1e-3,
   dbscan.intervals=c(0.1, 0.2, 0.3, 0.4),
   clust.k=3,
@@ -130,11 +139,12 @@ MPaddData = function(MP, data) {
 ##' 
 ##' @param MP existing MP object
 ##' @param config.name character, base name for new subspace/distance
-##' @param data.name character, name for data component in MP object. Defaults to first dataset
-##' declared in MP. 
-##' @param preprocess function or feature set, data preprocessing applied before distance function.
-##' Can be a single value or a list. Defaults to NULL, which indicates no preprocessing is required.
-##' When a function, the function is applied on the dataset prior to computing dissimilarities.
+##' @param data.name character, name for data component in MP object. Defaults
+##' to first dataset declared in MP. 
+##' @param preprocess function or feature set, data preprocessing applied before
+##' distance function. Can be a single value or a list. Defaults to NULL, which
+##' indicates no preprocessing is required. When a function, the function is
+##' applied on the dataset prior to computing dissimilarities.
 ##' When a vector (character or integer), it is interpreted a feature set of the dataset;
 ##' dissimilarities are then computed on this subspace of the data.
 ##' @param dist.fun function, distance function. Can be a single value or a list.
@@ -186,7 +196,7 @@ MPaddConfig = function(MP, config.name, data.name=names(MP$data)[1],
   ## check if any of the new names overlap with existing names
   badnames = newnames[newnames %in% names(MP$configs)]
   if (length(badnames)>0) {        
-    stop("Duplicate clustering configuration names: ", paste(badnames, collapse=", "), "\n")
+    stop("Duplicate configuration names: ", paste(badnames, collapse=", "), "\n")
   }
   
   ## create a list with new configurations
@@ -252,7 +262,7 @@ MPremove = function(MP, data=NULL, config=NULL) {
       if (nowd %in% names(MP$data)) {
         MP$data[[nowd]] = NULL
       } else {
-        warning("Data object", nowd, " is not in MultiPattern configuration\n");
+        warning("Data object ", nowd, " is not in MultiPattern configuration\n");
       }
     }
     
@@ -286,7 +296,8 @@ MPchangeSettings = function(MP, settings = list(), warn=TRUE) {
   sn = names(settings)
   noncore = sn[!sn %in% names(MPdefaultSettings)]
   if (length(noncore)>0 & warn) {
-    warning("\nnon-core setting(s): ", paste(noncore, collapse=", "), "\n")
+    warning("changing non-core setting(s): ", paste(noncore, collapse=", "), "\n",
+            call.=FALSE)
   }
   for (nows in names(settings)) {
     MP$settings[[nows]] = settings[[nows]]

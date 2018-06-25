@@ -1,7 +1,7 @@
 ## tests for datasets
 ## the package should come with attached datasets
 
-cat("\ntest_data.R")
+cat("\ntest_data.R\n")
 
 
 

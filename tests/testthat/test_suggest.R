@@ -1,7 +1,7 @@
 ## tests for creating series of MP conigurations with one command MPsuggestConfigs
 ## i.e. tests of automated choices of configurations
 
-cat("\ntest_suggest.R ")
+cat("\ntest_suggest.R\n")
 
 
 ###############################################################################
@@ -16,15 +16,21 @@ bb = MPdata6S[snames, c("D1", "D2")]
 cc = MPdata9S[snames, c("D1", "D2")]
 colnames(bb) = c("D3", "D4")
 colnames(cc) = c("D5", "D6")
-abc = cbind(aa, bb, cc)
+abc = cbind(aa, bb+0.1, cc-0.1)
 
 ## create dataset with binary fields
 abc.bin = matrix(c(-1,9), ncol=4, nrow=num.samples)
+abc.bin[,2] = rep(c(-2,4), each=num.samples/2)
+abc.bin[,3] = rep(c(1,2), num.samples/2)
+abc.bin[,4] = rep(rep(c(5,4), each=2), num.samples/2)[1:num.samples]
 colnames(abc.bin) = paste0("bin.", letters[1:4])
 rownames(abc.bin) = snames
 
 ## create dataset withh binary fields with skew
 abc.binskew = matrix(c(4, rep(8, num.samples-1)), ncol=4, nrow=num.samples)
+abc.binskew[,2]= rep(c(2,7), c(1, num.samples-1))
+abc.binskew[,3]= rep(c(5,2), c(num.samples-1,1))
+abc.binskew[,4]= rep(c(7,3), c(num.samples-1,1))
 colnames(abc.binskew) = paste0("skew.", letters[1:4])
 rownames(abc.binskew) = snames
 
@@ -36,7 +42,8 @@ rownames(abc.multi) = snames
 
 ## a large dataset (for triggering large object messages)
 largeN = 2e4
-largedata = cbind(A=1:largeN, B=1:largeN, C=1:largeN, D=1:largeN)
+largedata = cbind(A=runif(largeN), B=runif(largeN),
+                  C=runif(largeN), D=runif(largeN))
 rownames(largedata) = paste0("S", 1:largeN)
 mplarge = MPnew(rownames(largedata), data=list(large=largedata))
 
@@ -48,7 +55,6 @@ confNames = function(mp) {
   result = result[!grepl("^rnorm", result)]
   sort(result)
 }
-
 
 
 
@@ -67,7 +73,8 @@ core.configs = c("euclidean", "canberra",
                  "clust.S3reg", "clust.S3alt",
                  "subspaceR.1", "subspaceR.2",
                  "subspaceR.3", "subspaceR.4")
-corepca.configs = c("PC1", "PC1.PC2")
+corepca.configs = c("PCA.2", "PC1", "PC2", "PC1.PC2")
+coreica.configs = c("ICA.2", "IC1", "IC2", "IC1.IC2")
 coredbscan.configs = paste0("dbscan.", 1:4)
 core.rnorm = c("rnorm.1", "rnorm.2")
 
@@ -99,10 +106,11 @@ test_that("suggest a series of configs (data with real-valued fields)", {
   mp$settings$num.random=2
   mp$settings$subspace.num.random=4
   mp$settings$num.PCs=2
+  mp$settings$num.ICs=2
   mp = MPsuggestConfig(mp, data="abc", verbose=FALSE)
   expected = c(paste0("AUTO:abc:real:", core.configs),
                paste0("AUTO:abc:real:", corepca.configs),
-               paste0("AUTO:abc:real:", coredbscan.configs))
+               paste0("AUTO:abc:real:", coreica.configs))
   expect_equal(confNames(mp), sort(expected))
 })
 
@@ -114,9 +122,44 @@ test_that("suggest a series of configs (data with bin-valued fields)", {
   mp$settings$num.random=2
   mp$settings$subspace.num.random=4
   mp$settings$num.PCs=2
+  mp$settings$num.ICs=2
   mp = MPsuggestConfig(mp, data="abc.binbin", verbose=FALSE)
   expected = c(paste0("AUTO:abc.binbin:bin:", core.configs),
-               paste0("AUTO:abc.binbin:binskew:", core.configs))
+               paste0("AUTO:abc.binbin:bin:", corepca.configs),
+               paste0("AUTO:abc.binbin:bin:", coreica.configs),
+               paste0("AUTO:abc.binbin:binskew:", core.configs),
+               paste0("AUTO:abc.binbin:binskew:", corepca.configs),
+               paste0("AUTO:abc.binbin:binskew:", coreica.configs))              
+  expect_equal(confNames(mp), sort(expected))
+})
+
+
+test_that("suggest a series of configs (avoid single-feature datasets)", {
+  abc.binbin = cbind(abc.bin[,1,drop=FALSE], abc.binskew)
+  mp = MPnew(snames, data=list(abc.binbin=abc.binbin))
+  ## change settings (decreases default number of configuration based on randomness)
+  mp$settings$num.random=2
+  mp$settings$subspace.num.random=4
+  mp$settings$num.PCs=0
+  mp$settings$num.ICs=2
+  mp = MPsuggestConfig(mp, data="abc.binbin", verbose=FALSE)
+  expected = c(paste0("AUTO:abc.binbin:binskew:", core.configs),
+               paste0("AUTO:abc.binbin:binskew:", coreica.configs))
+  expect_equal(confNames(mp), sort(expected))
+})
+
+
+test_that("suggest a series of configs (avoid single-feature skew datasets)", {
+  abc.binbin = cbind(abc.bin, abc.binskew[,1,drop=FALSE])
+  mp = MPnew(snames, data=list(abc.binbin=abc.binbin))
+  ## change settings (decreases default number of configuration based on randomness)
+  mp$settings$num.random=2
+  mp$settings$subspace.num.random=4
+  mp$settings$num.PCs=2
+  mp$settings$num.ICs=0
+  mp = MPsuggestConfig(mp, data="abc.binbin", verbose=FALSE)
+  expected = c(paste0("AUTO:abc.binbin:bin:", core.configs),
+               paste0("AUTO:abc.binbin:bin:", corepca.configs))
   expect_equal(confNames(mp), sort(expected))
 })
 
@@ -127,6 +170,7 @@ test_that("suggest a series of configs (data with multi-valued fields)", {
   mp$settings$num.random=2
   mp$settings$subspace.num.random=4
   mp$settings$num.PCs=2
+  mp$settings$num.ICs=2
   mp = MPsuggestConfig(mp, data="abc.multi", verbose=FALSE)
   expected = c(paste0("AUTO:abc.multi:multi:", core.configs))
   expect_equal(confNames(mp), sort(expected))
@@ -140,13 +184,61 @@ test_that("suggest a series of configs (all data types at once)", {
   mp$settings$num.random=2
   mp$settings$subspace.num.random=4
   mp$settings$num.PCs=2
+  mp$settings$num.ICs=0
   mp = MPsuggestConfig(mp, data="abc.all", verbose=FALSE)
   expected = c(paste0("AUTO:abc.all:real:", core.configs),
                paste0("AUTO:abc.all:real:", corepca.configs),
-               paste0("AUTO:abc.all:real:", coredbscan.configs),
                paste0("AUTO:abc.all:bin:", core.configs),
+               paste0("AUTO:abc.all:bin:", corepca.configs),
                paste0("AUTO:abc.all:binskew:", core.configs),
+               paste0("AUTO:abc.all:binskew:", corepca.configs),
                paste0("AUTO:abc.all:multi:", core.configs))
+  expect_equal(confNames(mp), sort(expected))
+})
+
+
+test_that("suggest with only character/factor column)", {
+  ## new matrix with just characters
+  dchars = matrix(letters[1:20], ncol=2)
+  colnames(dchars) = c("X", "Y")
+  rownames(dchars) = paste0("S", 1:nrow(dchars))
+  dchars.df = as.data.frame(dchars, stringsAsFacotrs=F)
+  expected = paste0("AUTO:dchars:char:", c("hamming", "hamming.X", "hamming.Y"))  
+  ## create configurations using matrix
+  mp = MPnew(snames, data=list(dchars=dchars))
+  mp = MPsuggestConfig(mp, data="dchars", verbose=FALSE)
+  expect_equal(confNames(mp), sort(expected))
+  ## create configurations using data frame
+  mp.df = MPnew(snames, data=list(dchars=dchars.df))
+  mp.df = MPsuggestConfig(mp.df, data="dchars", verbose=FALSE)
+  expect_equal(confNames(mp.df), sort(expected))
+})
+
+
+test_that("suggest with only one character/factor column)", {
+  ## using only one column with a factor
+  d4 = MPdata4S[snames, "class", drop=FALSE]
+  mp = MPnew(snames, data=list(d4=d4))
+  mp = MPsuggestConfig(mp, data="d4", verbose=FALSE)
+  expected = c(paste0("AUTO:d4:char:hamming"))
+  expect_equal(confNames(mp), sort(expected))
+})
+
+
+test_that("suggest with mixed character and numeric columns)", {
+  ## using only one column with a factor
+  abc2 = cbind(abc, class=MPdata4S[snames, "class"])
+  mp = MPnew(snames, data=list(abc2=abc2))
+  mp$settings$num.random=2
+  mp$settings$subspace.num.random=4
+  mp$settings$num.PCs=2
+  mp$settings$num.ICs=2
+  mp = MPsuggestConfig(mp, data="abc2", verbose=FALSE)
+  expected = c(paste0("AUTO:abc2:char:hamming"),
+               paste0("AUTO:abc2:real:", core.configs),
+               paste0("AUTO:abc2:real:", corepca.configs),
+               paste0("AUTO:abc2:real:", coreica.configs)
+               )
   expect_equal(confNames(mp), sort(expected))
 })
 

@@ -4,7 +4,7 @@
 \name{MPdefaultSettings}
 \alias{MPdefaultSettings}
 \title{Summary of default settings for new MultiPattern objects}
-\format{An object of class \code{list} of length 11.}
+\format{An object of class \code{list} of length 14.}
 \usage{
 MPdefaultSettings
 }
@@ -15,6 +15,12 @@ See details for a description of each component
 num.random: number of random configurations
 
 num.PCs: number of PCA components
+
+num.ICs: number of ICA components
+
+nmf.rank: number of NMF components
+
+nmf.bg: background value added to avoid null rows in NMF
 
 rpca.term.delta: used in rpca analysis (smaller than default for speed)
 

@@ -1,6 +1,6 @@
 ## tests for computing based on a MultiPattern configuration
 
-cat("\ntest_compute.R ")
+cat("\ntest_compute.R\n")
 
 
 ###############################################################################
@@ -25,7 +25,7 @@ mptest = MPeasyConfig(mptest,
 mptest = MPremove(mptest, config=grep("3", names(mptest$configs), value=T))
 
 ## a large dataset (for triggering large object messages)
-largeN = 1e4
+largeN = 4e3
 largedata = cbind(A=1:largeN, B=1:largeN, C=1:largeN, D=1:largeN)
 rownames(largedata) = paste0("S", 1:largeN)
 mplarge = MPnew(rownames(largedata), data=list(large=largedata))
@@ -94,12 +94,24 @@ test_that("compute avg meta-distances gives messages", {
 })
 
 
-test_that("compute averge meta-dstances in an MP analysis (using subsampling)", {
+test_that("compute averge meta-dstances in an MP analysis (using leave-1-out)", {
+  ## dataset is small and default subsample.N is large, should use leave-1-out strategy
   result1 = MPgetAverageMetaDistance(mptest, verbose=FALSE)
   expect_equal(colnames(result1), names(mptest$configs))
   expect_equal(rownames(result1), names(mptest$configs))
   ## should not give exactly same results on multiple repeats
   result2 = MPgetAverageMetaDistance(mptest, verbose=FALSE)
+  expect_equal(result2, result1)
+})
+
+
+test_that("compute averge meta-dstances in an MP analysis (using random selection)", {
+  mprandom = mptest
+  mprandom$settings$subsample.N = 7
+  mprandom$settings$subsample.R = 3
+  ## with subsample.N < number of items, sampling strategy should be random
+  result1 = MPgetAverageMetaDistance(mprandom, verbose=FALSE)
+  result2 = MPgetAverageMetaDistance(mprandom, verbose=FALSE)
   expect_gt(sum(abs(result2-result1)), 0)
 })
 
@@ -170,14 +182,18 @@ test_that("find representatives among a map", {
   mpmeta = MPgetAverageMetaDistance(mptest, verbose=FALSE)
   mapdist = dist(MPgetMap(mpmeta))
   ## with k<1, should select a fraction of available configurations 
-  mpreps.c = MPgetRepresentatives(mapdist, method="complete", k=0.5)
-  expect_equal(length(mpreps.c), length(mptest$configs)/2)
+  mpreps.c05 = MPgetRepresentatives(mapdist, method="complete", k=0.5)
+  expect_equal(length(mpreps.c05), length(mptest$configs)/2)
   ## with k>1, should select explicit number of configurations
-  mpreps.c = MPgetRepresentatives(mapdist, method="complete", k=3)
-  expect_equal(length(mpreps.c), 3)
+  mpreps.c3 = MPgetRepresentatives(mapdist, method="complete", k=3)
+  expect_equal(length(mpreps.c3), 3)
+  ## using pam
+  mpreps.p3 = MPgetRepresentatives(mapdist, method="pam", k=3)
+  expect_equal(length(mpreps.p3), 3)
   ## methods of selection should give different results (most often...)
   mpreps.e = MPgetRepresentatives(mapdist, method="extreme", k=3)
-  expect_false(identical(mpreps.c, mpreps.e))
+  expect_equal(length(mpreps.e), 3)
+  expect_false(identical(mpreps.c3, mpreps.e))
 })
 
 

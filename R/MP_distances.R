@@ -63,8 +63,10 @@ MPimputeNAs = function(x, method=mean) {
 ##'
 ##' @export
 MPdistImpute = function(x, method=mean) {
-  x = as.dist(x)
-  MPimputeNAs(as.dist(x), method=method)
+  if (!"dist" %in% class(x)) {
+    x = as.dist(x)
+  }
+  MPimputeNAs(x, method=method)
 }
 
 
@@ -95,6 +97,33 @@ dist.euclidean = function(x) {
 ##' @export
 dist.canberra = function(x) {
   MPdistImpute( stats::dist(x, method="canberra") )
+}
+
+
+
+
+##' Hamming distance
+##'
+##' This counts the number of columns in x that are different between rows.
+##' It is a suitable distance function for factor and character data.
+##'
+##' @param x matrix with numbers, characters, or factors
+##'
+##' @export
+dist.hamming = function(x) {  
+  nn = nrow(x)
+  ans = matrix(0, ncol=nn, nrow=nn)
+  for (i in 1:(nn-1)) {
+    ix = x[i,]
+    for (j in (i+1):nn) {
+      iy = x[j,]
+      ans[i,j] = sum(ix!=iy)
+    }
+  }
+  ans = ans + t(ans)
+  rownames(ans) = colnames(ans) = rownames(x)
+  
+  MPdistImpute(stats::as.dist(ans))
 }
 
 
@@ -132,42 +161,83 @@ dist.pc1 = function(x) {
 
 
 
-##' Compute distance using spearman rho
+##' Compute dissimilarity using correlation
 ##'
-##' This function rows as features and columns as features. 
-##' 
 ##' @param x matrix of values
-##' 
+##' @param directional logical, set TRUE to get dissimilarities as (1-r) and FALSE
+##' to compute dissimilarities as (1-abs(r))
+##' @param use.ranks logical, set TRUE to use rho correlation for ranks
+##'
 ##' @export
-dist.spearman = function(x) {
+dist.correlation = function(x, directional=TRUE, use.ranks=FALSE) {
+
+  ## helper: computing correlation using centered values
+  centered.corr = function (a, b) {
+    sum(a*b) / sqrt(sum(a*a)*sum(b*b))
+  }
+
+  nn = nrow(x)
+  xrownames = rownames(x)
   
+  ## transpose the matrix so most computations will be done by column
   x = t(x)
-    
-  ## helper function for computing spearman rho from ranks
-  rhoFromRanks = function (xranks, yranks, xmid, ymid) {
-    TA = sum((xranks - xmid) * (yranks - ymid))
-    TB = sqrt(sum((xranks - xmid)^2) * sum((yranks - ymid)^2))
-    return(TA/TB)
+  if (use.ranks) {
+    x = apply(x, 2, rank)
   }
   
-  nn = ncol(x)
+  ## center the matrix
+  x = sweep(x, 2, apply(x, 2, mean))
   
-  ## precompute ranks for all columns
-  xranks = apply(x, 2, rank)
-  rankmeans = apply(xranks, 2, mean)
-  
-  ## make a matrix with distances
+  ## compute correlations
   ans = matrix(0, ncol=nn, nrow=nn)
   for (i in 1:(nn-1)) {
+    ix = x[,i]
     for (j in (i+1):nn) {
-      nowdist = 1-abs(rhoFromRanks(xranks[,i], xranks[,j], rankmeans[i], rankmeans[j]))
-      ans[i,j] = nowdist
+      iy = x[,j]
+      ans[i,j] = centered.corr(ix, iy)
     }
   }
-  ans[lower.tri(ans)] = t(ans)[lower.tri(ans)]
-  rownames(ans) = colnames(ans) = colnames(x)
-  
+  ans = ans + t(ans)
+  rownames(ans) = colnames(ans) = xrownames
+
+  ## apply either directional or non-directional dissimilarity
+  if (directional) {
+    ans = 1-ans
+  } else {
+    ans = 1-abs(ans)
+  }  
+  diag(ans) = 0
+
   MPdistImpute(ans)
+}
+
+
+
+
+##' Compute distance using pearson correlation r
+##' 
+##' @param x matrix of values
+##' @param directional logical, set TRUE to get dissimilarities as (1-r) and FALSE
+##' to compute dissimilarities as (1-abs(r))
+##' 
+##' @export
+dist.pearson = function(x, directional=TRUE) {
+  dist.correlation(x, directional=directional, use.ranks=FALSE)
+}
+
+
+
+
+
+##' Compute distance using spearman rho
+##' 
+##' @param x matrix of values
+##' @param directional logical, set TRUE to get dissimilarities as (1-r) and FALSE
+##' to compute dissimilarities as (1-abs(r))
+##' 
+##' @export
+dist.spearman = function(x, directional=TRUE) {
+  dist.correlation(x, directional=directional, use.ranks=TRUE)
 }
 
 
@@ -352,7 +422,8 @@ dist.dbscan = function(x, eps=1, clust.weight=0.8) {
 ##'
 ##' @param method character, one of the available options. The output function
 ##' will be able to compute dist using the specified method
-##' @param log2.shift numeric. Used with method=log2euclidean.
+##' @param directional logical, used with method=pearson and method=spearman
+##' @param log2.shift numeric, Used with method=log2euclidean.
 ##' @param clust.dist character, used with method=hclust
 ##' @param clust.method character, used with method=hclust
 ##' @param clust.weight numeric, used with method=hclust
@@ -362,8 +433,9 @@ dist.dbscan = function(x, eps=1, clust.weight=0.8) {
 ##'
 ##' @export
 MPdistFactory = function(method=c("euclidean", "manhattan", "canberra", "pc1",
-                                  "log2euclidean", "spearman",
+                                  "log2euclidean", "pearson", "spearman",
                                   "hclust", "pam", "dbscan"),
+                         directional = TRUE,
                          log2.shift = 1,   
                          clust.dist="euclidean",
                          clust.method=c("complete", "single", "average"),
@@ -383,14 +455,17 @@ MPdistFactory = function(method=c("euclidean", "manhattan", "canberra", "pc1",
     return(dist.manhattan)
   } else if (method=="pc1") {
     return(dist.pc1)
+  } else if (method=="pearson") {
+    force(directional)
+    return(function(x) { dist.pearson(x, directional=directional) })
   } else if (method=="spearman") {
-    return(dist.spearman)
+    force(directional)
+    return(function(x) { dist.spearman(x, directional=directional) })
   } else if (method=="log2euclidean") {
     force(log2.shift)
-    return(
-      function(x) {
-        dist.log2euclidean(x, shift=log2.shift)
-      })
+    return(function(x) {
+      dist.log2euclidean(x, shift=log2.shift)
+    })
   }
 
   ## the following options are sligtly more complex distance functions

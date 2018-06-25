@@ -1,6 +1,6 @@
 ## tests for functions in R/MP_helpers.R
 
-cat("\ntest_helpers.R ")
+cat("\ntest_helpers.R\n")
 
 
 ###############################################################################
@@ -102,35 +102,40 @@ mydata = cbind(A=0,
                )
 
 
-test_that("identify feature that varies most", {
-  ## create dataset with many constant features and one with some variation
+test_that("identify single feature that varies most", {
+  ## scale matters, so C wins
   output = MPsuggestTopFeatures(mydata, ncomp=1)
-  expected = c("B", "C")
-  expect_equal(output, expected)
+  expect_equal(output, "C") 
 })
 
 test_that("identify feature that varies most (fractional n)", {
-  ## create dataset with many constant features and one with some variation
   output = MPsuggestTopFeatures(mydata, ncomp=0.05)
   expected = MPsuggestTopFeatures(mydata, ncomp=1)
   expect_equal(output, expected)
 })
 
-
-
-test_that("identify set of features", {
-  ## create dataset with many constant features and one with some variation
+test_that("identify top set of features", {
   output = MPsuggestTopFeatures(mydata, ncomp=2)
-  expected = c("B", "C", "H", "K")
-  expect_equal(output, expected)
+  expect_equal(output, c("B", "C", "K"))
 })
 
-test_that("identify small set of features  ", {
-  ## create dataset with many constant features and one with some variation
+test_that("identify top features using custom ncomp", {
   output = MPsuggestTopFeatures(mydata, ncomp=function(x) { sqrt(x) } )
   expected = c("B", "C", "G", "H", "K")
-  expect_equal(length(output), length(expected))
+  expect_equal(output, c("B", "C", "G", "H", "K"))
 })
+
+test_that("identify top features using very small dataset", {
+  output = MPsuggestTopFeatures(mydata[, c("A", "B")])
+  expect_equal(output, c("B"))
+})
+
+test_that("identify top features on constant data", {
+  output = MPsuggestTopFeatures(mydata[, c("A"), drop=FALSE])
+  expect_equal(output, NULL)
+})
+
+
 
 
 
@@ -201,12 +206,12 @@ test_that("creating square limits (some negative)", {
 })
 
 
-test_that("test cmd/tsne map", {
+test_that("create cmdscale and umpa meta-map", {
   d4 = dist(MPdata4S[, 1:2])
-  output_cmd = MPgetMap(d4)
+  output_cmd = MPgetMap(d4, method="cmdscale", seed=123, n.epochs=20)
   expect_equal(dim(output_cmd), c(nrow(MPdata4S), 2))
-  output_tsne = MPgetMap(d4, tsne=TRUE)
-  expect_equal(dim(output_tsne), c(nrow(MPdata4S), 2))
+  output_umap = MPgetMap(d4, method="umap", seed=123, n.epochs=20)
+  expect_equal(dim(output_umap), c(nrow(MPdata4S), 2))
 })
 
 
@@ -247,7 +252,4 @@ test_that("randomize repeatedly should give different result", {
 })
 
 
-
-
-## tests for MPcutree
 

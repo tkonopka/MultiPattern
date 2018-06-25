@@ -4,19 +4,14 @@
 \alias{MPgetMap}
 \title{Create a map for a distance object/matrix}
 \usage{
-MPgetMap(d, tsne = FALSE, perplexity = 40, max_iter = 1, whiten = FALSE)
+MPgetMap(d, method = c("umap", "cmdscale"), ...)
 }
 \arguments{
 \item{d}{distance object}
 
-\item{tsne}{logical, determine if use tsne for map layout}
+\item{method}{character, method to prepare map}
 
-\item{perplexity}{integer, passed on to tsne(), slightly larger than default}
-
-\item{max_iter}{integer, passed on to tsne(), much lower default than in
-tsne's default}
-
-\item{whiten}{logical, passed on to tsne(), different default than tsne()}
+\item{...}{other parameters can be passed to umap}
 }
 \description{
 This function uses cmdscale, or tsne.

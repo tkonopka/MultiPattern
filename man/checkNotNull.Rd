@@ -14,3 +14,4 @@ checkNotNull(x, msg)
 \description{
 check that object x is not null, or stop
 }
+\keyword{internal}

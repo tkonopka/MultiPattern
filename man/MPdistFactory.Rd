@@ -5,16 +5,18 @@
 \title{Generates a function with syntax f(x) that returns a dist object}
 \usage{
 MPdistFactory(method = c("euclidean", "manhattan", "canberra", "pc1",
-  "log2euclidean", "spearman", "hclust", "pam", "dbscan"), log2.shift = 1,
-  clust.dist = "euclidean", clust.method = c("complete", "single",
-  "average"), clust.weight = 0.8, clust.k = 2, clust.alt = FALSE,
-  eps = 1)
+  "log2euclidean", "pearson", "spearman", "hclust", "pam", "dbscan"),
+  directional = TRUE, log2.shift = 1, clust.dist = "euclidean",
+  clust.method = c("complete", "single", "average"), clust.weight = 0.8,
+  clust.k = 2, clust.alt = FALSE, eps = 1)
 }
 \arguments{
 \item{method}{character, one of the available options. The output function
 will be able to compute dist using the specified method}
 
-\item{log2.shift}{numeric. Used with method=log2euclidean.}
+\item{directional}{logical, used with method=pearson and method=spearman}
+
+\item{log2.shift}{numeric, Used with method=log2euclidean.}
 
 \item{clust.dist}{character, used with method=hclust}
 

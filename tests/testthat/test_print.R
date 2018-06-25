@@ -1,7 +1,7 @@
 ## tests for functions in MP_print.R
 ## (These are rudimentary tests that just check if an outut was produced or not)
 
-cat("\ntest_print.R ")
+cat("\ntest_print.R\n")
 
 
 ###############################################################################
@@ -28,7 +28,7 @@ test_that("print general info on MP analysis", {
   ## lines with particular information
   expect_message(print.MultiPattern(mptest), "observations")
   expect_message(print.MultiPattern(mptest), "features")
-  expect_message(print.MultiPattern(mptest), "analyses")
+  expect_message(print.MultiPattern(mptest), "analysis")
 })
 
 test_that("print info on MP settings", {

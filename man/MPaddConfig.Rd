@@ -12,12 +12,13 @@ MPaddConfig(MP, config.name, data.name = names(MP$data)[1],
 
 \item{config.name}{character, base name for new subspace/distance}
 
-\item{data.name}{character, name for data component in MP object. Defaults to first dataset
-declared in MP.}
+\item{data.name}{character, name for data component in MP object. Defaults
+to first dataset declared in MP.}
 
-\item{preprocess}{function or feature set, data preprocessing applied before distance function.
-Can be a single value or a list. Defaults to NULL, which indicates no preprocessing is required.
-When a function, the function is applied on the dataset prior to computing dissimilarities.
+\item{preprocess}{function or feature set, data preprocessing applied before
+distance function. Can be a single value or a list. Defaults to NULL, which
+indicates no preprocessing is required. When a function, the function is
+applied on the dataset prior to computing dissimilarities.
 When a vector (character or integer), it is interpreted a feature set of the dataset;
 dissimilarities are then computed on this subspace of the data.}
 

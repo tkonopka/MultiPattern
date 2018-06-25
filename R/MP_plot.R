@@ -41,15 +41,15 @@ MPplotmap = function(xylayout, color=c(),
   RcssCompulsoryClass = RcssGetCompulsoryClass(Rcssclass)
   RcssOverload()
   
-  ## for ease-of-use, allow input to be a list of layouts
+  ## allow input to be a list of layouts
   if (class(xylayout)=="list") {
-    for (i in 1:length(xylayout)) {           
+    for (i in 1:length(xylayout)) {
       MPplotmap(xylayout[[i]], color=color, xypadding=xypadding,
                 main=paste0(main, " - ", names(xylayout)[i]),
                 squarexy=squarexy, label=label,
                 highlight.points=highlight.points)
     }
-    return();       
+    return();
   }
   
   ## --- Determine which rows are plain, color, and highlighted   
@@ -80,24 +80,23 @@ MPplotmap = function(xylayout, color=c(),
   }
   
   ## add elements to the first plot
-  plot(xlim, ylim, type="n", xlim=xlim, ylim=ylim,
-           xaxs="i", yaxs="i", ...)  
-  rect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="box")    
+  plot(xlim, ylim, type="n", xlim=xlim, ylim=ylim, xaxs="i", yaxs="i", ...)  
+  rect(xlim[1], ylim[1], xlim[2], ylim[2], Rcssclass="box")
+  highlight.text = names(highlight.points)
   if (label) {        
     if (length(normal.rows)>0) {
-      text(xylayout[normal.rows,1], xylayout[normal.rows,2],
-               normal.rows)
+      text(xylayout[normal.rows,1], xylayout[normal.rows,2], normal.rows)
     }
     for (nowg in names(color)) {
       color.rows = color[[nowg]]
       if (length(color.rows)>0) {
         text(xylayout[color.rows,1], xylayout[color.rows,2],
-                 color.rows, Rcssclass=nowg)
+             color.rows, Rcssclass=nowg)
       }
     }        
     if (length(highlight.rows)>0) {
       text(xylayout[highlight.rows,1], xylayout[highlight.rows,2],
-               highlight.rows, Rcssclass="highlight")
+           highlight.rows, Rcssclass="highlight")
     }            
   } else {
     if (length(normal.rows)>0) {
@@ -106,20 +105,15 @@ MPplotmap = function(xylayout, color=c(),
     for (nowg in names(color)) {
       color.rows = color[[nowg]]
       if (length(color.rows)>0) {
-        points(xylayout[color.rows,1], xylayout[color.rows,2],
-                           Rcssclass=nowg)
+        points(xylayout[color.rows,1], xylayout[color.rows,2], Rcssclass=nowg)
       }
     }
     ## draw the highlight dots
     if (length(highlight.rows)>0) {
       points(xylayout[highlight.rows, 1],
-                 xylayout[highlight.rows, 2],
-                 Rcssclass="highlight")
+             xylayout[highlight.rows, 2],
+             Rcssclass="highlight")
       if (length(highlight.points)>0) {
-        nowtext = highlight.points
-        if (legend.separate) {
-          nowtext = names(highlight.points);                    
-        }
         text(xylayout[highlight.points, 1],
              xylayout[highlight.points, 2],
              names(highlight.points),
@@ -138,7 +132,7 @@ MPplotmap = function(xylayout, color=c(),
       tempy = seq(ylim[2], ylim[1], length=nnp+2)[2:(nnp+1)] 
       points(rep(xlim[1], nnp), tempy,  Rcssclass="highlight") 
       text(rep(xlim[1], nnp), tempy,
-           paste0(nowtext, " - ", highlight.points), pos=4,
+           paste0(highlight.text, " - ", highlight.points), pos=4,
            Rcssclass="highlight")            
     }
     if (length(color)>0) {
@@ -189,7 +183,7 @@ MPplotScatterWithK = function(coords, clust, Gnames=TRUE, main="",
   for (i in names(xycut)) {
     xy.coords[[i]] = coords[xycut[[i]],, drop=FALSE]
   }
-  
+
   xylim = MPsquarelim(coords[,1], coords[,2])
   xlim = xylim$xlim
   ylim = xylim$ylim
