@@ -99,7 +99,7 @@ MPgetRandomSubspaces = function(f, n, d=4, oversample=4) {
 ##' 
 ##' @export
 MPsuggestTopFeatures = function(x, ncomp=function(y) { 1+sqrt(y) },
-                                iqrfactor=function(y) { log(y)} ) {
+                                iqrfactor=function(y) { 0.5+log(y)} ) {
   
   ## transform the data using PCA
   if (class(x)!="prcomp") {
@@ -108,7 +108,7 @@ MPsuggestTopFeatures = function(x, ncomp=function(y) { 1+sqrt(y) },
     if (ncol(x)<2) {
       return(colnames(x))
     }
-    x = prcomp(x)
+    x = prcomp(x, scale.=FALSE)
   }
   
   ## convert the ncomp into an integer
@@ -126,7 +126,7 @@ MPsuggestTopFeatures = function(x, ncomp=function(y) { 1+sqrt(y) },
   if (class(iqrfactor)=="function") {
     iqrfactor = iqrfactor(nrow(x$rotation))
   }
-  
+
   ## look at the top ncomp components and find features that contribute more than others
   ans = list()
   for (i in 1:ncomp) {

@@ -5,7 +5,7 @@
 \title{Make a suggestion for interesting features in a dataset based on PCA weights}
 \usage{
 MPsuggestTopFeatures(x, ncomp = function(y) {     1 + sqrt(y) },
-  iqrfactor = function(y) {     log(y) })
+  iqrfactor = function(y) {     0.5 + log(y) })
 }
 \arguments{
 \item{x}{dataset or prcomp object}

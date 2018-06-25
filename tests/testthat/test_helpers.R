@@ -88,24 +88,24 @@ test_that("get random subspaces gives error when requested d is too large", {
 
 ## create dataset with many constant featres, some varying features
 mylen = 20
+myseq = 1:mylen
 mydata = cbind(A=0,
-               B=(1:mylen)/2,
-               C=1:mylen,
-               D=5,
-               E=11,
-               F=0.3,
-               G=rep(c(0.01, 0.02, 0.03, 0.04), 5),
+               B=myseq^0.95,
+               C=1e5+(myseq^2),
+               D=5+log2(400+myseq),
+               E=11+(myseq^1.3/2000),
+               F=0.3+(myseq^1.4)/2000,
+               G=rep(c(0.01, 0.02, 0.03, 0.04), 5)+(myseq/20),
                H=rep(c(0.1, 0.2, 0.3, 0.4), each=5), 
-               I=-100,
-               J=999,
-               K=(1:mylen)*(mylen:1)/1000
+               I=-100+(myseq^1.1)/2000,
+               J=999+(myseq^1.2)/2000,
+               K=myseq*rev(myseq)/10
                )
-
 
 test_that("identify single feature that varies most", {
   ## scale matters, so C wins
   output = MPsuggestTopFeatures(mydata, ncomp=1)
-  expect_equal(output, "C") 
+  expect_equal(output, c("B", "C"))
 })
 
 test_that("identify feature that varies most (fractional n)", {
@@ -121,8 +121,7 @@ test_that("identify top set of features", {
 
 test_that("identify top features using custom ncomp", {
   output = MPsuggestTopFeatures(mydata, ncomp=function(x) { sqrt(x) } )
-  expected = c("B", "C", "G", "H", "K")
-  expect_equal(output, c("B", "C", "G", "H", "K"))
+  expect_equal(output, c("B", "C", "H", "K"))
 })
 
 test_that("identify top features using very small dataset", {
