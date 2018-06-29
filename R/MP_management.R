@@ -338,9 +338,6 @@ MPeasyConfig = function(MP, data=NULL, config.prefix="",
                                "manhattan", "hclust", "pam", "dbscan"),
                         preprocess=NULL) {
   
-  ## capture MP expression for assignment at the end
-  ##captureMP = deparse(substitute(MP))
-  
   if (!is.null(data)) {
     data.missing = data[!(data %in% names(MP$data))]
     if (length(data.missing)) {

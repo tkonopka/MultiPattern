@@ -107,7 +107,7 @@ hamming.MultiPatternPlugin = function(MP, data.name, config.prefix,
   
   ## fetch the data and make sure it is positive	
   nowdata = MP$data[[data.name]]
-  
+
   ## identify factor or character columns
   if (is.null(preprocess)) {
     if ("data.frame" %in% class(nowdata)) {
@@ -124,7 +124,7 @@ hamming.MultiPatternPlugin = function(MP, data.name, config.prefix,
     hamming.columns = preprocess
   }
   hamming.length = length(hamming.columns)
-  
+
   if (hamming.length==0) {
     return(MP)
   }

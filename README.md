@@ -32,7 +32,7 @@ Each of the suggested partitions reveals a reasonable pattern. Follow-up analyse
 
 ## Documentation
 
-The package documentation and vignette contains details about the package usage. The vignette also describes applications of alternative clusterings and provides links to relevant literature.
+The package documentation and vignette contains details about the package usage. 
 
 
 
@@ -40,14 +40,16 @@ The package documentation and vignette contains details about the package usage.
 
 The package code is available under a GPL-2 license.
 
-Parts of the package use third-party components. You should install these on your
-R platform before running MultiPattern.
+Parts of the package use third-party components. These pacakges should be installed before running MultiPattern.
 
 - [Rcssplot](https://github.com/tkonopka/Rcssplot) - styling for graphics
 - [cluster] - methods for cluster analysis
+- [dbscan] - density-based clustering
+- [fastICA] - independent-component analysis
 - [NMF] - non-negative matrix factorization
 - [rpca] - robust principal components analysis
 - [knitr] - report generation (vignettes)
 - [rmarkdown] - report generation (vignettes)
+- [umap] - visualization of meta-map
 
 
