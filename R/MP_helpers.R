@@ -295,9 +295,9 @@ MPgetMap = function(d, method=c("umap", "cmdscale"), ...) {
     conf = umap::umap.defaults
     conf$init = "spectral"
     conf$input = "dist"
-    conf$min.dist = 0.2
+    conf$min_dist = 0.2
     V = nrow(d)
-    conf$n.neighbors = min(V-1, 1+floor(sqrt(V)))
+    conf$n_neighbors = min(V-1, 1+floor(sqrt(V)))
     ans = suppressWarnings(umap::umap(d, conf, ...))
     ans = ans$layout
   } else if (method=="cmdscale") {

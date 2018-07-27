@@ -16,7 +16,7 @@ Imports:
     Rcssplot (>= 0.3.0),
     rpca,
     stats,
-    umap,
+    umap (>= 0.2.0),
     utils
 License: GPL-2
 LazyData: true
