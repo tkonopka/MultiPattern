@@ -190,57 +190,63 @@ MPmakePrepFunction = function(a) {
 
 
 
+## compute an appropriate number of components for ica, pca
+##
+## n.col - integer, number of columns (features) in data matrix
+## n.comp - desired number of components (works with n.comp<1)
+##
+get.n.comp = function(n.col, n.comp) {
+  if (n.col < 2 | n.comp<=0) {
+    return (NULL)
+  }
+  if (n.comp<=1) {
+    n.comp = n.comp*n.col
+  }
+  max(2, min(ceiling(n.comp), n.col))
+}
+
+
+
 ## helper function cuts a matrix into a small with at least 2 columns
 ## and with all columns that contain covthreshold of the total variance
 ##
 ## dd - input matrix
-## subset - if less than one, proportion of variance explained by pca
-##          if greater than one, number of PCA components
+## n.comp - number of PCA features
+##          if less than one, a proportion of features from dd
 ##
 ## outputs a new matrix with the same number of rows as dd, with fewer columns
 ##
-getPCAsubset = function(dd, subset=0.6) {
-  if (ncol(dd)<2 | subset<=0) {
+getPCAsubset = function(dd, n.comp=4) {
+  n.comp = get.n.comp(ncol(dd), n.comp)
+  if (is.null(n.comp)) {
     return(NULL)
   }
-  ddpca = prcomp(dd)$x
-  if (subset<1) {
-    ddcov = sum(diag(cov(dd)))
-    ddpcacov = diag(cov(ddpca))
-    ## find which columns in ddpcacov explain the featuers
-    nowselect = cumsum(ddpcacov)<=subset*ddcov            
-  } else {
-    nowselect = rep(FALSE, ncol(ddpca))
-    nowselect[1:min(subset, ncol(ddpca))] = TRUE
-  }
-  nowselect[1:2] = TRUE
-  
-  ## return the transformed data
-  result = ddpca[, nowselect, drop=FALSE]
+  result = rsvd::rpca(dd, n.comp)$x
   colnames(result) = paste0("PC", seq(ncol(result)))
+  rownames(result) = rownames(dd)
   result
 }
 
 
 
 
-## transform matrix using PCA and ICA and obtain a matrix with a
+## transform matrix using ICA and obtain a matrix with a
 ## small number of components
 ##
 ## outputs a new matrix with same number of rows as dd, with fewer columns
 ##
 getICAsubset = function(dd, n.comp=2) {
-  if (ncol(dd)<2 | n.comp<=0) {
+  n.comp = get.n.comp(ncol(dd), n.comp)
+  if (is.null(n.comp)) {
     return(NULL)
   }
-  if (n.comp<1) {
-    n.comp = round(n.comp*ncol(dd))
-  }
-  n.comp = max(2, min(n.comp, ncol(dd)))
-  ddpca = prcomp(dd)$x
-  ddica = fastICA::fastICA(ddpca, n.comp)
+  ## There is PCA pre-processing here.
+  ## Somehow, that makes fastICA itself much faster and use less memeory
+  ddpca = rsvd::rpca(dd)$x
+  ddica = fastICA::fastICA(ddpca, n.comp, method="C")
   result = ddica$S[, 1:n.comp]
   colnames(result) = paste0("IC", seq(ncol(result)))
+  rownames(result) = rownames(dd)
   result
 }
 

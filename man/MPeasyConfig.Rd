@@ -4,9 +4,9 @@
 \alias{MPeasyConfig}
 \title{Add predefined configuration types to a MultiPattern configuration object}
 \usage{
-MPeasyConfig(MP, data = NULL, config.prefix = "", preprocess.prefix = "",
-  type = c("pca", "euclidean", "spearman", "canberra", "manhattan", "hclust",
-  "pam", "dbscan"), preprocess = NULL)
+MPeasyConfig(MP, data = NULL, config.prefix = "",
+  preprocess.prefix = "", type = c("pca", "euclidean", "spearman",
+  "canberra", "manhattan", "hclust", "pam", "dbscan"), preprocess = NULL)
 }
 \arguments{
 \item{MP}{MultiPattern configuration object}

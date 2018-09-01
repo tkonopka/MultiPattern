@@ -4,8 +4,8 @@
 \alias{pam.MultiPatternPlugin}
 \title{Add a set of configurations to a MultiPattern object}
 \usage{
-pam.MultiPatternPlugin(MP, data.name, config.prefix, preprocess.prefix = "",
-  preprocess = NULL)
+pam.MultiPatternPlugin(MP, data.name, config.prefix,
+  preprocess.prefix = "", preprocess = NULL)
 }
 \arguments{
 \item{MP}{MultiPattern}

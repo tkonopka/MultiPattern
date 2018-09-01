@@ -1,12 +1,21 @@
 Package: MultiPattern
 Title: Multi-Pattern Discovery Framework
-Version: 0.0.1.0
-Authors@R: person("Tomasz", "Konopka", email = "tokonopka@gmail.com", role = c("aut", "cre"))
+Version: 0.0.1.1
+Authors@R: person("Tomasz", "Konopka",
+	   	  email = "tokonopka@gmail.com",
+		  role = c("aut", "cre"))
 Author: Tomasz Konopka [aut, cre]
 Maintainer: Tomasz Konopka <tokonopka@gmail.com>
-Description: Multi-pattern discovery is a task in exploratory data analysis. Similarly as in clustering, its goal is to identify patterns in data. However, whereas conventional clustering aims to output one clustering solution, a multi-pattern analysis is based on the idea that complex data may encode more than meaningful structure. Thus, a multi-pattern analysis aims to characterize more than one pattern and describe the relations between them. The MultiPattern package provides an interface to several pattern-finding algorithms and provides tools for performing cross-cutting meta-comparisons and visualizations.
+Description: Multi-pattern discovery is a task in exploratory data analysis.
+    Similarly as in clustering, its goal is to identify patterns in data. However,
+    whereas conventional clustering aims to output one clustering solution, a
+    multi-pattern analysis is based on the idea that complex data may encode more
+    than meaningful structure. Thus, a multi-pattern analysis aims to characterize
+    more than one pattern and describe the relations between them. The MultiPattern
+    package provides an interface to several pattern-finding algorithms and provides
+    tools for performing cross-cutting meta-comparisons and visualizations.
 Depends:
-    R (>= 3.4.1)
+    R (>= 3.4.0)
 Imports:
     cluster,
     dbscan,
@@ -15,6 +24,7 @@ Imports:
     NMF,
     Rcssplot (>= 0.3.0),
     rpca,
+    rsvd,
     stats,
     umap (>= 0.2.0),
     utils
@@ -25,4 +35,4 @@ Suggests:
     rmarkdown,
     testthat
 VignetteBuilder: knitr
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

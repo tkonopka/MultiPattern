@@ -7,8 +7,6 @@
 ## General package maintenance - import functions from packages
 #' @import stats
 #' @import utils
-#' @import cluster
-#' @import fastICA
 #' @import graphics
 #' @import Rcssplot
 NULL

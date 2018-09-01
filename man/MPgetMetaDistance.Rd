@@ -4,8 +4,8 @@
 \alias{MPgetMetaDistance}
 \title{Compare MultiPattern similarity matrices}
 \usage{
-MPgetMetaDistance(MPS, standardize = MPrankNeighbors, alpha = 1, beta = 2,
-  ...)
+MPgetMetaDistance(MPS, standardize = MPrankNeighbors, alpha = 1,
+  beta = 2, ...)
 }
 \arguments{
 \item{MPS}{a MultiPatternSimilarities object (list of similarity matrices)}

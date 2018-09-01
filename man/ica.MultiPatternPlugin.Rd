@@ -4,8 +4,8 @@
 \alias{ica.MultiPatternPlugin}
 \title{Add a set of configurations to a MultiPattern object}
 \usage{
-ica.MultiPatternPlugin(MP, data.name, config.prefix, preprocess.prefix = "",
-  preprocess = NULL)
+ica.MultiPatternPlugin(MP, data.name, config.prefix,
+  preprocess.prefix = "", preprocess = NULL)
 }
 \arguments{
 \item{MP}{MultiPattern}

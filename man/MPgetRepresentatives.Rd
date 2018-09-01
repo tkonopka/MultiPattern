@@ -4,8 +4,8 @@
 \alias{MPgetRepresentatives}
 \title{Identify representative points from a distance object}
 \usage{
-MPgetRepresentatives(d, subsets = NULL, method = c("complete", "single",
-  "average", "pam", "extreme"), k = 0.05)
+MPgetRepresentatives(d, subsets = NULL, method = c("complete",
+  "single", "average", "pam", "extreme"), k = 0.05)
 }
 \arguments{
 \item{d}{dist object or dist-like matrix}

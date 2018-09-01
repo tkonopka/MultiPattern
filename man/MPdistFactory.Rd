@@ -7,8 +7,8 @@
 MPdistFactory(method = c("euclidean", "manhattan", "canberra", "pc1",
   "log2euclidean", "pearson", "spearman", "hclust", "pam", "dbscan"),
   directional = TRUE, log2.shift = 1, clust.dist = "euclidean",
-  clust.method = c("complete", "single", "average"), clust.weight = 0.8,
-  clust.k = 2, clust.alt = FALSE, eps = 1)
+  clust.method = c("complete", "single", "average"),
+  clust.weight = 0.8, clust.k = 2, clust.alt = FALSE, eps = 1)
 }
 \arguments{
 \item{method}{character, one of the available options. The output function

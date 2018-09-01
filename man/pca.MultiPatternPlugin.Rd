@@ -4,8 +4,8 @@
 \alias{pca.MultiPatternPlugin}
 \title{Add a set of configurations to a MultiPattern object}
 \usage{
-pca.MultiPatternPlugin(MP, data.name, config.prefix, preprocess.prefix = "",
-  preprocess = NULL)
+pca.MultiPatternPlugin(MP, data.name, config.prefix,
+  preprocess.prefix = "", preprocess = NULL)
 }
 \arguments{
 \item{MP}{MultiPattern}

@@ -7,8 +7,8 @@ which provides a cross-validation of sorts and reduces computation load for larg
 datasets.}
 \usage{
 MPgetAverageMetaDistance(MP, standardize = MPrankNeighbors,
-  subsample.N = NULL, subsample.R = NULL, alpha = NULL, beta = NULL,
-  verbose = TRUE, ...)
+  subsample.N = NULL, subsample.R = NULL, alpha = NULL,
+  beta = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{MP}{MultiPattern configuration object}

@@ -4,8 +4,8 @@
 \alias{rpca.MultiPatternPlugin}
 \title{Add a set of configurations to a MultiPattern object}
 \usage{
-rpca.MultiPatternPlugin(MP, data.name, config.prefix, preprocess.prefix = "",
-  preprocess = NULL)
+rpca.MultiPatternPlugin(MP, data.name, config.prefix,
+  preprocess.prefix = "", preprocess = NULL)
 }
 \arguments{
 \item{MP}{MultiPattern}

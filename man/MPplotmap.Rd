@@ -4,9 +4,10 @@
 \alias{MPplotmap}
 \title{Custom function to draw mds maps. Uses Rcssplot and some hard settings}
 \usage{
-MPplotmap(xylayout, color = c(), highlight.points = c(), xypadding = 0.05,
-  main = "", legend.separate = FALSE, squarexy = TRUE, label = FALSE,
-  Rcss = "default", Rcssclass = c(), ...)
+MPplotmap(xylayout, color = c(), highlight.points = c(),
+  xypadding = 0.05, main = "", legend.separate = FALSE,
+  squarexy = TRUE, label = FALSE, Rcss = "default",
+  Rcssclass = c(), ...)
 }
 \arguments{
 \item{xylayout}{matrix or list. When matrix, should contain two columns x/y for positions of

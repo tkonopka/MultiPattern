@@ -252,3 +252,39 @@ test_that("randomize repeatedly should give different result", {
 
 
 
+###############################################################################
+## Dimensional reduction with PCA and ICA
+
+
+test_that("computing n.comp for pca and ica", {
+  ## cases to signal decomposition is not appropriate
+  expect_null(get.n.comp(10, 0))
+  expect_null(get.n.comp(1, 1))
+  expect_null(get.n.comp(1, 2))
+  ## standard case
+  expect_equal(get.n.comp(5, 2), 2)
+  ## using fractional n.comp
+  expect_equal(get.n.comp(8, 0.5), 4)
+  expect_equal(get.n.comp(8, 0.48), 4)
+  expect_equal(get.n.comp(8, 0.51), 5)
+  expect_equal(get.n.comp(8, 1.2), 2)
+  ## n.comp too large
+  expect_equal(get.n.comp(8, 10), 8)
+})
+
+
+test_that("getPCA creates proper named output", {
+  temp = cbind(MPdata6S[,1:2], MPdata4S[,1:2])
+  temp.pca = getPCAsubset(temp, 2)
+  expect_equal(colnames(temp.pca), c("PC1", "PC2"))
+  expect_equal(rownames(temp.pca), rownames(temp))
+})
+
+
+test_that("getICA creates proper named output", {
+  temp = cbind(MPdata6S[,1:2], MPdata4S[,1:2])
+  temp.ica = getICAsubset(temp, 2)
+  expect_equal(colnames(temp.ica), c("IC1", "IC2"))
+  expect_equal(rownames(temp.ica), rownames(temp))
+})
+

@@ -130,8 +130,8 @@ test_that("easy PCA up to 3", {
 
 test_that("easy PCA up to fraaction", {
   mp = MPnew(snames, data=list(abc=abc))
-  ## ask for number of PCs to be half of the variance (here PC1 and PC2)
-  mp = MPchangeSettings(mp, list(num.PCs=0.5))
+  ## ask for number of PCs as a fraction, here 0.33*6 ~ 2
+  mp = MPchangeSettings(mp, list(num.PCs=0.33))
   mp = MPeasyConfig(mp, data="abc", type="pca")
   expected = paste0("abc:", pca2)
   expect_equal(confNames(mp), expected)

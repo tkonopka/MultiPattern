@@ -331,7 +331,7 @@ pca.MultiPatternPlugin = function(MP, data.name, config.prefix,
   numPCs = MP$settings$num.PCs
   
   ## get matrices with the all the raw data and with PCA transformed data
-  datapca = getPCAsubset(MP$data[[data.name]], subset=numPCs)
+  datapca = getPCAsubset(MP$data[[data.name]], n.comp=numPCs)
   if (is.null(datapca)) {
     return(MP)
   }
